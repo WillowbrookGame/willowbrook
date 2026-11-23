@@ -1,7 +1,16 @@
-Air hockey by Ludovic Dupont (korial29), https://github.com/korial29/air-hockey
-Pinned upstream commit: 6627de2d20b1ce8a62627cb0211e5475d2adf47d
-License: Apache-2.0, bundled LICENSE.txt. No upstream NOTICE file was present.
-Built locally from pinned TypeScript source using its locked development dependencies; no runtime dependency or remote asset fetch.
-Willowbrook modifications: client inline styles externalized to hockey.css for existing CSP; keyboard input API added; host integration uses authenticated existing app transport rather than the standalone upstream server or BroadcastChannel. The authoritative Room bundle is unmodified upstream source.
-The upstream game includes original canvas-drawn themed art, prediction and three-round physics. It does not use the separately downloaded Kenney artwork.
-Client patch is preserved at tools/air-hockey-client.patch. Build: npm ci --ignore-scripts; node node_modules/vite/bin/vite.js build; BUILD_SERVER=true for Room bundle. No production server is started by these artifacts.
+Air Hockey by Ludovic Dupont (korial29)
+Upstream: https://github.com/korial29/air-hockey
+Pinned upstream tree: https://github.com/korial29/air-hockey/tree/6627de2d20b1ce8a62627cb0211e5475d2adf47d
+License: Apache-2.0. See the accompanying verbatim LICENSE.txt. Upstream's current public root lists LICENSE and no NOTICE; no upstream NOTICE was recorded for the pinned snapshot in the original integration.
+
+The authoritative Room JavaScript bundle in this directory was built
+from unmodified upstream Room source. room.js re-exports the built
+assets module. The separate Willowbrook server adapter calls the Room
+over the authenticated Willowbrook transport; this does not make the
+upstream Room bundle a modified file.
+
+The original integration used the pinned upstream TypeScript and
+lockfile, with npm ci --ignore-scripts and BUILD_SERVER=true during the
+Vite production build. The separately packaged browser client carries
+its own per-file modification notices. The repository-level Willowbrook
+license does not replace Apache-2.0 here.

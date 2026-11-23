@@ -47,6 +47,15 @@ foreach($family in 'parent.html','family-desk.css','family-desk.js','avatar-thum
 $engineNotice=Join-Path $outPath 'GODOT-NOTICES.txt'
 & $godotPath --headless --path $project --script (Join-Path $PSScriptRoot 'write-engine-notices.gd') -- $engineNotice
 if($LASTEXITCODE -ne 0 -or !(Test-Path -LiteralPath $engineNotice -PathType Leaf)){throw 'Godot license/third-party notice generation failed.'}
-Copy-Item -LiteralPath (Join-Path $project 'THIRD_PARTY_ART.md') -Destination $outPath
+$releaseNotices = [ordered]@{
+ 'LICENSE' = 'LICENSE'
+ 'LICENSING.md' = 'LICENSING.md'
+ 'THIRD_PARTY_ART.md' = 'THIRD_PARTY_ART.md'
+ 'paintball_prototype/beach_audio/SOURCES.md' = 'THIRD_PARTY_BEACH_AUDIO.md'
+ 'paintball_prototype/scuba/audio/SOURCES.md' = 'THIRD_PARTY_SCUBA_AUDIO.md'
+}
+foreach($source in $releaseNotices.Keys){
+ Copy-Item -LiteralPath (Join-Path $project $source) -Destination (Join-Path $outPath $releaseNotices[$source])
+}
 Write-Output "Preview export: $outPath"
 Write-Output "To start the local server, see the repository README."

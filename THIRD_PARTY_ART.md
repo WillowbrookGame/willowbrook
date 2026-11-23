@@ -1,6 +1,6 @@
-# Third-party art notices — release draft
+# Third-party art notices
 
-**Local audit draft, 2026-11-23. Not approval to publish.** This inventory covers the exact Scuba R6 Godot candidate source tree. Runtime inclusion was checked separately against the R6-final Web export, whose `index.pck` SHA-256 is `c0e8265a06730a614856e9290e56422fad592d9d4652ab16e6e071faaab753b3`. It does not cover audio, software dependencies, private test data, server configuration, or repository history. Recheck new or changed art against the exact release tree.
+**Provenance reviewed 2026-11-23.** This inventory documents the art carried forward from the Scuba R6 project. The original runtime check used the R6-final Web export, whose `index.pck` SHA-256 is `c0e8265a06730a614856e9290e56422fad592d9d4652ab16e6e071faaab753b3`. It does not cover audio, software dependencies, private test data, server configuration, or repository history. Recheck new or changed art against the exact release tree.
 
 ## What this means
 
@@ -72,10 +72,10 @@ The owner-retained Collectible Run GLB has 1,761,132 bytes and SHA-256 `f5edf3fa
 - `browser-preview/willowbrook-favicon.svg`: original willow-and-creek SVG made for this release candidate, replacing the unverified older favicon. See `browser-preview/BRANDING.md` for exact provenance and hash.
 - The stock Godot emblem and its import metadata are not in the clean tree. The Willowbrook SVG is the configured project icon. Engine notices remain in GODOT-NOTICES.txt.
 
-## Holds before release
+## Distribution checklist
 
-1. Publish only an exact reviewed tree, with the code license explicitly scoped away from third-party art. Keep the Shuriken notices and applicability evidence, credit any retained Godot logo, resolve or replace the browser favicon, and close any remaining item-level questions. Where an asset is uncertain, remove it only after verifying that its cleared replacement preserves a playable default game.
+1. Publish only an exact reviewed tree, with the code license explicitly scoped away from third-party art. Keep the Shuriken notices and applicability evidence and close any item-level questions for newly added or changed art. Where an asset is uncertain, remove it only after verifying that its cleared replacement preserves a playable default game.
 2. Do not include incoming asset ZIPs, unrelated asset packs such as the downloaded mixed-license Coral Reef Kit or the unused KayKit animation ZIP, separate marketplace downloads, or standalone original/intermediate Shuriken copies unrelated to the functioning game. An integrated runtime model is not a redistribution bundle.
 3. Ship this notice and applicable license text alongside both source and compiled releases. The current export excludes Markdown and its packed art does not itself supply a complete notice set. Validate notices are visible and included in the exact archive and download; a file in the development tree alone is not enough.
-4. Complete separate audio, dependency, secret, player-data and history gates. This draft neither clears those items nor authorizes a push or deployment.
+4. Complete separate audio, dependency, secret, player-data and history gates. This inventory covers art only.
 
