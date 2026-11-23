@@ -84,6 +84,21 @@ writer lock while any instance may be using the account store.
 
 For Dockge, put the same files inside a new dedicated stack directory and use the
 Compose files above. Use the terminal for one-time provisioning and the explicit
-two-file HTTPS command; do not paste a password into the stack editor. Online
-Paintball needs a separate authoritative Godot worker and is not configured here;
-solo remains available. The starter stack leaves optional Family Chat off.
+two-file HTTPS command; do not paste a password into the stack editor. The starter stack leaves optional Family Chat off.
+
+## Optional: online Paintball
+
+Use the matching Linux x86-64 Paintball runtime for this release in
+`paintball-runtime/` alongside the Compose files. It contains the pinned Godot
+4.7.2 executable, the executable `godot-paintball-stdio` wrapper, and the imported
+worker project. Keep the archive's executable permissions when extracting it.
+Use `WILLOWBROOK_PAINTBALL_RUNTIME` only to override that directory.
+
+```bash
+docker compose -f compose.yaml -f compose.https-lan.yaml -f compose.paintball.yaml up -d --build
+```
+
+Omit the HTTPS overlay for play on the server computer only. The worker uses
+local pipes and adds no network listener or publishable port. Two signed-in
+players can meet at the Paintball entrance and select Multiplayer; solo play
+remains available if the worker is disabled or unavailable.

@@ -14,15 +14,6 @@ services:
       - no-new-privileges:true
     stop_signal: SIGINT
     stop_grace_period: 15s
-    command:
-      - --port
-      - "24863"
-      - --web-root
-      - /web
-      - --accounts-dir
-      - /var/lib/willowbrook-family-desk-container
-      - --parent-desk-file
-      - /var/lib/willowbrook-family-desk-container/.willowbrook-family-desk-opt-in
     volumes:
       - type: volume
         source: willowbrook-state

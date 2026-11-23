@@ -1,0 +1,6 @@
+#!/bin/bash
+# SPDX-License-Identifier: MIT
+# Godot's pipe broker expects POSIX pipes, while Node can present sockets.
+set -o pipefail
+here="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)" || exit 1
+cat | "$here/Godot_v4.7.2-stable_linux.x86_64" "$@" | cat

@@ -1,0 +1,17 @@
+# Optional authoritative worker; combine with the private LAN overlay if desired.
+services:
+  willowbrook:
+    environment:
+      WILLOWBROOK_PAINTBALL: "1"
+      XDG_DATA_HOME: /tmp/willowbrook-paintball/data
+      XDG_CONFIG_HOME: /tmp/willowbrook-paintball/config
+      XDG_CACHE_HOME: /tmp/willowbrook-paintball/cache
+    tmpfs:
+      - /tmp:uid=1000,gid=1000,mode=0700
+    volumes:
+      - type: bind
+        source: ${WILLOWBROOK_PAINTBALL_RUNTIME:-./paintball-runtime}
+        target: /opt/willowbrook-paintball
+        read_only: true
+        bind:
+          create_host_path: false

@@ -13,4 +13,4 @@ RUN mkdir -p /var/lib/willowbrook-family-desk-container /web && \
 
 USER node
 STOPSIGNAL SIGINT
-ENTRYPOINT ["node", "/app/paintball_prototype/network/browser/server.mjs"]
+ENTRYPOINT ["node", "/app/deploy/start-container.mjs"]

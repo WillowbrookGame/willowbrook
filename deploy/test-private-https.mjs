@@ -16,6 +16,10 @@ import * as store from '../paintball_prototype/network/browser/standalone-runtim
 import { selectRuntime } from '../paintball_prototype/network/browser/runtime_source.mjs';
 
 const webRoot=resolve(process.argv[2]),cert=await readFile(process.argv[3]),key=await readFile(process.argv[4]);
+const workerPath=process.argv[5];
+const paintballOptions=workerPath?{enablePaintballLobbyTransport:true,paintballWorker:{
+ exe:process.argv[6]?resolve(process.argv[6]):resolve(workerPath,'godot-paintball-stdio'),project:process.argv[6]?resolve(workerPath):resolve(workerPath,'project')
+}}:{};
 const runtime=await selectRuntime();const source=runtime.root;const {WebSocket}=runtime.webSockets();
 const state=await mkdtemp(join(tmpdir(),'willowbrook-family-desk-'));
 const marker=join(state,'.willowbrook-family-desk-opt-in');
@@ -81,7 +85,7 @@ try{
  await writeFile(marker,'willowbrook-local-family-desk-v1\n',{mode:0o600});
  const a=await openPreviewAccounts({accountsDir:state,source,site:webRoot,makeStore:store.makeStore,seeds,allowEmpty:true,parentDeskEnabled:true});
  createFamilyDesk({accounts:a,accountFile:a.accountFile,makeStore:store.makeStore,characters:store.characters}).bootstrapOwner(owner.username,owner.password);
- backend=await startLocalServer({port:0,webRoot,accountsDir:state,parentDeskFile:marker,privateHttpsOrigin:origin});
+ backend=await startLocalServer({port:0,webRoot,accountsDir:state,parentDeskFile:marker,privateHttpsOrigin:origin,...paintballOptions});
  const login=await req('POST','/api/family-desk/login',owner);
  assert.equal(login.status,200);
  assert.equal(JSON.parse(login.body).role,'owner');
@@ -94,6 +98,42 @@ try{
   send(c.ws,{type:'move',zone:'town',x:i,y:0,z:0,yaw:0,grounded:true});
  }
  for(let i=0;i<clients.length;i++)await wait(()=>clients[i].frames.some(m=>m.type==='world'&&m.players?.some(q=>q.alias===seeds[1-i].username)));
+ if(workerPath){
+  const [first,second]=clients;
+  const waitFor=(client,pred)=>wait(()=>{
+   const at=client.frames.findIndex(pred);
+   return at<0?null:client.frames.splice(at,1)[0];
+  });
+  const lobby=(c,action,fields={})=>send(c.ws,{type:'paintballLobby',action,...fields});
+  const lobbyAck=(c,action)=>waitFor(c,m=>m.type==='paintballLobby'&&m.action===action);
+  const match=(c,action,epoch,fields={})=>send(c.ws,{type:'paintballMatch',action,epoch,...fields});
+  const matchAck=(c,action)=>waitFor(c,m=>m.type==='paintballMatch'&&m.action===action);
+  for(const c of clients)await waitFor(c,m=>m.type==='paintballCapability'&&m.available);
+  for(const c of clients){
+   send(c.ws,{type:'move',zone:'town',x:36,y:0,z:-44.7,yaw:0,moving:false,grounded:true});
+   // A fresh Town snapshot ensures the new presence has crossed the server tick.
+   c.frames.length=0;
+  }
+  for(const c of clients)await waitFor(c,m=>m.type==='world'&&m.zone==='town');
+  lobby(first,'join');assert.equal((await lobbyAck(first,'join')).ok,true);
+  lobby(first,'ready',{ready:true});assert.equal((await lobbyAck(first,'ready')).ok,true);
+  assert(!first.frames.some(m=>m.type==='paintballMatch'&&m.action==='enter'));
+  lobby(second,'join');const joined=await lobbyAck(second,'join');
+  assert.equal(joined.ok,true);
+  assert.deepEqual(joined.room.humans.map(x=>x.ready),[true,false]);
+  lobby(second,'ready',{ready:true});assert.equal((await lobbyAck(second,'ready')).ok,true);
+  const [a,b]=await Promise.all(clients.map(c=>matchAck(c,'enter')));
+  assert.equal(a.epoch,b.epoch);assert.notEqual(a.selfSlot,b.selfSlot);
+  for(const c of clients){match(c,'ready',a.epoch);assert.equal((await matchAck(c,'ready')).ok,true);}
+  match(first,'view',a.epoch);
+  const active=await matchAck(first,'view');
+  assert.equal(active.view.phase,'playing');
+  assert.equal(active.view.players.filter(p=>p.bot).length,2);
+  const frame={sequence:1,x:.9,z:0,yaw:0,pitch:0,jump:false,paint:false};
+  match(first,'input',a.epoch,{frame});assert.equal((await matchAck(first,'input')).ok,true);
+  match(first,'input',a.epoch,{frame});assert.equal((await matchAck(first,'input')).ok,false);
+  console.log('PASS trusted TLS two-account shared lobby, host-first Ready preserved, authoritative game and stale-input guard, two bots.');
+ }
  for(const c of clients)c.ws.close();
  console.log('PASS private HTTPS owner Secure cookie + two independent trusted TLS clients from 127.0.0.1 and 127.0.0.2 see one another; synthetic loopback only.');
 } finally {

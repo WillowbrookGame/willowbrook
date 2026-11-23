@@ -15,3 +15,5 @@
 !deploy/lan-config.mjs
 !deploy/start-lan.mjs
 !deploy/health-lan.mjs
+!deploy/start-container.mjs
+!deploy/container-server.mjs
