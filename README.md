@@ -3,7 +3,25 @@
 Willowbrook is a browser game families can host for their own players. This
 repository does not include any server accounts, credentials, or saves.
 
-## Build the browser files on Windows
+## Quick start: host the prebuilt game on Linux
+
+**No PowerShell, Godot, or Node.js installation is needed on the host.**
+Use a 64-bit Intel or AMD Linux machine with Docker Engine and Docker Compose.
+
+1. Download the [Linux Docker bundle from Early Alpha 1](https://github.com/WillowbrookGame/willowbrook/releases/tag/v0.1.0-alpha.1). Choose `willowbrook-linux-x86_64-preview.tar.gz` under **Assets**, not the automatically generated Source code archives.
+2. Extract it to a fresh directory and open a terminal in the extracted `willowbrook/` folder. Run `sha256sum -c SHA256SUMS` before starting.
+3. Follow the [first-start instructions](deploy/DOCKER.md#first-start) to create your owner account, start Willowbrook, and invite players from Parent Desk.
+
+Players only need a web browser. The default setup is reachable only on the
+Linux host. To play on other devices in your household, follow the
+[private LAN HTTPS instructions](deploy/DOCKER.md#optional-private-lan-https-for-a-second-device).
+
+## Developer setup
+
+The following steps are for building and testing changes from source. Skip
+them if you're using the release bundle above.
+
+### Build the browser files on Windows
 
 PowerShell is used in these build instructions, not to run the server. A host
 using an existing web export does not need PowerShell, Godot, or export templates.
@@ -19,7 +37,7 @@ $export = Join-Path $env:TEMP ('willowbrook-web-' + [Guid]::NewGuid().ToString('
 
 Use an empty output directory outside the project.
 
-## Run a local preview on Linux or Windows
+### Run a local preview on Linux or Windows
 
 With Node.js 24, run the command below from the repository root. Replace
 `/path/to/web-export` with the export directory from the same revision as the
@@ -35,12 +53,6 @@ it does not reuse existing player accounts. Stop the preview with Ctrl+C.
 
 For account and Parent Desk tests, use a fresh disposable accounts directory
 and the explicit Parent Desk opt-in. Never run tests against the live server.
-
-## Host a game on Linux with Docker
-
-Use the [household hosting guide](deploy/DOCKER.md) to run the prebuilt game,
-create the first parent account, or enable private HTTPS for other devices.
-You do not need Godot or PowerShell to run the Docker package.
 
 ## Arcade and assets
 
