@@ -1,0 +1,7 @@
+Small Passenger Ferry 25 m
+Author: Innerscene Corp
+Source: https://www.innerscene.com/tools/library/3d-parts/small-passenger-ferry-25-m-bb6ba356
+Original filename: small-passenger-ferry-25-m.glb
+Original SHA256: 3ab16972ae4f377c16929d4eb344aa203a3ca9989735a49a4e83da1d1a7e188a
+Original embedded notice: Authored by Innerscene Corp (innerscene.com). Public domain: dedicated under CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/. Free to use, modify and redistribute for any purpose, with no credit required.
+Game adaptation: whole vessel with decimated meshes, batched materials, resized original textures, compatibility glazing, and separately hinged port boarding gate. Tool: browser-preview/prepare-b11-ferry.py. Bundled local asset: innerscene-passenger-ferry.glb.

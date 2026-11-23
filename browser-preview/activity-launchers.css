@@ -1,0 +1,7 @@
+#town-activity-launchers{position:fixed;top:10px;left:10px;z-index:8;box-sizing:border-box;max-width:min(322px,calc(100vw - 154px),var(--activity-chat-limit,322px));max-height:calc(100dvh - 120px);overflow:auto;padding:2px;overscroll-behavior:contain}
+#town-activity-launchers[hidden],#town-activity-more[hidden]{display:none}
+#town-activity-launchers .activity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+#town-activity-launchers button{box-sizing:border-box;min-height:44px;min-width:0;margin:0;padding:6px 9px;font:600 14px/1.18 system-ui,sans-serif;white-space:normal;overflow-wrap:anywhere;border:1px solid #b18a43;border-radius:8px;background:#433419;color:#fff5cc;cursor:pointer;touch-action:manipulation}
+#town-activity-launchers button:focus-visible{outline:2px solid #ffe195;outline-offset:-3px}
+#town-activity-more{margin-top:4px!important;min-width:44px!important;font-size:21px!important}
+@media (max-width:480px){#town-activity-launchers button{padding:5px 6px;font-size:13px}}

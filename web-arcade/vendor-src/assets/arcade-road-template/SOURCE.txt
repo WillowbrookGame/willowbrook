@@ -1,0 +1,10 @@
+Road crossing template source audit
+Original public Pen: https://codepen.io/HunorMarton/pen/JwWLJo
+Author: Hunor Marton. Public Pen MIT license verified at https://blog.codepen.io/documentation/licensing/
+Retrieved only HTML/CSS/JS editor game sections using supported web reader, 2026-11-16. No CodePen application/account/settings metadata retained. Direct command fetch encountered a challenge and was not bypassed.
+Art: original procedural Three.js chicken, cars, trucks, trees, roads, canvas textures; no third-party image or sound downloads.
+Runtime dependency: existing local vendor/three.module.js (Three 0.182.0). Unpinned esm.sh import removed. Google Fonts removed; local monospace fallback. Promotional link/logo omitted; visible creator attribution retained.
+Adaptation: instance-scoped DOM, responsive container sizing, bounded pixel ratio, keyboard/WASD and original touch arrows, pause/resume with simulation clock, halted gameplay after collision, input queue capped at 3, retry GPU mesh cleanup, full listener/observer/renderer disposal.
+No networking, analytics, persistent storage, game currency, leaderboard or real saves.
+Original model proportions, generation, movement, collisions and visual style retained. Endless routes preserve lightweight generated metadata, but GPU row meshes are bounded to a 49-row nearby window. Off-camera geometry/materials are disposed, regenerated from the same metadata when backtracking; traffic position uses elapsed simulation time with continuous wrap so it stays consistent while unloaded. Retry/close releases all resources. Browser QA required before release.
+

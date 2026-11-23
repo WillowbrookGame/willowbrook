@@ -1,0 +1,582 @@
+{
+  "shopLayouts": {
+    "salon": [
+      {
+        "file": "salon/reception",
+        "x": 0,
+        "z": -4.8,
+        "w": 3.2,
+        "h": 1.8,
+        "d": 1,
+        "rotation": 0
+      },
+      {
+        "file": "salon/styling-station",
+        "x": -5,
+        "z": -5.2,
+        "w": 2.6,
+        "h": 3.8,
+        "d": 0.8,
+        "rotation": 0
+      },
+      {
+        "file": "chairCushion",
+        "x": -5,
+        "z": -3.4,
+        "w": 1.2,
+        "h": 1.35,
+        "d": 1.1,
+        "rotation": 3.141592653589793
+      },
+      {
+        "file": "chairCushion",
+        "x": -5,
+        "z": 3.3,
+        "w": 1.25,
+        "h": 1.3,
+        "d": 1.15,
+        "rotation": 3.141592653589793
+      },
+      {
+        "file": "salon/trolley",
+        "x": -5,
+        "z": 1.8,
+        "w": 1.1,
+        "h": 1.3,
+        "d": 0.8,
+        "rotation": 0
+      },
+      {
+        "file": "salon/styling-station",
+        "x": 5,
+        "z": -5.2,
+        "w": 2.6,
+        "h": 3.8,
+        "d": 0.8,
+        "rotation": 0
+      },
+      {
+        "file": "chairCushion",
+        "x": 5,
+        "z": -3.4,
+        "w": 1.2,
+        "h": 1.35,
+        "d": 1.1,
+        "rotation": 3.141592653589793
+      },
+      {
+        "file": "chairCushion",
+        "x": 5,
+        "z": 3.3,
+        "w": 1.25,
+        "h": 1.3,
+        "d": 1.15,
+        "rotation": 3.141592653589793
+      },
+      {
+        "file": "salon/trolley",
+        "x": 5,
+        "z": 1.8,
+        "w": 1.1,
+        "h": 1.3,
+        "d": 0.8,
+        "rotation": 0
+      },
+      {
+        "file": "pottedPlant",
+        "x": -7.6,
+        "z": 4.8,
+        "w": 0.9,
+        "h": 1.8,
+        "d": 0.9,
+        "rotation": 0
+      },
+      {
+        "file": "pottedPlant",
+        "x": 7.6,
+        "z": 4.8,
+        "w": 0.9,
+        "h": 1.8,
+        "d": 0.9,
+        "rotation": 0
+      }
+    ],
+    "cafe": [
+      {
+        "file": "table",
+        "x": 0,
+        "z": -4.8,
+        "w": 7,
+        "h": 1.2,
+        "d": 1.2,
+        "rotation": 0
+      },
+      {
+        "file": "table",
+        "x": -5,
+        "z": -0.5,
+        "w": 1.8,
+        "h": 0.85,
+        "d": 1.3,
+        "rotation": 0
+      },
+      {
+        "file": "chairCushion",
+        "x": -6.35,
+        "z": -0.5,
+        "w": 0.8,
+        "h": 1.05,
+        "d": 0.85,
+        "rotation": -1.5707963267948966
+      },
+      {
+        "file": "chairCushion",
+        "x": -3.65,
+        "z": -0.5,
+        "w": 0.8,
+        "h": 1.05,
+        "d": 0.85,
+        "rotation": 1.5707963267948966
+      },
+      {
+        "file": "table",
+        "x": -5,
+        "z": 3.6,
+        "w": 1.8,
+        "h": 0.85,
+        "d": 1.3,
+        "rotation": 0
+      },
+      {
+        "file": "chairCushion",
+        "x": -6.35,
+        "z": 3.6,
+        "w": 0.8,
+        "h": 1.05,
+        "d": 0.85,
+        "rotation": -1.5707963267948966
+      },
+      {
+        "file": "chairCushion",
+        "x": -3.65,
+        "z": 3.6,
+        "w": 0.8,
+        "h": 1.05,
+        "d": 0.85,
+        "rotation": 1.5707963267948966
+      },
+      {
+        "file": "table",
+        "x": 5,
+        "z": -0.5,
+        "w": 1.8,
+        "h": 0.85,
+        "d": 1.3,
+        "rotation": 0
+      },
+      {
+        "file": "chairCushion",
+        "x": 3.65,
+        "z": -0.5,
+        "w": 0.8,
+        "h": 1.05,
+        "d": 0.85,
+        "rotation": -1.5707963267948966
+      },
+      {
+        "file": "chairCushion",
+        "x": 6.35,
+        "z": -0.5,
+        "w": 0.8,
+        "h": 1.05,
+        "d": 0.85,
+        "rotation": 1.5707963267948966
+      },
+      {
+        "file": "table",
+        "x": 5,
+        "z": 3.6,
+        "w": 1.8,
+        "h": 0.85,
+        "d": 1.3,
+        "rotation": 0
+      },
+      {
+        "file": "chairCushion",
+        "x": 3.65,
+        "z": 3.6,
+        "w": 0.8,
+        "h": 1.05,
+        "d": 0.85,
+        "rotation": -1.5707963267948966
+      },
+      {
+        "file": "chairCushion",
+        "x": 6.35,
+        "z": 3.6,
+        "w": 0.8,
+        "h": 1.05,
+        "d": 0.85,
+        "rotation": 1.5707963267948966
+      },
+      {
+        "file": "pottedPlant",
+        "x": -7.7,
+        "z": -5.6,
+        "w": 0.9,
+        "h": 1.8,
+        "d": 0.9,
+        "rotation": 0
+      },
+      {
+        "file": "pottedPlant",
+        "x": 7.7,
+        "z": -5.6,
+        "w": 0.9,
+        "h": 1.8,
+        "d": 0.9,
+        "rotation": 0
+      }
+    ],
+    "store": [
+      {
+        "file": "shop/cash-register",
+        "x": 0,
+        "z": -3.6,
+        "w": 2.5,
+        "h": 1.65,
+        "d": 2.3,
+        "rotation": 0
+      },
+      {
+        "file": "shop/shelf-boxes",
+        "x": -5.5,
+        "z": -0.5,
+        "w": 2.5,
+        "h": 2.5,
+        "d": 2,
+        "rotation": 0
+      },
+      {
+        "file": "shop/shelf-bags",
+        "x": -5.5,
+        "z": 3.2,
+        "w": 2.5,
+        "h": 2.5,
+        "d": 2,
+        "rotation": 0
+      },
+      {
+        "file": "shop/shelf-boxes",
+        "x": 5.5,
+        "z": -0.5,
+        "w": 2.5,
+        "h": 2.5,
+        "d": 2,
+        "rotation": 0
+      },
+      {
+        "file": "shop/shelf-bags",
+        "x": 5.5,
+        "z": 3.2,
+        "w": 2.5,
+        "h": 2.5,
+        "d": 2,
+        "rotation": 0
+      },
+      {
+        "file": "shop/display-fruit",
+        "x": -4.5,
+        "z": -5.6,
+        "w": 2,
+        "h": 1.7,
+        "d": 2,
+        "rotation": 0
+      },
+      {
+        "file": "shop/display-bread",
+        "x": 4.5,
+        "z": -5.6,
+        "w": 2.1,
+        "h": 1.7,
+        "d": 1.8,
+        "rotation": 0
+      },
+      {
+        "file": "shop/freezers-standing",
+        "x": 0,
+        "z": -6.1,
+        "w": 3.2,
+        "h": 2.8,
+        "d": 1.3,
+        "rotation": 0
+      },
+      {
+        "file": "pottedPlant",
+        "x": -7.7,
+        "z": 5.1,
+        "w": 0.8,
+        "h": 1.5,
+        "d": 0.8,
+        "rotation": 0
+      },
+      {
+        "file": "pottedPlant",
+        "x": 7.7,
+        "z": 5.1,
+        "w": 0.8,
+        "h": 1.5,
+        "d": 0.8,
+        "rotation": 0
+      }
+    ]
+  },
+  "furnitureCatalog": {
+    "books": {
+      "name": "Books",
+      "file": "books",
+      "price": 2,
+      "width": 0.4,
+      "depth": 0.3,
+      "surfacePlaceable": true,
+      "height": 0.27625,
+      "surfaceWidth": 0.4,
+      "surfaceDepth": 0.25125
+    },
+    "scavengerTrophy": {
+      "name": "Town Explorer trophy",
+      "file": "../scavenger/trophy",
+      "price": 0,
+      "width": 0.8,
+      "depth": 0.7,
+      "rewardOnly": true,
+      "surfacePlaceable": true,
+      "height": 1,
+      "surfaceWidth": 0.566,
+      "surfaceDepth": 0.406
+    },
+    "chair": {
+      "name": "Chair",
+      "file": "chairCushion",
+      "price": 2,
+      "width": 0.7,
+      "depth": 0.7
+    },
+    "table": {
+      "name": "Table",
+      "file": "table",
+      "price": 5,
+      "width": 1.8,
+      "depth": 1
+    },
+    "plant": {
+      "name": "Plant",
+      "file": "pottedPlant",
+      "price": 2,
+      "width": 0.5,
+      "depth": 0.6,
+      "surfacePlaceable": true,
+      "height": 1.5,
+      "surfaceWidth": 0.487,
+      "surfaceDepth": 0.554
+    },
+    "rug": {
+      "name": "Rug",
+      "file": "rugRectangle",
+      "price": 3,
+      "width": 2.6,
+      "depth": 1.55
+    },
+    "lamp": {
+      "name": "Floor lamp",
+      "file": "lampRoundFloor",
+      "price": 3,
+      "width": 0.4,
+      "depth": 0.45
+    },
+    "bed": {
+      "name": "Single bed",
+      "file": "bedSingle",
+      "price": 12,
+      "width": 1.8,
+      "depth": 2.8
+    },
+    "sofa": {
+      "name": "Sofa",
+      "file": "loungeSofa",
+      "price": 10,
+      "width": 2.8,
+      "depth": 1.2
+    },
+    "coffeeTable": {
+      "name": "Coffee table",
+      "file": "tableCoffee",
+      "price": 5,
+      "width": 1.6,
+      "depth": 1
+    },
+    "bedside": {
+      "name": "Bedside cabinet",
+      "file": "cabinetBed",
+      "price": 4,
+      "width": 0.8,
+      "depth": 0.7
+    },
+    "bookshelf": {
+      "name": "Bookshelf",
+      "file": "bookcaseClosedWide",
+      "price": 8,
+      "width": 1.8,
+      "depth": 0.7
+    },
+    "counter": {
+      "name": "Kitchen counter",
+      "file": "kitchenCabinet",
+      "price": 6,
+      "width": 1.1,
+      "depth": 1.2
+    },
+    "sink": {
+      "name": "Kitchen sink",
+      "file": "kitchenSink",
+      "price": 8,
+      "width": 1.1,
+      "depth": 1.2
+    },
+    "stove": {
+      "name": "Stove",
+      "file": "kitchenStove",
+      "price": 10,
+      "width": 1.1,
+      "depth": 1.2
+    },
+    "fridge": {
+      "name": "Fridge",
+      "file": "kitchenFridge",
+      "price": 12,
+      "width": 1.1,
+      "depth": 0.9
+    }
+  },
+  "furnitureSurfaces": {
+    "table": [
+      {
+        "id": "top",
+        "label": "Top",
+        "x": 0,
+        "z": 0,
+        "y": 0.698906,
+        "width": 1.8,
+        "depth": 0.956962,
+        "clearance": null
+      }
+    ],
+    "coffeeTable": [
+      {
+        "id": "top",
+        "label": "Top",
+        "x": 0,
+        "z": 0,
+        "y": 0.556736,
+        "width": 1.6,
+        "depth": 0.968236,
+        "clearance": null
+      }
+    ],
+    "bedside": [
+      {
+        "id": "top",
+        "label": "Top",
+        "x": 0,
+        "z": 0,
+        "y": 0.701353,
+        "width": 0.8,
+        "depth": 0.646617,
+        "clearance": null
+      }
+    ],
+    "counter": [
+      {
+        "id": "top",
+        "label": "Top",
+        "x": 0,
+        "z": 0.038372,
+        "y": 1.074419,
+        "width": 1.1,
+        "depth": 1.074418,
+        "clearance": null
+      }
+    ],
+    "bookshelf": [
+      {
+        "id": "shelf-1",
+        "label": "Shelf 1",
+        "x": 0,
+        "z": -0.025,
+        "y": 0.1575,
+        "width": 1.6,
+        "depth": 0.43,
+        "clearance": 0.4725
+      },
+      {
+        "id": "shelf-2",
+        "label": "Shelf 2",
+        "x": 0,
+        "z": -0.025,
+        "y": 0.6975,
+        "width": 1.6,
+        "depth": 0.43,
+        "clearance": 0.4725
+      },
+      {
+        "id": "shelf-3",
+        "label": "Shelf 3",
+        "x": 0,
+        "z": -0.025,
+        "y": 1.2375,
+        "width": 1.6,
+        "depth": 0.43,
+        "clearance": 0.4725
+      },
+      {
+        "id": "top",
+        "label": "Top",
+        "x": 0,
+        "z": 0,
+        "y": 1.7775,
+        "width": 1.8,
+        "depth": 0.5625,
+        "clearance": null
+      }
+    ]
+  },
+  "homeVariants": {
+    "starter": {
+      "level": 0,
+      "cost": 0,
+      "rooms": 1,
+      "w": 7,
+      "d": 7,
+      "maxX": 2,
+      "maxZ": 2
+    },
+    "cottage": {
+      "level": 1,
+      "cost": 200,
+      "rooms": 2,
+      "w": 9,
+      "d": 8,
+      "maxX": 3,
+      "maxZ": 2
+    },
+    "family": {
+      "level": 2,
+      "cost": 300,
+      "rooms": 3,
+      "w": 11,
+      "d": 10,
+      "maxX": 4,
+      "maxZ": 3
+    }
+  }
+}

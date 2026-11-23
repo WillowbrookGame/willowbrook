@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "provenance": {
+    "gameRules": "Willowbrook v0.51.0; exact server-required rule modules and approved arcade authorities only",
+    "webSocket": "ws 8.23.0, MIT; exact installed runtime files included, optional native peers not included"
+  },
+  "files": {
+    "beach-fishing.mjs": {
+      "bytes": 8574,
+      "sha256": "afd9e9fd58b281fa2663ebe0c3000b05679e8f0d3f1e5d60a776a6d4386b5f3b"
+    },
+    "hoops-service.mjs": {
+      "bytes": 2357,
+      "sha256": "c52a0c943ac92d07961918d5945cf98a3d5a27c0628d42808959b57ba810baba"
+    },
+    "package.json": {
+      "bytes": 109,
+      "sha256": "b96dddf04accd63508acbaa6d8238ec00d5187638449b2f2ba982495e38666f7"
+    },
+    "public/arcade-cabinets.js": {
+      "bytes": 1286,
+      "sha256": "7ceac9da1a4f043b725070c1dc60ccfa9605131d71c317ac52b8cda0ecdf28fa"
+    },
+    "public/beach-fish-catalog.js": {
+      "bytes": 5598,
+      "sha256": "dafe1cb1231a48d2b7ac4ea3a85210f7a22ba5eb7353422e7c6373efc7061ece"
+    },
+    "public/beach-fishing-rules.js": {
+      "bytes": 1381,
+      "sha256": "6c0cd53d4463735d63044e509f6e3fe361e855bc41a23df093c613df2b0e68c2"
+    },
+    "public/beach-layout.js": {
+      "bytes": 1114,
+      "sha256": "f9e0c93c834a21a600464a6be0c611aa20ace48acb35018cfec95659911cb231"
+    },
+    "public/business-interiors.js": {
+      "bytes": 1408,
+      "sha256": "9088c4d123b4496819405d702e3c00e0b896ae9a557325b0547699bdc15b695e"
+    },
+    "public/car-economy.js": {
+      "bytes": 1489,
+      "sha256": "df54bdb98bc0e82d3307384f552fced517b9d4e6ebaef340507a797fffe11bed"
+    },
+    "public/economy.js": {
+      "bytes": 1542,
+      "sha256": "f1f55ef9a4a1d46fcc1e9602b102589ed34537361d91de51404fd7f020e25c91"
+    },
+    "public/employers.js": {
+      "bytes": 1046,
+      "sha256": "3f454783f24062d6cec103a653f1df2f8b630f4e74f3753174831261499cc532"
+    },
+    "public/expanded-jobs.js": {
+      "bytes": 3164,
+      "sha256": "73f71e441998fa841ca0d46625e0025eb64703bae19be4986fcefba014736f21"
+    },
+    "public/furniture-catalog.js": {
+      "bytes": 2728,
+      "sha256": "d449c73f98ce260e65ebddc55a7777ed3ec2ab584b8fc2f4d55fca403e6de42f"
+    },
+    "public/furniture-placement.js": {
+      "bytes": 3087,
+      "sha256": "50997c0d73046e164f4afb132f9a6255780c4a53074ea2c1e047c60f1c392c5a"
+    },
+    "public/garden.js": {
+      "bytes": 332,
+      "sha256": "3a90146211c032e01479ca6b0b0e29047e510490f60efa617a32d7fce316b683"
+    },
+    "public/hoops-simulation.js": {
+      "bytes": 8319,
+      "sha256": "e5c6f00fa637f9215528315034e2794d97c78532a8b8127a00a3387e19cff60e"
+    },
+    "public/housing.js": {
+      "bytes": 2099,
+      "sha256": "8cd01ac775d852aaa09261fb70e46593a74046a48474b5df7713b001392dcb96"
+    },
+    "public/job-tasks.js": {
+      "bytes": 2189,
+      "sha256": "b805fccf2db1a4a648555b167946b1df8de8cc32ae729b5926786305c3e37ffe"
+    },
+    "public/scavenger-hunt.js": {
+      "bytes": 4449,
+      "sha256": "8e0ccf86039560386e80ea461fffadef02d88b13e594d022fce20aa35afa462d"
+    },
+    "public/scavenger-spots.js": {
+      "bytes": 4566,
+      "sha256": "89e8760f3e35d3777f19d75587a38fe6e773aedf75ad0a43276936afc1c1aeee"
+    },
+    "public/scooter-parking.js": {
+      "bytes": 699,
+      "sha256": "b6ea2c913c8509fb000e427b2458be7a328b13e484189f1d842a841552c48707"
+    },
+    "public/starter-quests.js": {
+      "bytes": 1442,
+      "sha256": "a537311f7614ebfa2be53def2338af961bf461294429edbb6a8701192ec01fb9"
+    },
+    "public/town-layout.js": {
+      "bytes": 1998,
+      "sha256": "5d6f9ac26480433b3b1037351b196932236ce360cecd85758c3889f57c851152"
+    },
+    "public/vendor/hoops88/LICENSE": {
+      "bytes": 1108,
+      "sha256": "9e7775487b7233fbad18dca0efc553a124f3d88bf3851bea541ea02af3a0da20"
+    },
+    "public/yard-upgrades.js": {
+      "bytes": 1031,
+      "sha256": "8a4f7d47c22e148ecbc21e8c6d2d514d0b7f46f079d076e4ac93236d02ddc84e"
+    },
+    "upstream-hockey-service.mjs": {
+      "bytes": 4106,
+      "sha256": "c59fea2cc2bec92bee4fc0caa083d2bd64196799c741aeaa95e21b5d5b4826b8"
+    },
+    "vendor/air-hockey/LICENSE.txt": {
+      "bytes": 10351,
+      "sha256": "eb3d7b5485466acbd81f2b496f595ab637d2792e268206b27d99e793bdb67549"
+    },
+    "vendor/air-hockey/SOURCE.txt": {
+      "bytes": 1042,
+      "sha256": "790fedcc55d9a26798d07dd0e0ad9aa1f9b2048f7cf22a1132431db4561246ba"
+    },
+    "vendor/air-hockey/assets/room-iFi-U4mA.js": {
+      "bytes": 39464,
+      "sha256": "6d79f77a6e780b91d64a5942704eb0c04ea8a2d6c69615fdf3f89028383a4225"
+    },
+    "vendor/air-hockey/room.js": {
+      "bytes": 68,
+      "sha256": "3a4dca5f23604be547fa39a26b754fb044e98fde5a0919d49cc1637a08d24625"
+    },
+    "vendor/ws/LICENSE": {
+      "bytes": 1183,
+      "sha256": "2b29dcfe0d6471f7e8c92c5fb38c9f93edee10330937055440192f1832b1ecef"
+    },
+    "vendor/ws/index.js": {
+      "bytes": 796,
+      "sha256": "924564d5be26d59b9682c4263f68320e48dde7240bd2d1ad17ec305537429dd2"
+    },
+    "vendor/ws/lib/buffer-util.js": {
+      "bytes": 3501,
+      "sha256": "4e996b0c29f30bb094d836a2a563aceebaf3e8692a1e3d5bb4a01a233029732f"
+    },
+    "vendor/ws/lib/constants.js": {
+      "bytes": 503,
+      "sha256": "391e823142b8b370e55a2fd32b022deaf03b8415c56000009674ebc86a0b4f86"
+    },
+    "vendor/ws/lib/event-target.js": {
+      "bytes": 7321,
+      "sha256": "c45d3c6e12d170c860c0c3f1a050aa0f864d9806632b609a1e607d675aba128c"
+    },
+    "vendor/ws/lib/extension.js": {
+      "bytes": 6183,
+      "sha256": "852564f0f6b460287043803eae732666fb5610f676874354fc89f06aa4e986ed"
+    },
+    "vendor/ws/lib/limiter.js": {
+      "bytes": 1034,
+      "sha256": "e0469d4b83f6ba764b15f80e1766b75c136fbff68f048f4c050f0b1c7f065f69"
+    },
+    "vendor/ws/lib/permessage-deflate.js": {
+      "bytes": 14669,
+      "sha256": "16a91536988a53c23047ee5882392068728a839a244178c3b09b8c54982f58b0"
+    },
+    "vendor/ws/lib/receiver.js": {
+      "bytes": 17778,
+      "sha256": "77f7463d96be072b07183cdd8022d80e5032d3257948138ecd669dc758b20efa"
+    },
+    "vendor/ws/lib/sender.js": {
+      "bytes": 16962,
+      "sha256": "b343e24310aeb924e713767fb7cd445bccf4f3cc3504ceb2c56ce76b89c1cf45"
+    },
+    "vendor/ws/lib/stream.js": {
+      "bytes": 4204,
+      "sha256": "a56fcb6e2b152097ee820b6f5410b1f71e59819b45d08d9f8bda588fe39070ec"
+    },
+    "vendor/ws/lib/subprotocol.js": {
+      "bytes": 1498,
+      "sha256": "be3f6323d6f549568577dcba9004c1479d95c65a7abb0fe0c582875b9fac0b7c"
+    },
+    "vendor/ws/lib/validation.js": {
+      "bytes": 3903,
+      "sha256": "41ce8e83d0d434132e1704895fedb91f6703a701b42d91c80954ab29b2845593"
+    },
+    "vendor/ws/lib/websocket-server.js": {
+      "bytes": 17162,
+      "sha256": "801cea14cf7dd2a1daee598229a2b5e5516f0ae396d8d1d585652097170b0416"
+    },
+    "vendor/ws/lib/websocket.js": {
+      "bytes": 39376,
+      "sha256": "5ae09f773299ad39aad65a7ae6aa6a51fd6bae1d8fe1f1255152439ae50975e8"
+    },
+    "vendor/ws/package.json": {
+      "bytes": 1829,
+      "sha256": "3ae4c2b86b06d3d225f2630c12d6897ec9272d5a17fb8d3657f3df74661b47b2"
+    },
+    "world-store.mjs": {
+      "bytes": 52714,
+      "sha256": "06eef65be6055f1627d987f2e3d1c05504b4032b1b63611d4c80c82bf3bf504b"
+    }
+  }
+}

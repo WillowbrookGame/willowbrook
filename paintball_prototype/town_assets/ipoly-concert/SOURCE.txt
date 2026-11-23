@@ -1,0 +1,7 @@
+Lowpoly Concert Pack by iPoly3D
+Source: user-downloaded OpenGameArt Lowpoly Concert Props, lowpoly_concert_pack.zip
+License: CC0 1.0 Universal; original README retained as LICENSE.txt.
+Selected mic.001, speaker.006, spotlight.002, stage.005 (platform), truss structure.001 (canopy), and background.001 (backdrop) are included; converted from embedded glTF to self-contained GLB subsets. Original showroom translations removed.
+No authorship claim is made. Attribution: iPoly3D.
+
+Platform is fitted to10x8 and thinned/sunk with its top at0.05 to preserve ground-level walking. Canopy is fitted to12x8x5.5. These visual adaptations do not add new elevation gameplay. Existing microphone, speakers and spotlights retained.

@@ -1,0 +1,88 @@
+import assert from 'node:assert/strict';
+import {mkdtemp,mkdir,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join,resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {createPreviewFurniture} from './furniture_progress_preview.mjs';
+const source=resolve(process.argv[2]),load=m=>import(pathToFileURL(join(source,m)).href);
+const [{makeStore},housingRules,catalogRules]=await Promise.all([load('world-store.mjs'),load('public/housing.js'),load('public/furniture-catalog.js')]);
+const dir=await mkdtemp(join(tmpdir(),'willowbrook-store-furniture-'));
+try{
+ const file=join(dir,'qa.json'), now=10000;
+ const get=()=>Object.assign(makeStore(file),{accountFile:file});
+ let store=get();
+ store.setSettings({registrationEnabled:true});
+ const a=store.auth({type:'register',username:'store_first',password:'synthetic-pass'});
+ const b=store.auth({type:'register',username:'store_second',password:'synthetic-pass'});
+ for(const [i,p] of [a.profile,b.profile].entries()){
+  p.hasJob=true;p.stars=44;
+  assert.equal(store.bank(p,{action:'apply',home:i},{x:-54,z:-48,interiorBusiness:'bank'}),null);
+ }
+ a.profile.furnitureInventory.scavengerTrophy=1;store.save();
+ const svc=()=>createPreviewFurniture({store,housingRules,catalogRules});
+ let furniture=svc();
+ const peer=profile=>({profile,zone:'store',x:0,y:.05,z:-1,updated:now,grounded:true});
+ let p=peer(a.profile),q=peer(b.profile);
+ const act=(p,operation,payload={})=>furniture.apply(p,{type:'progress',action:'furniture',operation,...payload},now);
+ const buy=(kind,quantity,requestId)=>act(p,'buy',{kind,quantity,requestId});
+ const sell=(kind,quantity,requestId)=>act(p,'sell',{kind,quantity,requestId});
+ const snap=p=>furniture.snapshot(p.profile);
+ assert.match(buy('scavengerTrophy',1,'bad-trophy-buy').error,/cannot/);
+ assert.match(sell('scavengerTrophy',1,'bad-trophy-sale').error,/cannot/);
+ assert.match(buy('table',0,'bad-qty-buy').error,/one to ten/);
+ assert.match(buy('table',10,'not-enough-stars').error,/Earn/);
+ assert.match(act({...p,zone:'town'},'buy',{kind:'table',quantity:1,requestId:'offsite-order'}).error,/shopkeeper/);
+ await mkdir(file+'.tmp');
+ assert.match(buy('table',1,'save-failed-order').error,/Nothing was changed/);
+ assert.equal(p.profile.stars,44);assert.equal(snap(p).deliveries.length,0);
+ await rm(file+'.tmp',{recursive:true,force:true});
+ assert.match(buy('table',1,'signed-order-table').text,/Order saved/);
+ assert.match(buy('table',1,'signed-order-table').text,/Order saved/);
+ assert.match(buy('table',2,'signed-order-table').error,/already used/);
+ assert.match(buy('books',1,'signed-order-books').text,/Order saved/);
+ assert.equal(p.profile.stars,37);assert.equal(snap(p).deliveries.length,2);
+ const deliveries=snap(p).deliveries;
+ const pickup=(peer,id,requestId)=>act(peer,'pickup',{deliveryId:id,requestId});
+ assert.match(pickup(q,deliveries[0].id,'foreign-delivery').error,/not waiting/);
+ assert.match(pickup(p,deliveries[0].id,'offsite-pickup').error,/front-door/);
+ Object.assign(p,{zone:'town',x:-51,z:-19});
+ for(const [i,x] of deliveries.entries()){
+  assert.match(pickup(p,x.id,'pickup-valid-'+i).text,/collected/);
+  assert.match(pickup(p,x.id,'pickup-valid-'+i).text,/collected/);
+ }
+ assert.equal(snap(p).deliveries.length,0);
+ Object.assign(p,{zone:'private',petHome:{inRoom:true,plot:0,at:now}});
+ act(p,'pose',{x:0,y:.05,z:3.5});
+ const place=(kind,x,z,requestId,extra={})=>act(p,'place',{kind,room:0,x,z,rotation:0,requestId,...extra});
+ assert.match(place('table',2,0,'place-saved-table').text,/placed/);
+ const table=snap(p).placed[0];
+ assert.match(place('books',2,0,'place-saved-books',{supportId:table.id,surfaceId:'top'}).text,/placed/);
+ const books=snap(p).placed.find(r=>r.kind==='books');
+ const move=(row,x,z,rotation,requestId)=>act(p,'move',{id:row.id,expectedRevision:row.revision,room:0,x,z,rotation,requestId,...(row.supportId?{supportId:row.supportId,surfaceId:row.surfaceId}:{})});
+ const pack=(row,requestId)=>act(p,'pack',{id:row.id,expectedRevision:row.revision,requestId});
+ assert.match(move(table,3,0,0,'cannot-move-parent').error,/decorations/);
+ assert.match(pack(books,'pack-surface-books').text,/packed/);
+ assert.match(move(table,3,0,1,'move-saved-table').text,/saved/);
+ assert.match(move(table,3,0,1,'move-saved-table').text,/saved/);
+ assert.match(move(table,2,0,1,'stale-table-move').error,/changed/);
+ assert.equal(snap(p).placed[0].revision,1);
+ Object.assign(p,{zone:'store',x:0,z:-1});
+ assert.match(sell('table',1,'placed-not-for-sale').error,/Pack/);
+ Object.assign(p,{zone:'private'});
+ assert.match(pack(snap(p).placed[0],'pack-saved-table').text,/packed/);
+ Object.assign(p,{zone:'store'});
+ assert.match(sell('table',1,'resale-saved-table').text,/saved/);
+ assert.match(sell('table',1,'resale-saved-table').text,/saved/);
+ assert.equal(p.profile.stars,39);
+ assert.equal(q.profile.stars,44);
+ store=get();furniture=svc();
+ p=peer(store.auth({type:'resume',session:a.session}).profile);
+ q=peer(store.auth({type:'resume',session:b.session}).profile);
+ assert.equal(p.profile.stars,39);assert.equal(q.profile.stars,44);
+ assert.deepEqual(snap(p).stock.sort((a,b)=>a.kind.localeCompare(b.kind)),[{kind:'books',quantity:1},{kind:'scavengerTrophy',quantity:1}]);
+ assert.equal(snap(p).placed.length,0);
+ assert.match(sell('table',1,'resale-saved-table').text,/saved/);
+ assert.equal(p.profile.stars,39);assert.equal(snap(q).stock.length,0);
+ console.log('PASS Store parity actual disposable saves: canonical order and refund, double retries, owner-only delivery, same-room support/place/move/revision/pack, trophy guard, failed-save rollback and restart wallet.');
+}finally{await rm(dir,{recursive:true,force:true});}
+

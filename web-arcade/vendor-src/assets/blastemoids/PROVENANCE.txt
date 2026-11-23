@@ -1,0 +1,5 @@
+Blastemoids by The Tavern Arcade
+Source: https://thetavernarcade.itch.io/blastemoids-html5-game-template
+Downloaded via normal free itch.io ZIP flow.
+Bundled license retained verbatim. Cosmic license is custom game-use terms, not MIT despite listing.
+Local adaptation: shadow-scoped DOM, shell clock/pause/dispose, ephemeral storage, audio gate, no tip link. Procedural art/audio retained.

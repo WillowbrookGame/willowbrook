@@ -1,0 +1,8 @@
+Park Notice Board (City Park and Playground) by 3D Assets
+Source: https://3dassets.dev/assets/city-park-and-playground-park-notice-board-9df1f5c3
+License: CC0 1.0 Universal, verified on official asset page 2026-11-15.
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+Source reports AI-assisted generation. Attribution not required.
+Original downloaded model.glb: 29,824 bytes; 148 triangles, 6 materials.
+SHA256 original: 78ff7b8613bc31552d72935a648f488b7cd6e36427d6911224bc876fa05981fd
+Willowbrook modification: embedded WebP images extracted to same-origin local .webp files to honor existing img-src and connect-src CSP; geometry and materials unchanged. Runtime uses local file only. NOW HIRING text is a game-generated sign overlay.

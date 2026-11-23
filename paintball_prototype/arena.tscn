@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://paintball_prototype/map.gd" id="1"]
+[ext_resource type="Script" path="res://paintball_prototype/warehouse_yard.gd" id="2"]
+[ext_resource type="PackedScene" path="res://paintball_prototype/warehouse-yard-arena.glb" id="3"]
+
+[node name="PaintballArena" type="Node3D"]
+script = ExtResource("1")
+arena = true
+
+[node name="WarehouseYard" type="Node3D" parent="."]
+script = ExtResource("2")
+
+[node name="WarehouseModel" parent="WarehouseYard" instance=ExtResource("3")]
+position = Vector3(0, -0.45, 0)
+scale = Vector3(0.45, 0.45, 0.45)

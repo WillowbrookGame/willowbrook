@@ -1,0 +1,12 @@
+Kenney City Kit Suburban 2.0 (CC0)
+Official source: https://kenney.nl/assets/city-kit-suburban
+Official archive: kenney_city-kit-suburban_20.zip (downloaded 2026-11-14)
+License: included License.txt, https://creativecommons.org/publicdomain/zero/1.0/
+Creator: Kenney / https://kenney.nl
+Selected original GLB files and colormap.png shipped locally. No CDN/runtime downloads.
+Two scenic building models, one tree, planter and fence. Cloned/scaled and rendered with lightweight Lambert materials; no geometry modification.
+Three.js GLTFLoader / BufferGeometryUtils are from installed three0.182.0, MIT; local import paths adjusted. Three.js existing license applies.
+
+Additional v0.11 models: path-stones-long, path-stones-messy, driveway-short, tree-small. CC0 from the same City Kit Suburban archive.
+
+v0.12: A/H meshes reused on playable buildings, nonuniform fitted scale, shader-cut door openings, original interiors retained.

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Willowbrook Family Desk</title>
+<link rel="icon" type="image/svg+xml" href="./willowbrook-favicon.svg" sizes="any">
+<link rel="stylesheet" href="./family-desk.css">
+<script src="./family-desk.js" defer></script>
+</head>
+<body>
+<main>
+<header><a class="home" href="./">Back to Willowbrook</a><span class="eyebrow">WILLOWBROOK FAMILY</span><h1>Family Desk</h1><p>Help your family get ready to play.</p></header>
+<p id="announcement" role="status" aria-live="polite">Checking the local Family Desk…</p>
+<div id="guest" hidden>
+  <nav aria-label="Family Desk choices"><button data-choice="parent-login" aria-pressed="true">Parent sign-in</button><button data-choice="parent-invite" aria-pressed="false">Parent invite</button><button data-choice="player-invite" aria-pressed="false">Player invite</button><button data-choice="player-reset" aria-pressed="false">Reset code</button></nav>
+  <section id="parent-login" class="choice">
+    <h2>Parents, sign in here</h2><form method="post" id="login"><label>Username<input name="username" type="text" autocomplete="username" required maxlength="32"></label><label>Password<input name="password" type="password" autocomplete="current-password" required maxlength="128"></label><button type="submit">Open Parent Desk</button></form>
+  </section>
+  <section id="parent-invite" class="choice" hidden>
+    <h2>Join as a parent</h2><p>Enter the code the Willowbrook owner gave you. Choose your own password.</p>
+    <form method="post" id="redeem-parent"><label>Parent invite code<input name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" required maxlength="80"></label><label>New password<input name="password" type="password" autocomplete="new-password" required maxlength="128"></label><button type="submit">Accept parent invite</button></form>
+  </section>
+  <section id="player-invite" class="choice" hidden>
+    <h2>Make your player</h2><p>Ask your grown-up for a code, then pick your nickname and character.</p>
+    <form method="post" id="redeem-player"><label>Player invite code<input name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" required maxlength="80"></label><label>Nickname<input name="nickname" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" required maxlength="20"></label><small>Use letters, numbers, dashes or underscores. Skip your real name.</small><label>New password<input name="password" type="password" autocomplete="new-password" required maxlength="128"></label><fieldset class="avatars"><legend>Choose your character</legend><div data-avatars></div></fieldset><button type="submit">Create player</button></form>
+  </section>
+  <section id="player-reset" class="choice" hidden>
+    <h2>Reset a player password</h2><p>Ask your parent for a fresh reset code.</p>
+    <form method="post" id="redeem-reset"><label>Reset code<input name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" required maxlength="80"></label><label>New password<input name="password" type="password" autocomplete="new-password" required maxlength="128"></label><button type="submit">Set new password</button></form>
+  </section>
+</div>
+<section id="owner" hidden><h2>Owner desk</h2><p>Give a parent their invitation privately. The parent will choose a password.</p><form method="post" id="invite-parent"><label>Parent username<input name="username" required maxlength="20" autocomplete="off" autocapitalize="none" spellcheck="false"></label><button type="submit">Make parent invite</button></form><h3>Family Chat for everyone</h3><p id="global-chat-state"></p><button type="button" id="global-chat" disabled>Checking chat</button><p>Turning chat off here does not change each player’s chat permission.</p></section>
+<section id="parent" hidden>
+  <h2>Your players</h2>
+  <p id="parent-chat-global-off" hidden>Family Chat is off for everyone. Your player settings still apply when the owner turns it back on.</p>
+<p>Family Chat reaches signed-in family players across the game. New players start with chat off. Messages aren't saved or automatically moderated.</p>
+  <ul id="player-roster"></ul>
+  <div class="actions"><button id="invite-player" type="button">Make player invite</button></div>
+  <details><summary>Create a player here instead</summary><form method="post" id="create-player"><label>Nickname<input name="nickname" required maxlength="20" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>New password<input name="password" type="password" autocomplete="new-password" required maxlength="128"></label><fieldset class="avatars"><legend>Choose character</legend><div data-avatars></div></fieldset><button type="submit">Create player</button></form></details>
+</section>
+<section id="pending" hidden><h2>Unused codes</h2><ul id="pending-invites"></ul></section><section id="secret" hidden aria-labelledby="code-heading"><h2 id="code-heading">One-time code</h2><p>Give this only to the person it’s for. It can be used once.</p><output id="code"></output><p id="code-expiry"></p><div class="actions"><button id="forget-code" type="button" class="secondary">Hide code</button><button id="revoke-code" type="button" class="secondary" hidden>Revoke code</button></div></section>
+<button type="button" id="logout" class="secondary" hidden>Sign out of Family Desk</button>
+</main>
+</body>
+</html>

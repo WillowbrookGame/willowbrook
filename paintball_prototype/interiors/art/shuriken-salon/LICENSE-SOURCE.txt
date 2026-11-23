@@ -1,0 +1,7 @@
+Shuriken Studio Hair Salon Set
+Source: https://shuriken.studio/models/furniture/hair-salon-set
+License: https://shuriken.studio/legal/models
+Free model license version 2026-11-13, verified 2026-11-15.
+Not CC0. Permits modification and inclusion in games on any platform, including sharing the project and its source. No attribution required. Prohibits distributing the models on their own or as an asset pack, claiming authorship, or implying endorsement. No warranty. AI-made using Shuriken's Kiln tools per author.
+This directory contains adapted, statically merged props solely as part of Willowbrook. Do not redistribute as a model pack.
+Original downloaded by Matt: hair-salon-set.glb, 458524 bytes. Reception, styling cabinetry (without its chair), trolley selected. Original material colors baked to vertex colors; one draw call per prop; no external textures or runtime requests.

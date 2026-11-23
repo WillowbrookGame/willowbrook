@@ -1,0 +1,5 @@
+Source: https://shuriken.studio/models/scenery/warehouse-yard-arena
+License: https://shuriken.studio/legal/models (2026-11-13 version, checked 2026-11-18)
+Shuriken Studio, AI-made. Free use/modification in projects; no standalone model redistribution or authorship claim. No credit required.
+Source: user-downloaded warehouse-yard-arena.glb SHA256 6381056ded3a10bb42d779fa40302a51b377e82f512a83782f01c37b3c3f627c
+Subset: warehouse shell, roof, two roll-up doors, two side doors, door drums and lamps. Full playable arena intentionally excluded; preserved original download.

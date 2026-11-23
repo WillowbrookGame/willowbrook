@@ -1,0 +1,1 @@
+Kenney Watercraft Kit from user-owned kenney_watercraft-pack.zip. CC0 license retained. Chosen boat-row-small and boat-speed-a, original GLBs unchanged. Docked visual boats only; no rental gameplay yet.

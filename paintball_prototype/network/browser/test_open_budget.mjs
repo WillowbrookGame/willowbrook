@@ -1,0 +1,32 @@
+import {EventEmitter} from 'node:events';
+import {PassThrough} from 'node:stream';
+import assert from 'node:assert/strict';
+import {setTimeout as sleep} from 'node:timers/promises';
+import {startPaintballWorker} from './paintball_worker_preview.mjs';
+const child=new EventEmitter();child.stdin=new PassThrough();child.stdout=new PassThrough();child.exitCode=null;
+child.kill=()=>{child.exitCode=1;child.emit('exit',1);return true;};
+const frames=[];
+child.stdin.on('data',b=>frames.push(JSON.parse(b.toString('utf8').trim())));
+let reaped=0;
+const worker=startPaintballWorker({exe:process.execPath,project:process.cwd(),spawnWorker:()=>child,onLost:()=>reaped++});
+const respond=v=>child.stdout.write('WBPA1:'+JSON.stringify(v)+'\n');
+respond({kind:'hello',version:1,maxRooms:3});
+await sleep(15);
+try{
+ assert(worker.healthy());
+ const opening=worker.call('open',{room:'fixture'});
+ await sleep(1400);
+ assert.equal(frames.length,1);
+ assert.equal(frames[0].op,'open');
+ assert(worker.healthy());
+ respond({kind:'reply',id:frames[0].id,result:{ok:true}});
+ assert.deepEqual(await opening,{ok:true});
+ const hang=worker.call('view',{room:'fixture',slot:'qa1'});
+ await sleep(1260);
+ assert.equal(await hang,null);
+ assert.equal(worker.healthy(),false);
+ assert.equal(reaped,1);
+ await sleep(660);
+ assert.equal(child.exitCode,1);
+ console.log('PASS room open has a finite separate budget, heartbeat is suppressed only during the open, and stuck active view still fails closed at the original 1.2s timeout');
+}finally{worker.close();}

@@ -1,0 +1,6 @@
+HOOPS 88 by Carlos Sardo and Eduardo Sardo
+Source https://github.com/CarlosSardo/hoops88
+Commit 44c93d0200bb04a3019c9501864aafee7dace01f
+MIT license preserved in LICENSE. Original files retained for attribution/reference.
+Willowbrook adaptation: solo fixed-step simulation, scoped DOM controller, server replay validation.
+No external assets, analytics, dependencies or network calls in original runtime.

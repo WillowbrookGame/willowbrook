@@ -1,0 +1,5 @@
+Tiny Treats Homely House 1.0 FREE, by Isa Lousberg.
+Source: user-downloaded Tiny_Treats_Homely_House_1.0_FREE.zip.
+https://tinytreats.itch.io/homely-house
+CC0; original license included. Selected complete house, its local buffer and palette.
+Native closed door, heart, chimney and steps retained. Runtime adapter fits the existing family plot; no third-party runtime requests.

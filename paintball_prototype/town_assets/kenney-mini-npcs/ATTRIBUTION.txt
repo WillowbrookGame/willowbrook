@@ -1,0 +1,6 @@
+Kenney Mini Characters 2.0 (CC0)
+https://kenney.nl/assets/mini-characters
+Original author: Kenney. Original License.txt retained.
+Selected male-a and female-a rigged GLBs plus colormap, unchanged source files.
+Runtime adaptation: palette-region vertex recoloring for independent hair, shirt and pants; scaled for Willowbrook. Animations selected for family play. No internet runtime requests.
+Expanded selection: all 20 character designs plus aid-glasses, aid-sunglasses, aid-cane and item-luggage. Original model files retained, cosmetics attached at runtime. Unverified costume palettes remain original; independent recolor masks only for male-a/female-a.

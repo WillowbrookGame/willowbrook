@@ -1,0 +1,965 @@
+{
+  "workDefinitions": {
+    "delivery": {
+      "x": -16,
+      "z": 24,
+      "business": "store",
+      "route": true,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "bank": {
+      "x": -54,
+      "z": -49,
+      "business": "bank",
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "vet": {
+      "x": -18,
+      "z": -49,
+      "business": "vet",
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "salon": {
+      "x": 18,
+      "z": -49,
+      "business": "salon",
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "cafe": {
+      "x": 16,
+      "z": 24,
+      "business": "cafe",
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "store": {
+      "x": -16,
+      "z": 24,
+      "business": "store",
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "library": {
+      "x": -16,
+      "z": -24,
+      "business": "library",
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "nursery": {
+      "x": -23,
+      "z": 48,
+      "business": null,
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "park": {
+      "x": 16,
+      "z": -24,
+      "business": null,
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    },
+    "singing": {
+      "x": 54,
+      "z": -49,
+      "business": null,
+      "route": false,
+      "reward": 3,
+      "durationMs": 8000,
+      "cooldownMs": 60000
+    }
+  },
+  "jobBoard": {
+    "x": 10,
+    "z": 4,
+    "radius": 4.5
+  },
+  "classTiers": [
+    {
+      "tier": 1,
+      "cost": 50,
+      "reward": 5
+    },
+    {
+      "tier": 2,
+      "cost": 120,
+      "reward": 8
+    },
+    {
+      "tier": 3,
+      "cost": 200,
+      "reward": 10
+    }
+  ],
+  "workTaskDefinitions": {
+    "vet": {
+      "title": "Pet care shift",
+      "station": {
+        "id": "work-start-vet",
+        "label": "Collect the pet-care kit",
+        "x": -21,
+        "z": -45,
+        "radius": 1.8,
+        "interiorBusiness": "vet",
+        "durationMs": 0,
+        "kind": "care-kit"
+      },
+      "tasks": [
+        {
+          "id": "brush-kit",
+          "label": "Pick up the soft brush",
+          "x": -21,
+          "z": -47,
+          "radius": 1.8,
+          "interiorBusiness": "vet",
+          "durationMs": 2000,
+          "kind": "brush"
+        },
+        {
+          "id": "comfort-pet",
+          "label": "Gently brush the waiting puppy",
+          "x": -15,
+          "z": -47,
+          "radius": 1.8,
+          "interiorBusiness": "vet",
+          "durationMs": 2000,
+          "kind": "dog"
+        },
+        {
+          "id": "fresh-water",
+          "label": "Fill the puppy water bowl",
+          "x": -13,
+          "z": -44.5,
+          "radius": 1.8,
+          "interiorBusiness": "vet",
+          "durationMs": 2000,
+          "kind": "bowl"
+        }
+      ]
+    },
+    "salon": {
+      "title": "Salon styling shift",
+      "station": {
+        "id": "work-start-salon",
+        "label": "Pick up the salon apron",
+        "x": 16,
+        "z": -44.2,
+        "radius": 1.8,
+        "interiorBusiness": "salon",
+        "durationMs": 0,
+        "kind": "apron"
+      },
+      "tasks": [
+        {
+          "id": "choose-brush",
+          "label": "Collect a styling brush",
+          "x": 15,
+          "z": -47.2,
+          "radius": 1.8,
+          "interiorBusiness": "salon",
+          "durationMs": 2000,
+          "kind": "brush"
+        },
+        {
+          "id": "brush-client",
+          "label": "Brush the customer hair",
+          "x": 15,
+          "z": -52.4,
+          "radius": 1.8,
+          "interiorBusiness": "salon",
+          "durationMs": 2000,
+          "kind": "customer"
+        },
+        {
+          "id": "choose-ribbon",
+          "label": "Choose a colorful ribbon",
+          "x": 21,
+          "z": -47.2,
+          "radius": 1.8,
+          "interiorBusiness": "salon",
+          "durationMs": 2000,
+          "kind": "ribbon"
+        },
+        {
+          "id": "finish-style",
+          "label": "Show the customer their new style",
+          "x": 15,
+          "z": -52.4,
+          "radius": 1.8,
+          "interiorBusiness": "salon",
+          "durationMs": 2000,
+          "kind": "customer"
+        }
+      ]
+    },
+    "cafe": {
+      "title": "Cafe order shift",
+      "station": {
+        "id": "work-start-cafe",
+        "label": "Collect the cafe order tray",
+        "x": 16,
+        "z": 27.5,
+        "radius": 1.8,
+        "interiorBusiness": "cafe",
+        "durationMs": 0,
+        "kind": "tray"
+      },
+      "tasks": [
+        {
+          "id": "collect-plate",
+          "label": "Collect a clean plate",
+          "x": 14,
+          "z": 20.8,
+          "radius": 1.8,
+          "interiorBusiness": "cafe",
+          "durationMs": 2000,
+          "kind": "plate"
+        },
+        {
+          "id": "add-muffin",
+          "label": "Put a muffin on the plate",
+          "x": 18,
+          "z": 20.8,
+          "radius": 1.8,
+          "interiorBusiness": "cafe",
+          "durationMs": 2000,
+          "kind": "muffin"
+        },
+        {
+          "id": "serve-order",
+          "label": "Serve the order at the window table",
+          "x": 18.7,
+          "z": 27.6,
+          "radius": 1.8,
+          "interiorBusiness": "cafe",
+          "durationMs": 2000,
+          "kind": "tray"
+        }
+      ]
+    },
+    "store": {
+      "title": "Store stocking shift",
+      "station": {
+        "id": "work-start-store",
+        "label": "Pick up the stock checklist",
+        "x": -16,
+        "z": 26,
+        "radius": 1.8,
+        "interiorBusiness": "store",
+        "durationMs": 0,
+        "kind": "clipboard"
+      },
+      "tasks": [
+        {
+          "id": "collect-stock",
+          "label": "Collect a stock box",
+          "x": -13,
+          "z": 24,
+          "radius": 1.8,
+          "interiorBusiness": "store",
+          "durationMs": 2000,
+          "kind": "package"
+        },
+        {
+          "id": "fill-shelf",
+          "label": "Arrange the stock on the shelf",
+          "x": -19,
+          "z": 24,
+          "radius": 1.8,
+          "interiorBusiness": "store",
+          "durationMs": 2000,
+          "kind": "package"
+        },
+        {
+          "id": "check-stock",
+          "label": "Check the completed stock list",
+          "x": -16,
+          "z": 22.6,
+          "radius": 1.8,
+          "interiorBusiness": "store",
+          "durationMs": 2000,
+          "kind": "clipboard"
+        }
+      ]
+    },
+    "library": {
+      "title": "Library book shift",
+      "station": {
+        "id": "work-start-library",
+        "label": "Collect the book return basket",
+        "x": -18.8,
+        "z": -19.2,
+        "radius": 1.8,
+        "interiorBusiness": "library",
+        "durationMs": 0,
+        "kind": "book-basket"
+      },
+      "tasks": [
+        {
+          "id": "collect-book",
+          "label": "Collect the returned storybook",
+          "x": -18.8,
+          "z": -22.6,
+          "radius": 1.8,
+          "interiorBusiness": "library",
+          "durationMs": 2000,
+          "kind": "book"
+        },
+        {
+          "id": "shelve-red",
+          "label": "Shelve the red storybook",
+          "x": -19.8,
+          "z": -28.5,
+          "radius": 1.8,
+          "interiorBusiness": "library",
+          "durationMs": 2000,
+          "kind": "red-book"
+        },
+        {
+          "id": "shelve-blue",
+          "label": "Shelve the blue storybook",
+          "x": -12.2,
+          "z": -28.5,
+          "radius": 1.8,
+          "interiorBusiness": "library",
+          "durationMs": 2000,
+          "kind": "blue-book"
+        },
+        {
+          "id": "help-reader",
+          "label": "Bring a book to the reading corner",
+          "x": -13,
+          "z": -21,
+          "radius": 1.8,
+          "interiorBusiness": "library",
+          "durationMs": 2000,
+          "kind": "book"
+        }
+      ]
+    },
+    "bank": {
+      "title": "Bank coin sorting shift",
+      "station": {
+        "id": "work-start-bank",
+        "label": "Collect the coin sorting tray",
+        "x": -57,
+        "z": -45,
+        "radius": 1.8,
+        "interiorBusiness": "bank",
+        "durationMs": 0,
+        "kind": "coins"
+      },
+      "tasks": [
+        {
+          "id": "sort-copper",
+          "label": "Sort the copper coins",
+          "x": -57,
+          "z": -47.4,
+          "radius": 1.8,
+          "interiorBusiness": "bank",
+          "durationMs": 2000,
+          "kind": "copper-coins"
+        },
+        {
+          "id": "sort-silver",
+          "label": "Sort the silver coins",
+          "x": -57,
+          "z": -51,
+          "radius": 1.8,
+          "interiorBusiness": "bank",
+          "durationMs": 2000,
+          "kind": "silver-coins"
+        },
+        {
+          "id": "count-stars",
+          "label": "Count the gold star coins",
+          "x": -51,
+          "z": -51,
+          "radius": 1.8,
+          "interiorBusiness": "bank",
+          "durationMs": 2000,
+          "kind": "gold-coins"
+        },
+        {
+          "id": "pack-coins",
+          "label": "Pack the sorted coins for the teller",
+          "x": -51,
+          "z": -46,
+          "radius": 1.8,
+          "interiorBusiness": "bank",
+          "durationMs": 2000,
+          "kind": "coin-pouch"
+        }
+      ]
+    },
+    "park": {
+      "title": "Park cleanup shift",
+      "station": {
+        "id": "work-start-park",
+        "label": "Collect the cleanup basket",
+        "x": 13,
+        "z": -20,
+        "radius": 1.8,
+        "interiorBusiness": null,
+        "durationMs": 0,
+        "kind": "basket"
+      },
+      "tasks": [
+        {
+          "id": "collect-paper",
+          "label": "Pick up the paper near the bench",
+          "x": 12,
+          "z": -22,
+          "radius": 1.8,
+          "interiorBusiness": null,
+          "durationMs": 2000,
+          "kind": "paper"
+        },
+        {
+          "id": "collect-cup",
+          "label": "Pick up the empty cup",
+          "x": 20,
+          "z": -22,
+          "radius": 1.8,
+          "interiorBusiness": null,
+          "durationMs": 2000,
+          "kind": "cup"
+        },
+        {
+          "id": "recycle-litter",
+          "label": "Sort the litter into the recycling bin",
+          "x": 20,
+          "z": -27,
+          "radius": 1.8,
+          "interiorBusiness": null,
+          "durationMs": 2000,
+          "kind": "bin"
+        }
+      ]
+    },
+    "singing": {
+      "title": "Stage melody shift",
+      "station": {
+        "id": "work-start-singing",
+        "label": "Pick up the song card",
+        "x": 54,
+        "z": -46,
+        "radius": 1.8,
+        "interiorBusiness": null,
+        "durationMs": 0,
+        "kind": "song-card"
+      },
+      "tasks": [
+        {
+          "id": "note-red",
+          "label": "Play the red note: Do",
+          "x": 52,
+          "z": -48,
+          "radius": 1.8,
+          "interiorBusiness": null,
+          "durationMs": 1500,
+          "kind": "note-red"
+        },
+        {
+          "id": "note-yellow",
+          "label": "Play the yellow note: Mi",
+          "x": 54,
+          "z": -48,
+          "radius": 1.8,
+          "interiorBusiness": null,
+          "durationMs": 1500,
+          "kind": "note-yellow"
+        },
+        {
+          "id": "note-blue",
+          "label": "Play the blue note: Sol",
+          "x": 56,
+          "z": -48,
+          "radius": 1.8,
+          "interiorBusiness": null,
+          "durationMs": 1500,
+          "kind": "note-blue"
+        },
+        {
+          "id": "take-bow",
+          "label": "Take a bow at the microphone",
+          "x": 54,
+          "z": -49.5,
+          "radius": 1.8,
+          "interiorBusiness": null,
+          "durationMs": 1500,
+          "kind": "microphone"
+        }
+      ]
+    },
+    "nursery": {
+      "title": "Nursery helper",
+      "station": {
+        "id": "nursery-start",
+        "label": "Pick up the watering can",
+        "x": -23,
+        "z": 50,
+        "radius": 1.7,
+        "interiorBusiness": null
+      },
+      "tasks": [
+        {
+          "id": "water-0",
+          "label": "Water the red flowers",
+          "x": -25.5,
+          "z": 47,
+          "radius": 1.7,
+          "interiorBusiness": null,
+          "durationMs": 2000
+        },
+        {
+          "id": "water-1",
+          "label": "Water the purple flowers",
+          "x": -20.5,
+          "z": 50,
+          "radius": 1.7,
+          "interiorBusiness": null,
+          "durationMs": 2000
+        },
+        {
+          "id": "water-2",
+          "label": "Water the green seedling",
+          "x": -25.5,
+          "z": 53,
+          "radius": 1.7,
+          "interiorBusiness": null,
+          "durationMs": 2000
+        },
+        {
+          "id": "pot",
+          "label": "Pot a new seedling",
+          "x": -23,
+          "z": 52.2,
+          "radius": 1.7,
+          "interiorBusiness": null,
+          "durationMs": 2000
+        }
+      ]
+    }
+  },
+  "deliveryDestinations": [
+    {
+      "id": "library",
+      "label": "Library front door",
+      "x": -16,
+      "z": -17,
+      "radius": 2.3,
+      "interiorBusiness": null
+    },
+    {
+      "id": "vet",
+      "label": "Pet Vet front door",
+      "x": -20.142857,
+      "z": -43,
+      "radius": 2.3,
+      "interiorBusiness": null
+    },
+    {
+      "id": "salon",
+      "label": "Beauty Salon front door",
+      "x": 15.857143,
+      "z": -43,
+      "radius": 2.3,
+      "interiorBusiness": null
+    },
+    {
+      "id": "bank",
+      "label": "Willow Bank front door",
+      "x": -56.142857,
+      "z": -43,
+      "radius": 2.3,
+      "interiorBusiness": null
+    },
+    {
+      "id": "cafe",
+      "label": "Sunny Cafe front door",
+      "x": 16,
+      "z": 18.5,
+      "radius": 2.3,
+      "interiorBusiness": null
+    },
+    {
+      "id": "home-0",
+      "label": "Home 1 front path",
+      "x": -51,
+      "z": -17,
+      "radius": 1.7,
+      "interiorBusiness": null
+    },
+    {
+      "id": "home-1",
+      "label": "Home 2 front path",
+      "x": -51,
+      "z": 7,
+      "radius": 1.7,
+      "interiorBusiness": null
+    },
+    {
+      "id": "home-2",
+      "label": "Home 3 front path",
+      "x": -51,
+      "z": 31,
+      "radius": 1.7,
+      "interiorBusiness": null
+    },
+    {
+      "id": "home-3",
+      "label": "Home 4 front path",
+      "x": 51,
+      "z": -17,
+      "radius": 1.7,
+      "interiorBusiness": null
+    },
+    {
+      "id": "home-4",
+      "label": "Home 5 front path",
+      "x": 51,
+      "z": 7,
+      "radius": 1.7,
+      "interiorBusiness": null
+    },
+    {
+      "id": "home-5",
+      "label": "Home 6 front path",
+      "x": 51,
+      "z": 31,
+      "radius": 1.7,
+      "interiorBusiness": null
+    },
+    {
+      "id": "nursery",
+      "label": "Little Nursery entrance",
+      "x": -23,
+      "z": 44,
+      "radius": 1.7,
+      "interiorBusiness": null
+    }
+  ],
+  "parcelStation": {
+    "id": "parcel",
+    "label": "Collect a parcel",
+    "x": -19,
+    "z": 26,
+    "radius": 2,
+    "interiorBusiness": "store"
+  },
+  "starterQuests": {
+    "cafe": {
+      "id": "cafe",
+      "label": "Serve a cafe snack",
+      "reward": 1,
+      "cooldownMs": 60000,
+      "steps": [
+        {
+          "id": "collect",
+          "label": "Collect a snack tray",
+          "x": 16,
+          "z": 20.6,
+          "interiorBusiness": "cafe",
+          "radius": 1.7,
+          "durationMs": 2000
+        },
+        {
+          "id": "serve",
+          "label": "Serve the snack",
+          "x": 18.5,
+          "z": 23.5,
+          "interiorBusiness": "cafe",
+          "radius": 1.7,
+          "durationMs": 2000
+        }
+      ]
+    },
+    "store": {
+      "id": "store",
+      "label": "Stock the town store",
+      "reward": 1,
+      "cooldownMs": 60000,
+      "steps": [
+        {
+          "id": "collect",
+          "label": "Collect a stock box",
+          "x": -13,
+          "z": 26,
+          "interiorBusiness": "store",
+          "radius": 1.7,
+          "durationMs": 2000
+        },
+        {
+          "id": "stock",
+          "label": "Stock the shelf",
+          "x": -12.3,
+          "z": 23.5,
+          "interiorBusiness": "store",
+          "radius": 1.7,
+          "durationMs": 2000
+        }
+      ]
+    },
+    "park": {
+      "id": "park",
+      "label": "Tidy the park",
+      "reward": 1,
+      "cooldownMs": 60000,
+      "steps": [
+        {
+          "id": "collect",
+          "label": "Pick up litter",
+          "x": 11,
+          "z": -24,
+          "interiorBusiness": null,
+          "radius": 1.7,
+          "durationMs": 2000
+        },
+        {
+          "id": "recycle",
+          "label": "Put it in the recycling bin",
+          "x": 21,
+          "z": -24,
+          "interiorBusiness": null,
+          "radius": 1.7,
+          "durationMs": 2000
+        }
+      ]
+    },
+    "garden": {
+      "id": "garden",
+      "label": "Water the garden",
+      "reward": 2,
+      "cooldownMs": 300000,
+      "steps": [
+        {
+          "id": "water-left",
+          "label": "Water the first plants",
+          "x": 18.5,
+          "z": 47,
+          "interiorBusiness": null,
+          "radius": 1.7,
+          "durationMs": 2000
+        },
+        {
+          "id": "water-right",
+          "label": "Water the other plants",
+          "x": 21.5,
+          "z": 51,
+          "interiorBusiness": null,
+          "radius": 1.7,
+          "durationMs": 2000
+        }
+      ]
+    }
+  },
+  "employerSites": {
+    "bank": {
+      "id": "bank",
+      "label": "Bank teller",
+      "x": -54,
+      "z": -47.8,
+      "interiorBusiness": "bank",
+      "radius": 1.7
+    },
+    "vet": {
+      "id": "vet",
+      "label": "Veterinarian",
+      "x": -18,
+      "z": -47.8,
+      "interiorBusiness": "vet",
+      "radius": 1.7
+    },
+    "library": {
+      "id": "library",
+      "label": "Librarian",
+      "x": -16,
+      "z": -22.8,
+      "interiorBusiness": "library",
+      "radius": 1.7
+    },
+    "store": {
+      "id": "store",
+      "label": "Shopkeeper",
+      "x": -16,
+      "z": 22.2,
+      "interiorBusiness": "store",
+      "radius": 1.7
+    },
+    "cafe": {
+      "id": "cafe",
+      "label": "Cafe host",
+      "x": 20.5,
+      "z": 20.3,
+      "interiorBusiness": "cafe",
+      "radius": 1.7
+    },
+    "salon": {
+      "id": "salon",
+      "label": "Salon receptionist",
+      "x": 18,
+      "z": -52.5,
+      "interiorBusiness": "salon",
+      "radius": 1.7
+    },
+    "nursery": {
+      "id": "nursery",
+      "label": "Nursery gardener",
+      "x": -23,
+      "z": 46.6,
+      "interiorBusiness": null,
+      "radius": 1.7
+    },
+    "park": {
+      "id": "park",
+      "label": "Mayor",
+      "x": 24,
+      "z": -26,
+      "interiorBusiness": null,
+      "radius": 1.7
+    },
+    "singing": {
+      "id": "singing",
+      "label": "Stage host",
+      "x": 49,
+      "z": -47.5,
+      "interiorBusiness": null,
+      "radius": 1.7
+    }
+  },
+  "jobEmployer": {
+    "delivery": "store",
+    "store": "store",
+    "bank": "bank",
+    "vet": "vet",
+    "library": "library",
+    "cafe": "cafe",
+    "salon": "salon",
+    "nursery": "nursery",
+    "park": "park",
+    "singing": "singing"
+  },
+  "businessDefinitions": {
+    "bank": {
+      "id": "bank",
+      "name": "Willow Bank",
+      "x": -54,
+      "z": -49,
+      "doorX": -56.142857,
+      "doorZ": -45,
+      "spawnX": -54,
+      "spawnZ": -43.5,
+      "exitX": -54,
+      "exitZ": -42.5,
+      "halfWidth": 9,
+      "halfDepth": 7
+    },
+    "vet": {
+      "id": "vet",
+      "name": "Pet Vet",
+      "x": -18,
+      "z": -49,
+      "doorX": -20.142857,
+      "doorZ": -45,
+      "spawnX": -18,
+      "spawnZ": -43.5,
+      "exitX": -18,
+      "exitZ": -42.5,
+      "halfWidth": 9,
+      "halfDepth": 7
+    },
+    "salon": {
+      "id": "salon",
+      "name": "Beauty Salon",
+      "x": 18,
+      "z": -49,
+      "doorX": 15.857143,
+      "doorZ": -45,
+      "spawnX": 18,
+      "spawnZ": -43.5,
+      "exitX": 18,
+      "exitZ": -42.5,
+      "halfWidth": 9,
+      "halfDepth": 7
+    },
+    "store": {
+      "id": "store",
+      "name": "Town Store",
+      "x": -16,
+      "z": 24,
+      "doorX": -16,
+      "doorZ": 20.5,
+      "spawnX": -16,
+      "spawnZ": 29.5,
+      "exitX": -16,
+      "exitZ": 30.5,
+      "halfWidth": 9,
+      "halfDepth": 7
+    },
+    "cafe": {
+      "id": "cafe",
+      "name": "Sunny Cafe",
+      "x": 16,
+      "z": 24,
+      "doorX": 16,
+      "doorZ": 20.5,
+      "spawnX": 16,
+      "spawnZ": 29.5,
+      "exitX": 16,
+      "exitZ": 30.5,
+      "halfWidth": 9,
+      "halfDepth": 7
+    },
+    "library": {
+      "id": "library",
+      "name": "Library",
+      "x": -16,
+      "z": -24,
+      "doorX": -16,
+      "doorZ": -19,
+      "spawnX": -16,
+      "spawnZ": -18.5,
+      "exitX": -16,
+      "exitZ": -17.5,
+      "halfWidth": 9,
+      "halfDepth": 7
+    },
+    "arcade": {
+      "id": "arcade",
+      "name": "Willow Arcade",
+      "x": 0,
+      "z": -51,
+      "doorX": 0,
+      "doorZ": -47,
+      "spawnX": 0,
+      "spawnZ": -45.5,
+      "exitX": 0,
+      "exitZ": -44.5,
+      "halfWidth": 9,
+      "halfDepth": 7
+    }
+  }
+}

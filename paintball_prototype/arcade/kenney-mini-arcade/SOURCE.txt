@@ -1,0 +1,3 @@
+Mini Arcade 1.2 by Kenney (https://kenney.nl/assets/mini-arcade).
+CC0 1.0; see License.txt. Additional credits Fleur Keijsers, Guus Vermeulen.
+Selected original GLBs and their original external Textures/colormap.png extracted from the user-downloaded pack. No gambling assets. No altered third-party games or branding. Gameplay is separate original code.

@@ -1,0 +1,3 @@
+Source: user download beach-and-water-park.zip, Shuriken Studio Beach & Water Park pack. License retained LICENSE.txt and independently checked https://shuriken.studio/legal/models version2026-11-13. Game use and modifications permitted; no standalone redistribution. Dive shop derived from Beach Surf Shop with original surfboard rack restored at Matt's request, original sign/slides omitted. Boat Rental Dock retains original hut/platform/pier; boats, slides and surrounding scenery omitted. Original user archive unchanged.
+
+Snack kiosk and furnishings from owned beach-and-water-park.zip beach-snack-bar.glb, same Shuriken license. Includes stools, menu, coconut display, parasol seating and separately repositioned slide; omitted duplicate terrain mesh only.

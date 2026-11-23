@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>$GODOT_PROJECT_NAME</title>
+		<meta id="-gd-engine-icon" name="willowbrook-managed-favicon" content="true">
+		<link rel="icon" type="image/svg+xml" href="./willowbrook-favicon.svg" sizes="any">
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background-color: black;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background-color: $GODOT_SPLASH_COLOR;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 10%;
+	width: 50%;
+	margin: 0 auto;
+}
+
+#status-notice {
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
+}
+		
+/* This is the stock Godot shell with a Willowbrook loading treatment only. */
+#status {
+	visibility: visible;
+	background: #142737;
+	overflow: hidden;
+	z-index: 2;
+}
+#status-splash {
+	display: block;
+	position: absolute;
+	inset: 0;
+	max-width: none;
+	max-height: none;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: 50% 49%;
+}
+#status::after {
+	content: "";
+	pointer-events: none;
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(0deg, #0d1d29e0 0%, #0d1d2933 28%, transparent 52%);
+}
+#loading-label, #status-progress, #status-notice, #status-retry {
+	z-index: 3;
+}
+#loading-label {
+	position: absolute;
+	bottom: max(10%, 62px);
+	inset-inline: 20px;
+	text-align: center;
+	color: #fcf5dd;
+	font: 600 clamp(1rem, 2.2vw, 1.4rem)/1.4 system-ui, sans-serif;
+	text-shadow: 0 2px 12px #0a141c;
+}
+#status-progress {
+	bottom: max(6%, 35px);
+	width: min(56vw, 340px);
+	height: 9px;
+	accent-color: #ffe399;
+}
+#status-notice {
+	max-width: min(540px, calc(100% - 70px));
+}
+#status-retry {
+	margin-top: 14px;
+	padding: 11px 25px;
+	border: 0;
+	border-radius: 8px;
+	background: #ffe399;
+	color: #172638;
+	font: 600 1rem system-ui, sans-serif;
+	cursor: pointer;
+}
+#status-retry:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+#status-splash[hidden], #status-retry[hidden], #loading-label[hidden] { display: none; }
+
+#status[hidden], #signin-card[hidden], #signin-card [hidden] { display: none !important; }
+#status.is-signin { overflow-y: auto; padding: 18px; box-sizing: border-box; }
+#status.is-signin::after { background: linear-gradient(0deg,#15313280,transparent 70%); }
+#signin-card {
+	position: relative; z-index: 4; width: min(100%, 350px); box-sizing: border-box;
+	margin: auto; padding: 23px 26px 24px; text-align: center;
+	border: 2px solid #cb935f; border-top: 8px solid #b56d48; border-radius: 25px;
+	background: #fff5dc; box-shadow: 0 14px 36px #142d3890, inset 0 0 0 3px #fffaf0;
+	color: #22453a; font: 1rem/1.3 system-ui, sans-serif;
+}
+#signin-card h1 { font-size: clamp(1.55rem, 4.6vw, 1.95rem); margin: .1rem 0 .25rem; letter-spacing: -.035em; line-height: 1.12; }
+#signin-card p { margin: .25rem 0 .95rem; color: #365348; }
+#signin-icon {
+	width: 50px; height: 50px; margin: 0 auto 7px; border-radius: 50%;
+	background: #dce8bf; display: grid; place-items: center;
+}
+#signin-icon svg { width: 34px; height: 34px; }
+#signin-form { display: grid; gap: 6px; text-align: left; }
+#signin-form label { font-weight: 700; margin-top: 4px; }
+#signin-form input {
+	width: 100%; min-height: 46px; padding: 10px 13px; border: 2px solid #b7bf96;
+	border-radius: 12px; box-sizing: border-box; background: #fffcf3; color: #133e33; font: inherit;
+}
+#signin-form input::placeholder { color: #627464; }
+#signin-form button {
+	min-height: 48px; border-radius: 13px; border: 0; padding: 8px 14px; font: 700 1.075rem system-ui,sans-serif; cursor: pointer;
+}
+#signin-submit { background: #24644f; color: #fffaf2; margin-top: 10px; box-shadow: 0 3px 0 #134d3c; }
+#signin-submit:disabled { opacity: .6; cursor: progress; }
+#signin-cancel, #signin-resume { background: #e7eac9; color: #25483a; }
+#signin-card :focus-visible { outline: 3px solid #a45328; outline-offset: 3px; }
+#signin-feedback { color: #643711; display: block; margin: .8rem 0 0; min-width: 0; overflow-wrap: anywhere; }
+#signin-feedback:empty { display: none; }
+@media(max-height:520px) {
+	#status.is-signin { padding: 10px; }
+	#signin-card { padding: 11px 20px 15px; }
+	#signin-icon { display:none; }
+	#signin-card p { margin: .2rem 0 .4rem; }
+}
+
+
+#family-chat[hidden], #family-chat-box[hidden], #family-chat-toggle[hidden] { display:none !important; }
+#family-chat { position:fixed; z-index:2147483601; right:var(--chat-right, 12px); top:var(--chat-top, 72px); color:#20483d; font:15px/1.35 system-ui,sans-serif; }
+#family-chat-toggle, #family-chat button { font:700 15px system-ui,sans-serif; cursor:pointer; min-height:44px; border:0; border-radius:10px; }
+#family-chat-toggle { padding:9px 12px; background:#245e4d; color:#fff6de; box-shadow:0 2px 8px #0006; border:2px solid #f1d097; min-width:132px; }
+#family-chat-box { position:fixed; top:50%; right:18px; transform:translateY(-50%); display:grid; grid-template-rows:auto auto minmax(60px,1fr) auto auto; box-sizing:border-box; width:min(340px,calc(100vw - 30px)); max-height:calc(100dvh - 30px); padding:15px; border:2px solid #ca9b6c; border-radius:15px; background:#fff5dc; box-shadow:0 12px 34px #23433a70; }
+#family-chat-title { margin:0; font-size:1.2rem; }
+#family-chat-box header { display:flex; align-items:center; justify-content:space-between; gap:7px; }
+#family-chat-close { padding:5px 9px; color:#244a3c; background:#e2eac6; }
+#family-chat-box p { margin:2px 0 8px; font-size:.85rem; }
+#family-chat-log { overflow:auto; max-height:175px; min-height:58px; padding:7px; margin:0 0 8px; list-style:none; overflow-wrap:anywhere; background:#edf1d8; border-radius:8px; }
+#family-chat-log li+li { margin-top:6px; }
+#family-chat-form { display:grid; grid-template-columns:1fr auto; gap:6px; align-items:end; }
+#family-chat-form label { grid-column:1/-1; font-weight:700; }
+#family-chat-entry { grid-column:1; min-width:0; min-height:44px; box-sizing:border-box; color:#163b33; background:#fffdf4; border:2px solid #a9b98e; padding:8px; border-radius:9px; font:inherit; }
+#family-chat-send { background:#245e4d; color:#fff6de; padding:6px 14px; }
+#family-chat-feedback { min-height:1.3em; margin-top:4px; overflow-wrap:anywhere; font-size:.85rem; color:#6e3824; }
+#family-chat :focus-visible { outline:3px solid #a45328; outline-offset:2px; }
+@media(max-width:690px) {
+
+ #family-chat-box { right:10px; width:calc(100vw - 20px); }
+}
+@media(max-height:450px) { #family-chat-log { max-height:80px; } }
+
+</style>
+		<link rel="preload" href="./loading.webp" as="image" type="image/webp">
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body>
+		<canvas id="canvas" tabindex="0" aria-label="Willowbrook game">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="status">
+			<img id="status-splash" src="./loading.webp" alt="" hidden onload="this.hidden=false" onerror="this.hidden=true">
+			<div id="loading-label" role="status" aria-live="polite">Loading Willowbrook</div>
+			<progress id="status-progress" aria-label="Game download progress"></progress>
+			<div id="status-notice" role="alert"></div>
+			<button type="button" id="status-retry" hidden>Try again</button>
+			<section id="signin-card" aria-labelledby="signin-title" hidden>
+				<div id="signin-icon" aria-hidden="true">
+					<svg viewBox="0 0 40 40">
+						<path d="M7 19 20 9l13 10v14H7Z" fill="#fff5dc" stroke="#336449" stroke-width="2" stroke-linejoin="round"/>
+						<path d="M5 19 20 8l15 11" fill="none" stroke="#b56d48" stroke-width="4" stroke-linecap="round"/>
+						<path d="M17 33V23h6v10M10 23h4v4h-4m16-4h4v4h-4" fill="#4c8665"/>
+						<path d="M24 8c2-5 6-5 9-5-1 4-4 7-9 5" fill="#568653"/>
+					</svg>
+				</div>
+				<h1 id="signin-title">Welcome to Willowbrook!</h1>
+				<p>Sign in and come on in.</p>
+				<form method="post" id="signin-form" aria-describedby="signin-feedback">
+					<label for="signin-user">Username</label>
+					<input id="signin-user" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="32" required>
+					<label for="signin-pass">Password</label>
+					<input id="signin-pass" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+					<button type="submit" id="signin-submit">Let’s play</button>
+					<button type="button" id="signin-resume" hidden>Retry session</button>
+					<button type="button" id="signin-cancel" hidden>Cancel connection</button>
+				</form>
+				<p id="family-desk-links" hidden><a href="./parent.html">Parent Desk</a> · <a href="./parent.html#player-invite">Have a player invite?</a></p>
+				<output id="signin-feedback" role="status" aria-live="polite"></output>
+			</section>
+		</div>
+
+		
+		<aside aria-label="Family chat" id="family-chat" hidden>
+			<button id="family-chat-toggle" type="button" aria-expanded="false" aria-controls="family-chat-box">Family chat</button>
+			<section id="family-chat-box" aria-labelledby="family-chat-title" hidden>
+				<header><h2 id="family-chat-title">Family chat</h2><button type="button" id="family-chat-close">Minimize</button></header>
+				<p>One family channel in every area. Messages aren’t saved.</p>
+				<ol id="family-chat-log" role="log" aria-label="Recent family chat messages" aria-live="polite"></ol>
+				<form id="family-chat-form">
+					<label for="family-chat-entry">Message</label>
+					<input type="text" id="family-chat-entry" name="message" autocomplete="off" enterkeyhint="send" required maxlength="320">
+					<button id="family-chat-send" type="submit">Send</button>
+				</form>
+				<output id="family-chat-feedback" role="status"></output>
+			</section>
+		</aside>
+
+		<script src="$GODOT_URL"></script>
+		<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+	const loadingLabel = document.getElementById('loading-label');
+	const retryButton = document.getElementById('status-retry');
+	retryButton.addEventListener('click', () => location.reload());
+	const canvas = document.getElementById('canvas');
+	const deskLinks = document.getElementById('family-desk-links');
+	if (deskLinks) fetch('./api/family-desk/state', {headers:{'X-Willowbrook-Desk':'1'},credentials:'same-origin',cache:'no-store'})
+		.then(response => { deskLinks.hidden = !response.ok; }).catch(() => {});
+	const signInCard = document.getElementById('signin-card');
+	const signInForm = document.getElementById('signin-form');
+	const usernameInput = document.getElementById('signin-user');
+	const passwordInput = document.getElementById('signin-pass');
+	const submitButton = document.getElementById('signin-submit');
+	const resumeButton = document.getElementById('signin-resume');
+	const cancelButton = document.getElementById('signin-cancel');
+	const feedback = document.getElementById('signin-feedback');
+	let gateOpen = false;
+	let waitingForResume = false;
+	let gameReady = false;
+	let gateCallbacks = null;
+
+	function showGate() {
+		if (!gameReady) return;
+		const open = !!gateCallbacks && gateOpen;
+		const wasOpen = canvas.inert;
+		statusOverlay.classList.toggle('is-signin', open && !waitingForResume);
+		statusOverlay.hidden = !open;
+		signInCard.hidden = !open || waitingForResume;
+		loadingLabel.hidden = !open || !waitingForResume;
+		if (waitingForResume) loadingLabel.textContent = 'Returning to Willowbrook';
+		if (open || document.getElementById("family-chat-box").hidden) canvas.inert = open;
+		familyChat.sync();
+		if (wasOpen && !open) {
+			signInForm.reset();
+			feedback.textContent = '';
+			requestAnimationFrame(() => { if (!gateOpen) canvas.focus({preventScroll:true}); });
+		}
+	}
+
+	
+	const familyChat = (() => {
+		const root = document.getElementById('family-chat');
+		const toggle = document.getElementById('family-chat-toggle');
+		const panel = document.getElementById('family-chat-box');
+		const minimize = document.getElementById('family-chat-close');
+		const log = document.getElementById('family-chat-log');
+		const form = document.getElementById('family-chat-form');
+		const input = document.getElementById('family-chat-entry');
+		const note = document.getElementById('family-chat-feedback');
+		let callbacks = null, available = false, open = false, unread = 0;
+		const badge = () => { toggle.textContent = unread ? 'Family chat (' + unread + ')' : 'Family chat'; };
+		function close(escape = false) {
+			if (!open) return;
+			open = false;
+			input.blur();
+			panel.hidden = true;
+			toggle.hidden = false;
+			toggle.setAttribute('aria-expanded','false');
+			canvas.inert = gateOpen;
+			const cabinet = document.getElementById('willowbrook-arcade-overlay');
+			if (cabinet) {
+				cabinet.inert = false;
+				if (escape && !gateOpen) window.WillowbrookArcade?.focusActive();
+			} else if (escape && !gateOpen) canvas.focus({preventScroll:true});
+		}
+		function sync() {
+			root.hidden = !gameReady || gateOpen || !available;
+			if (!available || gateOpen) {
+				close(!gateOpen && gameReady);
+				log.replaceChildren();
+				input.value = '';
+				note.textContent = '';
+				unread = 0;
+				badge();
+			}
+		}
+		toggle.addEventListener('click', () => { if (available && !open && !gateOpen) callbacks?.toggle(true); });
+		minimize.addEventListener('click', () => callbacks?.toggle(false));
+		form.addEventListener('submit', event => {
+			event.preventDefault();
+			if (!open || !available || !input.value.trim()) return;
+			if (Array.from(input.value.trim()).length > 160) {
+				note.textContent = 'Use 160 characters or fewer.';
+				return;
+			}
+			callbacks?.send(input.value);
+		});
+		panel.addEventListener('keydown', event => {
+			event.stopPropagation();
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				callbacks?.toggle(false);
+			} else if (event.key === 'Enter' && !event.isComposing && event.target === input) {
+				event.preventDefault();
+				if (!event.repeat) form.requestSubmit();
+			}
+		});
+		let starAnchor = null;
+		function positionUnderStars() {
+			if (!starAnchor || window.WillowbrookArcade?.isOpen()) {
+				root.style.setProperty('--chat-right','12px');
+				root.style.setProperty('--chat-top',window.WillowbrookArcade?.isOpen() ? '58px' : '12px');
+				return;
+			}
+			const r = canvas.getBoundingClientRect();
+			root.style.setProperty('--chat-right', Math.max(6, innerWidth - r.left - r.width * starAnchor.x) + 'px');
+			root.style.setProperty('--chat-top', Math.max(0, r.top + r.width * starAnchor.y + 6) + 'px');
+		}
+		new ResizeObserver(positionUnderStars).observe(canvas);
+		addEventListener('resize', positionUnderStars);
+		addEventListener('willowbrook-arcade-changed',positionUnderStars);
+		window.WillowbrookFamilyChat = {
+			hasCabinet() { return window.WillowbrookArcade?.isOpen() === true; },
+			useFallbackAnchor() { starAnchor=null; positionUnderStars(); },
+			anchorUnderStars(x, y) {
+				if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+				starAnchor = {x, y};
+				positionUnderStars();
+			},
+			bind(send,toggleGate) {
+				if (typeof send !== 'function' || typeof toggleGate !== 'function') return false;
+				callbacks = {send,toggle:toggleGate};
+				return true;
+			},
+			setAvailable(value) { available = value === true; sync(); },
+			setOpen(value) {
+				if (value !== true) {close(true);return;}
+				if (!available || gateOpen || !gameReady || open) return;
+				open = true;
+				unread = 0;
+				badge();
+				toggle.hidden = true;
+				toggle.setAttribute('aria-expanded','true');
+				panel.hidden = false;
+				canvas.inert = true;
+				const cabinet = document.getElementById('willowbrook-arcade-overlay');
+				if (cabinet) cabinet.inert = true;
+				if (document.pointerLockElement) document.exitPointerLock?.();
+				log.scrollTop = log.scrollHeight;
+				input.focus({preventScroll:true});
+			},
+			receive(from,text) {
+				if (!available || gateOpen || typeof from !== 'string' || typeof text !== 'string') return;
+				const row = document.createElement('li');
+				const speaker = document.createElement('strong');
+				speaker.textContent = from + ': ';
+				row.append(speaker,document.createTextNode(text));
+				log.append(row);
+				while (log.children.length > 30) log.firstElementChild.remove();
+				if (open) log.scrollTop = log.scrollHeight;
+				else {unread = Math.min(99,unread + 1);badge();}
+			},
+			feedback(message, clear) {
+				if (!open) return;
+				note.textContent = typeof message==='string' ? message : '';
+				if (clear === true) input.value = '';
+			}
+		};
+		return {sync};
+	})();
+
+	window.WillowbrookSignIn = {
+		bind(submit, resume, cancel) {
+			if ([submit,resume,cancel].some(cb => typeof cb !== 'function')) return false;
+			gateCallbacks = {submit,resume,cancel};
+			return true;
+		},
+		setOpen(value) { gateOpen = value === true; showGate(); },
+		setStatus(message, busy, canResume, resuming) {
+			waitingForResume = resuming === true;
+			queueMicrotask(showGate);
+			feedback.textContent = typeof message === 'string' ? message : '';
+			submitButton.disabled = busy === true;
+			cancelButton.hidden = busy !== true;
+			resumeButton.hidden = canResume !== true;
+			signInForm.setAttribute('aria-busy',busy === true ? 'true' : 'false');
+		}
+	};
+	signInForm.addEventListener('submit', event => {
+		event.preventDefault();
+		if (!gateOpen || !gameReady || !gateCallbacks || submitButton.disabled || !signInForm.reportValidity()) return;
+		const password = passwordInput.value;
+		passwordInput.value = '';
+		gateCallbacks.submit(usernameInput.value, password);
+	});
+	resumeButton.addEventListener('click', () => { if (gateOpen && !resumeButton.hidden) gateCallbacks?.resume(); });
+	cancelButton.addEventListener('click', () => { if (gateOpen && !cancelButton.hidden) gateCallbacks?.cancel(); });
+	signInForm.addEventListener('keydown', event => {
+		if (event.key === 'Enter' && !event.isComposing && event.target instanceof HTMLInputElement) {
+			event.preventDefault();
+			if (!event.repeat && !submitButton.disabled) signInForm.requestSubmit(submitButton);
+		}
+		if (event.key === 'Escape' && !cancelButton.hidden) { event.preventDefault();gateCallbacks?.cancel(); }
+	});
+
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			initializing = false;
+			gameReady = true;
+			statusMode = mode;
+			loadingLabel.hidden = true;
+			statusProgress.style.display = 'none';
+			statusNotice.style.display = 'none';
+			retryButton.hidden = true;
+			showGate();
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		loadingLabel.hidden = mode === 'notice';
+		retryButton.hidden = mode !== 'notice';
+		if (mode === 'notice') retryButton.focus();
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	if (typeof Engine !== 'function') {
+		displayFailureNotice('Willowbrook could not load the game engine. Check your connection and try again.');
+		return;
+	}
+	const engine = new Engine(GODOT_CONFIG);
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	<link rel="stylesheet" href="./activity-launchers.css">
+	<link rel="stylesheet" href="./neighbor-quests.css">
+<script src="./neighbor-quests.js"></script>
+<script src="./activity-launchers.js"></script>
+<link rel="stylesheet" href="./hide-seek.css">
+<script src="./hide-seek.js"></script>
+</body>
+</html>

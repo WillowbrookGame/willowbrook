@@ -1,0 +1,7 @@
+Air hockey by Ludovic Dupont (korial29), https://github.com/korial29/air-hockey
+Pinned upstream commit: 6627de2d20b1ce8a62627cb0211e5475d2adf47d
+License: Apache-2.0, bundled LICENSE.txt. No upstream NOTICE file was present.
+Built locally from pinned TypeScript source using its locked development dependencies; no runtime dependency or remote asset fetch.
+Willowbrook modifications: client inline styles externalized to hockey.css for existing CSP; keyboard input API added; host integration uses authenticated existing app transport rather than the standalone upstream server or BroadcastChannel. The authoritative Room bundle is unmodified upstream source.
+The upstream game includes original canvas-drawn themed art, prediction and three-round physics. It does not use the separately downloaded Kenney artwork.
+Client patch is preserved at tools/air-hockey-client.patch. Build: npm ci --ignore-scripts; node node_modules/vite/bin/vite.js build; BUILD_SERVER=true for Room bundle. No production server is started by these artifacts.

@@ -1,0 +1,8 @@
+Source: https://3dassets.dev/assets/safari-camp-and-bush-lodge-camp-gate-and-sign-board-3a088c5e
+Title: Camp Gate with Blank Sign Board (Safari Camp and Bush Lodge)
+Author: 3D Assets (AI-assisted asset)
+License: CC0 1.0 Universal https://creativecommons.org/publicdomain/zero/1.0/
+Source file: owner's downloaded model (3).glb, copied without modification on 2026-11-17.
+Runtime adaptation: gate retained closed; sign lettering added. Published game reuse permitted by CC0.
+
+Godot adaptation: gate-godot.glb converts normalized 16-bit vertex attributes to floating point for Godot's glTF importer, preserving the external asset geometry and texture. The gate is posed open by the town layout, so its original animation track is not included.

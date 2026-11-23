@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Willowbrook Arcade</title>
+<style>
+html,body,#arcadeHost{height:100%;margin:0;overflow:hidden;background:transparent}
+body{font:16px system-ui,sans-serif;color:#24334b}
+[hidden]{display:none!important}
+button{cursor:pointer;font:inherit;color:#24334b;border:1px solid #d3c3a6;border-radius:10px;background:#fff2cc;padding:0 .55rem}
+#arcadePanel{width:min(620px,calc(100vw - 20px))!important}
+#arcadePanel:focus-within{outline:2px solid #f3d584}
+#arcadeNetworkNotice{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);box-sizing:border-box;width:min(440px,calc(100vw - 30px));background:#fff8ed;padding:20px;border-radius:20px;box-shadow:0 12px 50px #0005}
+#arcadeNetworkNotice button{min-height:44px}
+#arcadeNetworkNotice h2{margin:0 0 .5rem}
+.arcade-practice-note{margin:0;font-size:.85rem;color:#46546b}
+</style>
+<main id="arcadeHost"></main>
+<script type="module" src="./page.js"></script>
+</html>

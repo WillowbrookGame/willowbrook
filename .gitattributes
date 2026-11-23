@@ -1,0 +1,2 @@
+# Preserve exact source bytes across platforms, including vendored hash-checked dependencies.
+* -text

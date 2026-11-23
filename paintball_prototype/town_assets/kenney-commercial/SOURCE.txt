@@ -1,0 +1,7 @@
+Kenney City Kit Commercial 2.1
+https://kenney.nl/assets/city-kit-commercial
+CC0. Selected building-d and local palette. Native left storefront door opened; ground-floor height adapted for avatars; original frame and display window retained.
+
+2026-11-15: building-e.glb selected from the same official downloaded Commercial 2.1 archive for Willow Library. Native closed entrance retained; geometry adapted to the existing 11 by 10 lot and unchanged library portal. CC0 license remains in License.txt.
+
+2026-11-15: building-g.glb selected from the official downloaded Commercial 2.1 archive for Sunny Cafe. Orange awning and native double-glass entrance retained; adapted to the existing 9 by 7 lot and unchanged cafe portal. CC0; shared local palette unchanged.

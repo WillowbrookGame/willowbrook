@@ -1,0 +1,6 @@
+Trophy by CreativeTrio
+License: Public Domain (CC0)
+Source: https://poly.pizza/m/fLy8KmmD1t
+License: https://creativecommons.org/publicdomain/zero/1.0/
+User downloaded 2026-11-15. Original GLB retained, including embedded diffuse texture.
+Runtime glTF/bin/PNG extracted losslessly from original GLB to use same-origin texture URLs under existing CSP. Original GLB retained.

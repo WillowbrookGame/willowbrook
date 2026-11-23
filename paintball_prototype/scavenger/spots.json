@@ -1,0 +1,194 @@
+[
+  {
+    "id": "park-west",
+    "zone": "town",
+    "x": 7,
+    "z": -25,
+    "hint": "Beside the west edge of the park",
+    "radius": 2.2
+  },
+  {
+    "id": "park-south",
+    "zone": "town",
+    "x": 22,
+    "z": -17,
+    "hint": "South of the park benches",
+    "radius": 2.2
+  },
+  {
+    "id": "library-east",
+    "zone": "town",
+    "x": -8,
+    "z": -27,
+    "hint": "East of the library",
+    "radius": 2.2
+  },
+  {
+    "id": "bank-east",
+    "zone": "town",
+    "x": -44,
+    "z": -49,
+    "hint": "East of Willow Bank",
+    "radius": 2.2
+  },
+  {
+    "id": "vet-east",
+    "zone": "town",
+    "x": -10,
+    "z": -49,
+    "hint": "Beside Pet Vet",
+    "radius": 2.2
+  },
+  {
+    "id": "stage-front",
+    "zone": "town",
+    "x": 60,
+    "z": -43,
+    "hint": "By the east side of the stage approach",
+    "radius": 2.2
+  },
+  {
+    "id": "store-path",
+    "zone": "town",
+    "x": -16,
+    "z": 17,
+    "hint": "On the path outside Town Store",
+    "radius": 2.2
+  },
+  {
+    "id": "cafe-path",
+    "zone": "town",
+    "x": 16,
+    "z": 17,
+    "hint": "On the approach to Sunny Café",
+    "radius": 2.2
+  },
+  {
+    "id": "garden-west",
+    "zone": "town",
+    "x": 13,
+    "z": 48,
+    "hint": "Outside the western edge of the Community Garden",
+    "radius": 2.2
+  },
+  {
+    "id": "nursery-west",
+    "zone": "town",
+    "x": -30,
+    "z": 47,
+    "hint": "Outside the west edge of the Little Nursery",
+    "radius": 2.2
+  },
+  {
+    "id": "skate-east",
+    "zone": "town",
+    "x": -40,
+    "z": 54,
+    "hint": "Along the east edge of Skate Corner",
+    "radius": 2.2
+  },
+  {
+    "id": "playground-east",
+    "zone": "town",
+    "x": 58,
+    "z": 55,
+    "hint": "Near the southeast corner of the playground",
+    "radius": 2.2
+  },
+  {
+    "id": "pond-path",
+    "zone": "town",
+    "x": -6,
+    "z": 52,
+    "hint": "Along the town path toward the beach",
+    "radius": 2.2
+  },
+  {
+    "id": "bank-lobby",
+    "zone": "bank",
+    "x": 2.7,
+    "z": 4.1,
+    "hint": "Inside Willow Bank, on the right of the entrance",
+    "radius": 2.2
+  },
+  {
+    "id": "vet-lobby",
+    "zone": "vet",
+    "x": 2.6,
+    "z": 4,
+    "hint": "Inside Pet Vet, in the waiting-room aisle",
+    "radius": 2.2
+  },
+  {
+    "id": "salon-lobby",
+    "zone": "salon",
+    "x": 2.7,
+    "z": 3.9,
+    "hint": "Inside Beauty Salon, on the right of the entrance",
+    "radius": 2.2
+  },
+  {
+    "id": "store-lobby",
+    "zone": "store",
+    "x": -2.6,
+    "z": 4.4,
+    "hint": "Inside Town Store, near the entrance on the left",
+    "radius": 2.2
+  },
+  {
+    "id": "cafe-lobby",
+    "zone": "cafe",
+    "x": 0.9,
+    "z": 3.5,
+    "hint": "Inside Sunny Café, in the middle aisle",
+    "radius": 2.2
+  },
+  {
+    "id": "library-lobby",
+    "zone": "library",
+    "x": 2.5,
+    "z": 4.6,
+    "hint": "Inside the Library, in the entry aisle",
+    "radius": 2.2
+  },
+  {
+    "id": "arcade-lobby",
+    "zone": "arcade",
+    "x": 2,
+    "z": 4.6,
+    "hint": "Inside Willow Arcade, on the entrance side",
+    "radius": 2.2
+  },
+  {
+    "id": "beach-main-path",
+    "zone": "beach",
+    "x": -3,
+    "z": 25,
+    "hint": "On the sand beside the path back to town",
+    "radius": 2.2
+  },
+  {
+    "id": "beach-east-sand",
+    "zone": "beach",
+    "x": 15,
+    "z": 15,
+    "hint": "On the open sand east of the fishing pier",
+    "radius": 2.2
+  },
+  {
+    "id": "beach-west-sand",
+    "zone": "beach",
+    "x": -11,
+    "z": 11,
+    "hint": "On the open sand west of the fishing pier",
+    "radius": 2.2
+  },
+  {
+    "id": "beach-rental-approach",
+    "zone": "beach",
+    "x": 24,
+    "z": 15,
+    "hint": "On the sand before the boat rental area",
+    "radius": 2.2
+  }
+]

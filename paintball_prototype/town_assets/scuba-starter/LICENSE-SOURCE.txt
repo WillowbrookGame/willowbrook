@@ -1,0 +1,25 @@
+Willowbrook Scuba starter mesh provenance
+========================================
+
+The individual GLBs in this folder are isolated groups from two starter GLBs
+downloaded by the maintainer. Source material names and asset/node identities
+are retained in ASSET-MANIFEST.json and in each GLB asset.extras record.
+
+Diving and Underwater Salvage, by 3DAssets.dev, licensed CC0 1.0 Universal
+https://3dassets.dev/packs/diving-and-underwater-salvage
+Publisher starter asset 28464: Aircraft Salvage Worksite (model (5).glb locally).
+
+Coral Reef and Underwater Scenery, by 3DAssets.dev, licensed CC0 1.0 Universal
+https://3dassets.dev/packs/underwater-reef-worlds
+Publisher starter asset 7075: Reef wall with swim-through (model (6).glb locally).
+
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+
+Preparation: Removed starter placement at each asset root. Decoded existing
+quantization, baked authored per-mesh transforms into the original vertex
+data, removed vertices unused by the selected triangles, and batched surfaces
+by their unchanged original materials. Separated the two authored fins along
+their disconnected negative/positive X groups so they can move with each
+foot; no triangles were created. The source steel WebP texture was resampled
+from 512 to 256 and embedded as PNG for portable core glTF import. All packaged
+GLBs are core glTF 2.0 only, without any external references.

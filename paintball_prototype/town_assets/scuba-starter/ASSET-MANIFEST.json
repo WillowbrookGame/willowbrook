@@ -1,0 +1,354 @@
+[
+  {
+    "file": "twin-scuba-tank-rig.glb",
+    "bytes": 53952,
+    "triangles": 1684,
+    "surfaces": 3,
+    "min": [
+      -0.274,
+      0.0,
+      -0.125
+    ],
+    "max": [
+      0.421,
+      0.928,
+      0.33
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "020-twin-scuba-tank-rig",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "2eb66f99448eb8ac81dfb3ce8c5f1301e428767c1e6065619e1306316d1b80e1",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "dive-mask.glb",
+    "bytes": 23144,
+    "triangles": 584,
+    "surfaces": 2,
+    "min": [
+      -0.215,
+      0.0,
+      -0.284
+    ],
+    "max": [
+      0.215,
+      0.16,
+      0.118
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "022-dive-mask",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "ba3211db833208704e2c4297d850252f7755adce00e216f4cb21d255f1c4a23e",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "dive-fin-left.glb",
+    "bytes": 17208,
+    "triangles": 600,
+    "surfaces": 2,
+    "min": [
+      -0.145,
+      0.0,
+      -0.324
+    ],
+    "max": [
+      0.085,
+      0.11,
+      0.425
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "023-dive-fin-pair",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "d4ca0fcf113c5a8b34b38513de6589b7f9caa98b533aa2d6fb0a723dc1879ee3",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "dive-fin-right.glb",
+    "bytes": 17208,
+    "triangles": 600,
+    "surfaces": 2,
+    "min": [
+      -0.085,
+      0.0,
+      -0.324
+    ],
+    "max": [
+      0.145,
+      0.11,
+      0.425
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "023-dive-fin-pair",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "3ec767d499ee0cf6c25c05d565b6e2498d929ef97b8e1d50839ea64a32af037d",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "underwater-camera-housing.glb",
+    "bytes": 31976,
+    "triangles": 556,
+    "surfaces": 4,
+    "min": [
+      -0.286,
+      0.0,
+      -0.075
+    ],
+    "max": [
+      0.286,
+      0.285,
+      0.22
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "025-underwater-camera-housing",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "402a2d0f15e63a72ab107f110a0565f441880ed09df34d99f81e610c0a985c28",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "diver-equipment-bench.glb",
+    "bytes": 127660,
+    "triangles": 1104,
+    "surfaces": 3,
+    "min": [
+      -0.875,
+      -0.0,
+      -0.4
+    ],
+    "max": [
+      0.875,
+      1.092,
+      0.4
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "018-diver-equipment-bench",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "7eac9599eb13a179403dea88baeb386907655ec4765b8c338d0008c8689578df",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "dive-entry-platform.glb",
+    "bytes": 151236,
+    "triangles": 1668,
+    "surfaces": 4,
+    "min": [
+      -1.2,
+      -0.0,
+      -1.3
+    ],
+    "max": [
+      1.2,
+      1.68,
+      1.68
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "015-dive-entry-platform",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "4054bc8746d01277801cd78fb070cdfb78dc5d83812fdb64c9a647af641d9dfb",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "wreck-cockpit-section.glb",
+    "bytes": 173796,
+    "triangles": 2260,
+    "surfaces": 5,
+    "min": [
+      -1.35,
+      -0.0,
+      -1.75
+    ],
+    "max": [
+      1.35,
+      2.247,
+      1.75
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "009-wreck-cockpit-section",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "426371f629f463d1d21074a4aa8f49b361cf016605acd382309ed313373ba9e7",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "torn-wing-section.glb",
+    "bytes": 114716,
+    "triangles": 760,
+    "surfaces": 4,
+    "min": [
+      -2.113,
+      -0.0,
+      -1.251
+    ],
+    "max": [
+      2.401,
+      0.365,
+      1.251
+    ],
+    "scene": "Aircraft Salvage Worksite",
+    "original_node": "012-torn-wing-section",
+    "source": "https://3dassets.dev/packs/diving-and-underwater-salvage",
+    "source_sha256": "8db2dc51b45adf6e438d2d2d6e5d9747608729d5ca2029f2ca34c1c0017a177a",
+    "sha256": "4c3c922c603a6397c5c3be43d04ad23f660268e77caf134ebbe1fd6448667715",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "reef-wall-straight.glb",
+    "bytes": 115364,
+    "triangles": 2696,
+    "surfaces": 1,
+    "min": [
+      -2.044,
+      0.0,
+      -0.696
+    ],
+    "max": [
+      2.061,
+      2.541,
+      0.698
+    ],
+    "scene": "Reef wall with swim-through",
+    "original_node": "000-reef-wall-straight",
+    "source": "https://3dassets.dev/packs/underwater-reef-worlds",
+    "source_sha256": "82a1ea41ba9a39336c638a353c02b29870b3c86bec5ad5acd1c0b4dba1c838d1",
+    "sha256": "b402f1a0ffbd1c8a67f33639f0d3cbd1eb34131fd4e459a9d5450433eb268199",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "reef-wall-overhang.glb",
+    "bytes": 159336,
+    "triangles": 3636,
+    "surfaces": 2,
+    "min": [
+      -2.044,
+      0.0,
+      -0.8
+    ],
+    "max": [
+      2.061,
+      2.541,
+      2.0
+    ],
+    "scene": "Reef wall with swim-through",
+    "original_node": "001-reef-wall-overhang",
+    "source": "https://3dassets.dev/packs/underwater-reef-worlds",
+    "source_sha256": "82a1ea41ba9a39336c638a353c02b29870b3c86bec5ad5acd1c0b4dba1c838d1",
+    "sha256": "e8742f8a5dd610e82b3dcb8ae2aadaa3af187f2116442f0913b128806e71cb2b",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "reef-spur.glb",
+    "bytes": 39264,
+    "triangles": 1256,
+    "surfaces": 1,
+    "min": [
+      -2,
+      0.0,
+      -0.696
+    ],
+    "max": [
+      2.0,
+      2.135,
+      3.01
+    ],
+    "scene": "Reef wall with swim-through",
+    "original_node": "002-reef-spur",
+    "source": "https://3dassets.dev/packs/underwater-reef-worlds",
+    "source_sha256": "82a1ea41ba9a39336c638a353c02b29870b3c86bec5ad5acd1c0b4dba1c838d1",
+    "sha256": "8bf27b1db8ca168e34b01e4775ea8262aa71636ec8a8e5f2bfdda56f87beee78",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "swim-through-arch.glb",
+    "bytes": 68744,
+    "triangles": 1240,
+    "surfaces": 2,
+    "min": [
+      -2.08,
+      -0.0,
+      -0.84
+    ],
+    "max": [
+      2.08,
+      3.15,
+      0.84
+    ],
+    "scene": "Reef wall with swim-through",
+    "original_node": "003-swim-through-arch",
+    "source": "https://3dassets.dev/packs/underwater-reef-worlds",
+    "source_sha256": "82a1ea41ba9a39336c638a353c02b29870b3c86bec5ad5acd1c0b4dba1c838d1",
+    "sha256": "d590d3a093d0f66c31ee6379d50af5dc0706841776db65345dcf7db98d6d1dc8",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "sea-fan.glb",
+    "bytes": 172596,
+    "triangles": 3660,
+    "surfaces": 1,
+    "min": [
+      -1.005,
+      0.0,
+      -0.055
+    ],
+    "max": [
+      1.005,
+      1.918,
+      0.055
+    ],
+    "scene": "Reef wall with swim-through",
+    "original_node": "004-sea-fan",
+    "source": "https://3dassets.dev/packs/underwater-reef-worlds",
+    "source_sha256": "82a1ea41ba9a39336c638a353c02b29870b3c86bec5ad5acd1c0b4dba1c838d1",
+    "sha256": "28fea6e61bbacf685c1ca34f8b03327b92c267348074165549027fa71752aa18",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "barrel-sponge.glb",
+    "bytes": 10292,
+    "triangles": 448,
+    "surfaces": 1,
+    "min": [
+      -0.605,
+      0.0,
+      -0.605
+    ],
+    "max": [
+      0.605,
+      1.0,
+      0.605
+    ],
+    "scene": "Reef wall with swim-through",
+    "original_node": "005-barrel-sponge",
+    "source": "https://3dassets.dev/packs/underwater-reef-worlds",
+    "source_sha256": "82a1ea41ba9a39336c638a353c02b29870b3c86bec5ad5acd1c0b4dba1c838d1",
+    "sha256": "9a604b19ef4ae373cb1cd2ff720f3742ecb1bc7b43f4b65ec313ecdb1ad6939b",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "reef-wall-corner.glb",
+    "bytes": 46012,
+    "triangles": 1952,
+    "surfaces": 1,
+    "min": [
+      -2,
+      0.0,
+      -2.196
+    ],
+    "max": [
+      2.198,
+      2.18,
+      2.0
+    ],
+    "scene": "Reef wall with swim-through",
+    "original_node": "006-reef-wall-corner",
+    "source": "https://3dassets.dev/packs/underwater-reef-worlds",
+    "source_sha256": "82a1ea41ba9a39336c638a353c02b29870b3c86bec5ad5acd1c0b4dba1c838d1",
+    "sha256": "de32d2aab42ecc39e6eecfb8c2154537c0e70c6cd1dcc529a8ce714c01edd259",
+    "license": "CC0-1.0"
+  }
+]

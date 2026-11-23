@@ -1,0 +1,5 @@
+trashcan.glb is unchanged from the existing Willowbrook-installed Kenney Furniture Kit 2.0.
+Author: Kenney. Source: https://kenney.nl/assets/furniture-kit
+License: CC0 1.0 (see adjacent License.txt, already present in B6).
+Upstream-installed asset SHA-256: E0CCC1FE50CBD05386477FDFF527171D1CF7C0DE2BA7FF3233F8D9561FEB2561
+Godot code tints the scene and adds the label. Paper, cup and basket are original procedural shapes, with no third-party imports.
