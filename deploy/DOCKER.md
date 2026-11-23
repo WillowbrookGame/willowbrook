@@ -24,11 +24,12 @@ docker compose up -d
 This is a one-time owner setup for a new named volume. The password goes through
 stdin, not Compose, shell history, environment files, or a command argument.
 Open `http://127.0.0.1:24863/parent.html` on the Linux host. Sign in as
-`family_owner` and choose **Make parent invite**. In a separate browser profile
-or after signing out, redeem that code under **Parent invite** and sign in as
-the new parent. The parent can then choose **Make player invite**. Open
-**Player invite** to redeem the child's code, choose a nickname and character,
-and sign into the game at `http://127.0.0.1:24863/`. Local HTTP is not a LAN
+`family_owner` and choose **Make player invite** under **Your household players**.
+Open **Player invite** in a separate browser profile (or after signing out),
+redeem the code, choose a nickname and character, and sign into the game at
+`http://127.0.0.1:24863/`. To give another parent a separate household, use
+**Make parent invite**; that parent redeems the code under **Parent invite**
+and can then invite players into their own household. Local HTTP is not a LAN
 address. To administer remotely
 without opening ingress, use a local SSH port-forward to the same loopback port
 from an authorized administrator computer and open the same URL there.
@@ -85,6 +86,15 @@ writer lock while any instance may be using the account store.
 For Dockge, put the same files inside a new dedicated stack directory and use the
 Compose files above. Use the terminal for one-time provisioning and the explicit
 two-file HTTPS command; do not paste a password into the stack editor. The starter stack leaves optional Family Chat off.
+
+## Included household features
+
+Both Docker configurations enable shared Town weather, Home Visits, and Hide
+and Seek for signed-in household players. Homeowners can lock their doors to prevent or end visits. Hide and Seek takes place in Town and its public buildings;
+it does not open private homes or use the Beach or Paintball arena.
+
+Family Chat is off in the Docker launchers. Setting an individual player's chat
+permission in Parent Desk does not turn on the server-wide chat service.
 
 ## Optional: online Paintball
 

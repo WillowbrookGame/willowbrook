@@ -17,6 +17,13 @@ export function containerPaintballOptions({enabled=process.env.WILLOWBROOK_PAINT
  return {enablePaintballLobbyTransport:true,paintballWorker:{exe,project}};
 }
 
+export const containerFamilyFeatures=Object.freeze({
+ enableWeather:true,
+ enableHomeVisits:true,
+ enableHideSeek:true,
+ chatEnabled:false
+});
+
 export async function startContainer({privateLan=false}={}) {
  const state='/var/lib/willowbrook-family-desk-container';
  const site=privateLan?getLanSite():null;
@@ -26,7 +33,7 @@ export async function startContainer({privateLan=false}={}) {
  }
  const local=await startLocalServer({port:24863,webRoot:'/web',accountsDir:state,
   parentDeskFile:state+'/.willowbrook-family-desk-opt-in',privateHttpsOrigin:site?.origin??null,
-  ...paintball});
+  ...containerFamilyFeatures,...paintball});
  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,async()=>{await local.close();process.exit();});
  console.log(site?'Willowbrook ready behind the private HTTPS edge.':'Willowbrook ready on loopback.');
 }

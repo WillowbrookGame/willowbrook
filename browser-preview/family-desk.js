@@ -84,14 +84,17 @@
   function render() {
     const role=session?.role;
     by('guest').hidden=!session||Boolean(role);
-    by('owner').hidden=role!=='owner';by('parent').hidden=role!=='parent';by('logout').hidden=!role;
-    if(role==='parent') renderPlayers(session.players);
+    const managePlayers=role==='parent'||(role==='owner'&&session?.canManagePlayers===true);
+    by('owner').hidden=role!=='owner';by('parent').hidden=!managePlayers;by('logout').hidden=!role;
+    by('player-management-title').textContent=role==='owner'?'Your household players':'Your players';
+    if(managePlayers) renderPlayers(session.players);
+    else by('player-roster').replaceChildren();
     const state=session?.globalChat;
     const control=by('global-chat');
     control.disabled=role!=='owner'||state?.canEnable!==true;
     control.textContent=state?.enabled?'Turn off chat for everyone':'Turn on chat for everyone';
     by('global-chat-state').textContent=state?.enabled?'Family Chat is on for players who are allowed to use it.':state?.canEnable===false?'Family Chat is off because this preview was started without it.':'Family Chat is off for everyone.';
-    by('parent-chat-global-off').hidden=role!=='parent'||state?.enabled!==false;
+    by('parent-chat-global-off').hidden=!managePlayers||state?.enabled!==false;
     void pending();
   }
   async function refresh(){session=await req('state');render();return session;}

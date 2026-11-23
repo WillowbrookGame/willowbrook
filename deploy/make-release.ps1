@@ -31,7 +31,7 @@ try {
   & tar -xf $sourceArchive -C $release
   if ($LASTEXITCODE -ne 0) { throw 'Unpacking Git archive failed.' }
   $export = Join-Path $stage 'web-export'
-  foreach ($required in @('LICENSE','LICENSING.md','Dockerfile','compose.yaml','compose.https-lan.yaml','compose.paintball.yaml','deploy/DOCKER.md','deploy/build-paintball-runtime.sh','deploy/godot-paintball-stdio')) {
+  foreach ($required in @('LICENSE','LICENSING.md','Dockerfile','compose.yaml','compose.https-lan.yaml','compose.paintball.yaml','deploy/DOCKER.md','deploy/build-paintball-runtime.sh','deploy/assemble-linux-release.sh','deploy/godot-paintball-stdio')) {
     if (!(Test-Path -LiteralPath (Join-Path $release $required) -PathType Leaf)) { throw "Commit is missing $required." }
   }
   & (Join-Path $release 'browser-preview/build-account.ps1') -Godot $godotExe -Out $export

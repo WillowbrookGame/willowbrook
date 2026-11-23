@@ -6,6 +6,9 @@ const marker='willowbrook-local-family-desk-v1\n';
 const namePattern=/^[a-z0-9_-]{3,20}$/;
 const keyPattern=/^[A-Za-z0-9_-]{32}$/;
 const idPattern=/^[a-f0-9]{24}$/;
+// Owner never changes names, and invited-parent households are 24 hex
+// characters. A disjoint derived namespace needs no save migration.
+const ownerHousehold=owner=>'owner:'+owner.username;
 const token=()=>randomBytes(24).toString('base64url');
 const id=()=>randomBytes(12).toString('hex');
 const sha=v=>createHash('sha256').update(v).digest('hex');
@@ -31,6 +34,7 @@ function validate(desk){
  if(desk.owner!==null&&!credential(desk.owner))throw Error('Invalid family owner data.');
  if(Object.keys(desk.parents).length>limits.parents||Object.entries(desk.parents).some(([k,v])=>!credential(v)||v.username!==k||!idPattern.test(v.household)))throw Error('Invalid family parent data.');
  const households=new Set(Object.values(desk.parents).map(p=>p.household));
+ if(desk.owner)households.add(ownerHousehold(desk.owner));
  if(Object.entries(desk.children).some(([k,v])=>!/^[1-9][0-9]*$/.test(k)||!v||!households.has(v.household)||typeof v.chatEnabled!=='boolean'))throw Error('Invalid family child data.');
  if(Object.entries(desk.invites).some(([k,v])=>!/^[a-f0-9]{64}$/.test(k)||!v||!idPattern.test(v.id)||!['parent','player','reset'].includes(v.purpose)||!Number.isSafeInteger(v.expiresAt)||typeof v.issuer!=='string'))throw Error('Invalid family invite data.');
  return desk;
@@ -76,6 +80,13 @@ export function createFamilyDesk({accounts,accountFile,makeStore,characters,cloc
  const profile=(state,n)=>Object.values(state.profiles).find(p=>p.id===n)??null;
  const adult=(d,name)=>d.owner?.username===name?d.owner:own(d.parents,name);
  const identity=(d,who)=>(who?.role==='owner'&&d.owner?.username===who.username)?d.owner:who?.role==='parent'?own(d.parents,who.username):null;
+ const issuerHousehold=(d,username)=>d.owner?.username===username?ownerHousehold(d.owner):own(d.parents,username)?.household??null;
+ const actorHousehold=(d,actor)=>identity(d,actor)?issuerHousehold(d,actor.username):null;
+ const needHousehold=(d,actor)=>{
+  const household=actorHousehold(d,actor);
+  if(!household)refuse('This action is not available.',403);
+  return household;
+ };
  const canChat=profile=>canManagedPlayerChat(accounts.state,profile);
  const chatPolicy=()=>({ enabled:chatEnabledAtLaunch===true&&globalFamilyChatAllowed(accounts.state), canEnable:chatEnabledAtLaunch===true });
  function commit(edit) {
@@ -118,11 +129,11 @@ export function createFamilyDesk({accounts,accountFile,makeStore,characters,cloc
  }
  function roleOnly(actor,role){if(actor?.role!==role)refuse('This action is not available.',403);}
  function childScoped(s,d,actor,n){
-  roleOnly(actor,'parent');
+  const household=needHousehold(d,actor);
   if(!Number.isSafeInteger(n)||n<1)refuse('Player not found.',404);
   const perm=own(d.children,String(n));
   const p=profile(s,n);
-  if(!p||!perm||perm.household!==actor.household)refuse('Player not found.',404);
+  if(!p||!perm||perm.household!==household)refuse('Player not found.',404);
   return [p,perm];
  }
  function revokeChildSessions(s,p){for(const [k,v] of Object.entries(s.sessions))if(v.id===p.id)delete s.sessions[k];}
@@ -172,7 +183,7 @@ export function createFamilyDesk({accounts,accountFile,makeStore,characters,cloc
   pruneSessions();
   for(const [k,v] of sessions)if(v.username===name)sessions.delete(k);
   if(sessions.size>=limits.recordedSessions)refuse('Too many desk sessions.',429);
-  const secret=token(),actor={username:p.username,role:d.owner===p?'owner':'parent',household:p.household??null,csrf:token(),expiresAt:clock()+4*3600000};
+  const secret=token(),actor={username:p.username,role:d.owner===p?'owner':'parent',csrf:token(),expiresAt:clock()+4*3600000};
   sessions.set(sha(secret),actor);
   return {secret,actor};
  }
@@ -186,10 +197,11 @@ export function createFamilyDesk({accounts,accountFile,makeStore,characters,cloc
   if(!actor)return {role:null};
   const d=read(),state=accounts.state;
   const inv=Object.values(d.invites).filter(i=>i.issuer===actor.username&&i.expiresAt>clock()).map(i=>({id:i.id,purpose:i.purpose,expiresAt:i.expiresAt}));
-  const players=actor.role==='parent'?Object.values(state.profiles).flatMap(p=>{
-   const perm=own(d.children,String(p.id));return perm?.household===actor.household?[publicPlayer(p,perm)]:[];
+  const household=actorHousehold(d,actor);
+  const players=household?Object.values(state.profiles).flatMap(p=>{
+   const perm=own(d.children,String(p.id));return perm?.household===household?[publicPlayer(p,perm)]:[];
   }):[];
-  return {role:actor.role,csrf:actor.csrf,players,pendingInvites:inv,globalChat:actor.role==='owner'?chatPolicy():{enabled:chatPolicy().enabled}};
+  return {role:actor.role,csrf:actor.csrf,canManagePlayers:Boolean(household),players,pendingInvites:inv,globalChat:actor.role==='owner'?chatPolicy():{enabled:chatPolicy().enabled}};
  }
  function action(kind,actor,q){
   switch(kind){
@@ -212,8 +224,8 @@ export function createFamilyDesk({accounts,accountFile,makeStore,characters,cloc
     return createInvite(d,actor,'parent',{username,household:id()});
    });
   case 'invite-player':
-   roleOnly(actor,'parent');if(!on(q,[]))refuse('Invalid player invite request.');
-   return commit((s,d)=>createInvite(d,actor,'player',{household:actor.household}));
+   if(!on(q,[]))refuse('Invalid player invite request.');
+   return commit((s,d)=>createInvite(d,actor,'player',{household:needHousehold(d,actor)}));
   case 'revoke-invite':
    if(!actor)refuse('Sign in to the desk first.',401);
    if(!on(q,['inviteId'])||!idPattern.test(q.inviteId??''))refuse('Invite not found.',404);
@@ -233,12 +245,12 @@ export function createFamilyDesk({accounts,accountFile,makeStore,characters,cloc
    if(!on(q,['code','nickname','avatar','password']))refuse('Invalid player setup.');
    return commit((s,d)=>{
     const i=take(d,q.code,'player');
-    if(own(d.parents,i.issuer)?.household!==i.household)refuse('Invite is no longer available.',404);
+    if(!i.household||issuerHousehold(d,i.issuer)!==i.household)refuse('Invite is no longer available.',404);
     return {player:createChild(s,d,i.household,q.nickname,q.avatar,q.password)};
    });
   case 'create-player':
-   roleOnly(actor,'parent');if(!on(q,['nickname','avatar','password']))refuse('Invalid player setup.');
-   return commit((s,d)=>({player:createChild(s,d,actor.household,q.nickname,q.avatar,q.password)}));
+   if(!on(q,['nickname','avatar','password']))refuse('Invalid player setup.');
+   return commit((s,d)=>({player:createChild(s,d,needHousehold(d,actor),q.nickname,q.avatar,q.password)}));
   case 'player-permissions': {
    if(!(on(q,['id','playEnabled'])&&typeof q.playEnabled==='boolean')&&!(on(q,['id','chatEnabled'])&&typeof q.chatEnabled==='boolean'))refuse('Change one play or chat permission at a time.');
    const reply=commit((s,d)=>{
@@ -251,12 +263,12 @@ export function createFamilyDesk({accounts,accountFile,makeStore,characters,cloc
   case 'reset-player': {
    if(!on(q,['id']))refuse('Player not found.',404);
    const reply=commit((s,d)=>{
-    const [p]=childScoped(s,d,actor,q.id);
+    const [p,perm]=childScoped(s,d,actor,q.id);
     for(const [k,v] of Object.entries(d.invites))if(v.purpose==='reset'&&v.playerId===p.id)delete d.invites[k];
     // Random, unissued credential immediately invalidates the old password.
     p.salt=randomBytes(16).toString('hex');p.hash=randomBytes(64).toString('hex');p.mustChangePassword=true;
     revokeChildSessions(s,p);
-    return createInvite(d,actor,'reset',{household:actor.household,playerId:p.id});
+    return createInvite(d,actor,'reset',{household:perm.household,playerId:p.id});
    });
    onPlayerChanged(q.id);return reply;
   }
@@ -264,7 +276,7 @@ export function createFamilyDesk({accounts,accountFile,makeStore,characters,cloc
    if(!on(q,['code','password'])||!goodPassword(q.password))refuse('Use a password of at least 10 characters.');
    const reply=commit((s,d)=>{
     const i=take(d,q.code,'reset'),p=profile(s,i.playerId);
-    if(!p||own(d.children,String(i.playerId))?.household!==i.household||own(d.parents,i.issuer)?.household!==i.household)refuse('Invite is no longer available.',404);
+    if(!p||own(d.children,String(i.playerId))?.household!==i.household||!i.household||issuerHousehold(d,i.issuer)!==i.household)refuse('Invite is no longer available.',404);
     setPlayerPassword(p,q.password);revokeChildSessions(s,p);
     return {nickname:p.username,playerId:p.id};
    });
