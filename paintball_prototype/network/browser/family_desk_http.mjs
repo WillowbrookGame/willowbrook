@@ -1,3 +1,4 @@
+import {requestMatchesSite} from './https_site_policy.mjs';
 // Loopback-only same-origin HTTP adapter. It never logs URLs, bodies, or cookies.
 const prefix='/api/family-desk/';
 const token=/^[A-Za-z0-9_-]{32}$/;
@@ -22,7 +23,7 @@ function cookie(req,name){
  const value=rows.length===1?rows[0].slice(name.length+1):null;
  return value&&token.test(value)?value:null;
 }
-export function createDeskHttp({desk,address,clock=Date.now}) {
+export function createDeskHttp({desk,address,clock=Date.now,httpsSite=null}) {
  const buckets=new Map();
  const openActions=new Set(['login','redeem-parent','redeem-player','redeem-reset']);
  function grant(name,limit) {
@@ -40,9 +41,10 @@ export function createDeskHttp({desk,address,clock=Date.now}) {
    if(!desk||!req.url.startsWith(prefix)||!/^\/api\/family-desk\/[a-z-]{1,24}$/.test(req.url))fail('Not found.',404);
    const local=address();
    if(local?.address!=='127.0.0.1'||req.socket.remoteAddress!=='127.0.0.1')fail('Not found.',404);
-   const host='127.0.0.1:'+local.port,origin='http://'+host,cName='willowbrook_desk_'+local.port;
+   const host=httpsSite?.host??'127.0.0.1:'+local.port,origin=httpsSite?.origin??'http://'+host,cName=httpsSite?'__Secure-willowbrook_desk':'willowbrook_desk_'+local.port;
    const header=req.headers['sec-fetch-site'];
-   if(req.headers.forwarded||Object.keys(req.headers).some(k=>k.startsWith('x-forwarded-'))||req.headers.host!==host||req.headers['x-willowbrook-desk']!=='1'||(header&&header!=='same-origin')||(req.headers.origin&&req.headers.origin!==origin))fail('Same-origin desk request required.',403);
+   const authority=httpsSite?requestMatchesSite(req,httpsSite,req.method==='POST'):(!req.headers.forwarded&&!Object.keys(req.headers).some(k=>k.startsWith('x-forwarded-'))&&req.headers.host===host&&(!req.headers.origin||req.headers.origin===origin));
+   if(!authority||req.headers['x-willowbrook-desk']!=='1'||(header&&header!=='same-origin'))fail('Same-origin desk request required.',403);
    const action=req.url.slice(prefix.length);
    const current=cookie(req,cName),actor=desk.authenticate(current);
    if(req.method==='GET'&&action==='state'){grant('state',120);send(200,{ok:true,...desk.status(actor)});return true;}
@@ -58,12 +60,12 @@ export function createDeskHttp({desk,address,clock=Date.now}) {
    if(action==='login'){
     if(Object.keys(data).length!==2||!Object.hasOwn(data,'username')||!Object.hasOwn(data,'password'))fail('Desk sign-in failed.',401);
     const session=desk.login(data.username,data.password);
-    send(200,{ok:true,...desk.status(session.actor)},{'Set-Cookie':cName+'='+session.secret+'; Path=/api/family-desk/; HttpOnly; SameSite=Strict; Max-Age=14400'});
+    send(200,{ok:true,...desk.status(session.actor)},{'Set-Cookie':cName+'='+session.secret+'; Path=/api/family-desk/; HttpOnly; SameSite=Strict; Max-Age=14400'+(httpsSite?'; Secure':'')});
     return true;
    }
    if(action==='logout'){
     if(Object.keys(data).length)fail('Invalid logout request.');
-    desk.logout(current);send(200,{ok:true,role:null},{'Set-Cookie':cName+'=; Path=/api/family-desk/; HttpOnly; SameSite=Strict; Max-Age=0'});return true;
+    desk.logout(current);send(200,{ok:true,role:null},{'Set-Cookie':cName+'=; Path=/api/family-desk/; HttpOnly; SameSite=Strict; Max-Age=0'+(httpsSite?'; Secure':'')});return true;
    }
    const result=desk.action(action,actor,data);send(200,{ok:true,...result});
   }catch(e){

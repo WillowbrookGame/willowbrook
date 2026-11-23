@@ -36,6 +36,12 @@ it does not reuse existing player accounts. Stop the preview with Ctrl+C.
 For account and Parent Desk tests, use a fresh disposable accounts directory
 and the explicit Parent Desk opt-in. Never run tests against the live server.
 
+## Host a game on Linux with Docker
+
+Use the [household hosting guide](deploy/DOCKER.md) to run the prebuilt game,
+create the first parent account, or enable private HTTPS for other devices.
+You do not need Godot or PowerShell to run the Docker package.
+
 ## Arcade and assets
 
 The browser build does not require a separate Three.js project or privately

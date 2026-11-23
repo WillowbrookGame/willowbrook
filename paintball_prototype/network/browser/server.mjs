@@ -1,3 +1,4 @@
+import {privateHttpsSite,requestMatchesSite} from './https_site_policy.mjs';
 import {createHideSeekPrototype} from './hide_seek_prototype.mjs';
 import {createPreviewYards} from './yard_progress_preview.mjs';
 import {createHomeVisits} from './home_visits_preview.mjs';
@@ -43,7 +44,9 @@ function cleanPose(m){
  return {zone:m.zone,x:m.x,y:m.y,z:m.z,yaw:m.yaw,moving:m.moving===true,grounded:m.grounded===true,rest:m.rest==='sit'&&m.moving!==true&&Math.abs(m.y)<1.5&&['bank','vet','salon','store','cafe','library'].includes(m.zone)?'sit':''};
 }
 
-export async function startLocalServer({source,port=24862,origins=[],webRoot=null,accountsDir=null,seedAccounts=[],chatEnabled=false,enableWeather=false,enableHomeVisits=false,enableHideSeek=false,enablePaintballLobbyTransport=false,paintballWorker=null,parentDeskFile=null,deskClock=Date.now,log=()=>{}}){
+export async function startLocalServer({source,port=24862,origins=[],webRoot=null,accountsDir=null,seedAccounts=[],chatEnabled=false,enableWeather=false,enableHomeVisits=false,enableHideSeek=false,enablePaintballLobbyTransport=false,paintballWorker=null,parentDeskFile=null,deskClock=Date.now,privateHttpsOrigin=null,log=()=>{}}){
+ const httpsSite=privateHttpsSite(privateHttpsOrigin);
+ if(httpsSite&&(!accountsDir||!webRoot||origins.length))throw Error('Private HTTPS requires distinct accounts and Web directories, without the preview Origin override.');
  let releaseDeskWriter=()=>{};
  try{
  const runtime=await selectRuntime(source);
@@ -62,7 +65,7 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
  const accounts=accountsDir?await openPreviewAccounts({...dataPaths,makeStore:worldStore.makeStore,seeds:seedAccounts,allowEmpty:parentDeskFile!==null,parentDeskEnabled:parentDeskFile!==null}):null;
  const character=p=>worldStore?.characters.includes(p.character)?p.character:'male-a';
  const desk=parentDeskFile!==null?createFamilyDesk({accounts,accountFile:accounts.accountFile,makeStore:worldStore.makeStore,characters:worldStore.characters,clock:deskClock,chatEnabledAtLaunch:chatEnabled===true,onGlobalChatChanged:()=>chat.refresh(),onPlayerChanged:id=>closeOrRefreshPlayer(id)}):null;
- const httpDesk=createDeskHttp({desk,address:()=>server.address(),clock:deskClock});
+ const httpDesk=createDeskHttp({desk,address:()=>server.address(),clock:deskClock,httpsSite});
  let jobs=null,hunt=null,neighborQuests=null;
  if(accounts){
   const [{businessDefinitions},{employerFor},jobTaskRules,starterRules]=await Promise.all([load('public/business-interiors.js'),load('public/employers.js'),load('public/job-tasks.js'),load('public/starter-quests.js')]);
@@ -87,6 +90,9 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
 
  const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.wasm':'application/wasm','.pck':'application/octet-stream','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json','.jpg':'image/jpeg','.webp':'image/webp','.ogg':'audio/ogg','.mp3':'audio/mpeg','.wav':'audio/wav','.woff2':'font/woff2'};
  const server=createServer(async(req,res)=>{
+  if(httpsSite&&!requestMatchesSite(req,httpsSite)){
+   res.writeHead(403,{'cache-control':'no-store'});res.end();return;
+  }
   if(await httpDesk(req,res))return;
   const fail=()=>{res.writeHead(404);res.end();};
   if(!['GET','HEAD'].includes(req.method)){fail();return;}
@@ -180,7 +186,7 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
  server.on('upgrade',(req,socket,head)=>{
   const origin=req.headers.origin;
   const local=['http://127.0.0.1:'+server.address().port,'http://localhost:'+server.address().port];
-  const permitted=accounts?local.includes(origin):(!origin||[...origins,...(site?local:[])].includes(origin));
+  const permitted=httpsSite?requestMatchesSite(req,httpsSite,true):(accounts?local.includes(origin):(!origin||[...origins,...(site?local:[])].includes(origin)));
   if(req.url!=='/play'||!permitted||peers.size>=16){socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');socket.destroy();return;}
   wss.handleUpgrade(req,socket,head,ws=>wss.emit('connection',ws));
  });
@@ -435,6 +441,8 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const option=key=>process.argv.flatMap((item,i)=>item===key?[process.argv[i+1]]:[]);
  const source=sourceArgument(process.argv.slice(2));
+ const httpsOrigins=option('--private-https-origin');
+ if(httpsOrigins.length>1||httpsOrigins.length===1&&!httpsOrigins[0])throw Error('Pass at most one explicit private HTTPS origin.');
  const port=Number(option('--port')[0]??24862);
  if(!Number.isInteger(port)||port<1024||port>65535)throw new Error('Port must be 1024â€“65535.');
  const accountsDir=option('--accounts-dir')[0]??null;
@@ -447,6 +455,6 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const enablePaintballLobbyTransport=process.argv.includes('--enable-paintball-lobby');
  const exe=option('--paintball-worker-exe')[0],project=option('--paintball-worker-project')[0];
  const paintballWorker=enablePaintballLobbyTransport&&exe&&project?{exe,project}:null;
- const local=await startLocalServer({source,port,enablePaintballLobbyTransport,paintballWorker,origins:option('--origin'),webRoot:option('--web-root')[0],accountsDir,seedAccounts,chatEnabled:process.argv.includes('--enable-family-chat'),enableWeather:process.argv.includes('--enable-town-weather'),enableHomeVisits:process.argv.includes('--enable-home-visits'),parentDeskFile:option('--parent-desk-file')[0]??null,log:data=>console.log(JSON.stringify(data))});
+ const local=await startLocalServer({source,port,enablePaintballLobbyTransport,paintballWorker,privateHttpsOrigin:httpsOrigins[0]??null,origins:option('--origin'),webRoot:option('--web-root')[0],accountsDir,seedAccounts,chatEnabled:process.argv.includes('--enable-family-chat'),enableWeather:process.argv.includes('--enable-town-weather'),enableHomeVisits:process.argv.includes('--enable-home-visits'),parentDeskFile:option('--parent-desk-file')[0]??null,log:data=>console.log(JSON.stringify(data))});
  process.on('SIGINT',async()=>{await local.close();process.exit();});
 }

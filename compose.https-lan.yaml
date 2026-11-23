@@ -1,0 +1,46 @@
+# Explicit opt-in: docker compose -f compose.yaml -f compose.https-lan.yaml up -d
+services:
+  willowbrook:
+    entrypoint: ["node", "/app/deploy/start-lan.mjs"]
+    command: []
+    environment:
+      WILLOWBROOK_PRIVATE_HOST: ${WILLOWBROOK_PRIVATE_HOST:?Set the household DNS name}
+      WILLOWBROOK_PRIVATE_IP: ${WILLOWBROOK_PRIVATE_IP:?Set the assigned private LAN IPv4 address}
+    healthcheck:
+      test: ["CMD", "node", "/app/deploy/health-lan.mjs"]
+  edge:
+    image: nginx:stable-alpine
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        envsubst '$$WILLOWBROOK_PRIVATE_HOST $$WILLOWBROOK_PRIVATE_IP'
+        < /config/nginx.template.conf > /tmp/nginx.conf &&
+        exec nginx -c /tmp/nginx.conf -g 'daemon off;'
+    network_mode: host
+    user: "1000:1000"
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      willowbrook:
+        condition: service_healthy
+    environment:
+      WILLOWBROOK_PRIVATE_HOST: ${WILLOWBROOK_PRIVATE_HOST:?Set the household DNS name}
+      WILLOWBROOK_PRIVATE_IP: ${WILLOWBROOK_PRIVATE_IP:?Set the assigned private LAN IPv4 address}
+    tmpfs:
+      - /tmp:uid=1000,gid=1000,mode=0700
+    volumes:
+      - type: bind
+        source: ./deploy/nginx.template.conf
+        target: /config/nginx.template.conf
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${WILLOWBROOK_TLS_DIR:?Set the TLS directory}
+        target: /tls
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: "no"

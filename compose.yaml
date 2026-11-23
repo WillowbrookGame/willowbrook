@@ -1,0 +1,44 @@
+services:
+  willowbrook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: willowbrook-family:local
+    # Linux host mode retains Node's existing 127.0.0.1-only listener.
+    # Do not add ports; a public or LAN ingress is not configured.
+    network_mode: host
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    stop_signal: SIGINT
+    stop_grace_period: 15s
+    command:
+      - --port
+      - "24863"
+      - --web-root
+      - /web
+      - --accounts-dir
+      - /var/lib/willowbrook-family-desk-container
+      - --parent-desk-file
+      - /var/lib/willowbrook-family-desk-container/.willowbrook-family-desk-opt-in
+    volumes:
+      - type: volume
+        source: willowbrook-state
+        target: /var/lib/willowbrook-family-desk-container
+      - type: bind
+        source: ${WILLOWBROOK_WEB_EXPORT:-./web-export}
+        target: /web
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:24863/health').then(r=>{if(!r.ok)process.exitCode=1}).catch(()=>{process.exitCode=1})"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    restart: "no"
+
+volumes:
+  willowbrook-state:
