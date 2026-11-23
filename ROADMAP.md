@@ -17,3 +17,4 @@ This is the maintainers' shortlist, not a release schedule. Open a GitHub issue 
 
 - [ ] Standalone Willowbrook website, separate from GitHub: explain what the game is, show screenshots and updates, and help visitors decide if they want to run their own copy or contribute. Link to self-hosting requirements, setup docs, the public roadmap, and contributor guides. Informational only: no game to play, no player accounts, and no links to private family servers.
 - [ ] Easy self-hosting: document setup, backups, and upgrades; explore a container image when the manual path is stable.
+- [ ] Explore one-click cloud hosting: let families launch their own invite-only Willowbrook server so friends can join without opening ports on the home network. Start with DigitalOcean, then evaluate Linode and Vultr. Reuse the same portable install and verify backups and upgrades before pursuing listings.
