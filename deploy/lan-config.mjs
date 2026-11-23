@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import {isIPv4} from 'node:net';
 import {networkInterfaces} from 'node:os';
-import {privateHttpsSite} from '../paintball_prototype/network/browser/https_site_policy.mjs';
+import {privateHttpsSite} from '../game/network/browser/https_site_policy.mjs';
 
 export function getLanSite(env = process.env) {
  const ip=env.WILLOWBROOK_PRIVATE_IP;

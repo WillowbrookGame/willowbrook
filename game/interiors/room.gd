@@ -1,0 +1,1125 @@
+extends Node3D
+const ART = preload("res://game/interiors/room_art.gd")
+const JOB_ART = preload("res://game/interiors/room_jobs.gd")
+const DATA := preload("res://game/interiors/room_data.json")
+const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
+const TITLE := {"bank":"Willow Bank","vet":"Willowbrook Vet","salon":"Beauty Salon","cafe":"Sunny Cafe","store":"Town Store","library":"Willowbrook Library","home":"Your Home"}
+const JOBS := ["delivery","bank","vet","salon","cafe","store","library","nursery","park","singing"]
+const PETS = preload("res://game/pets/catalog.gd")
+const PET_ACTORS = preload("res://game/pets/actors.gd")
+var pets: PET_ACTORS
+var _class_request_until := 0
+var _pet_request_until := 0
+var _bank_request_until := 0
+var _pet_species_index := 0
+const SEATS := {"vet":[Vector3(-6,0,1),Vector3(-6,0,3.5)],"bank":[Vector3(-6,0,1),Vector3(-6,0,3.5)],"library":[Vector3(-5,0,3),Vector3(5,0,3)],"cafe":[Vector3(-3.65,0,3.6),Vector3(3.65,0,3.6)],"salon":[Vector3(-5,0,3.3),Vector3(5,0,3.3)]}
+
+var id := ""
+var host: Node3D
+var player: CharacterBody3D
+const PROX = preload("res://game/npc_proximity.gd")
+var art: ART
+var hud: CanvasLayer
+var panel: CenterContainer
+var fields: VBoxContainer
+var heading: Label
+var body: Label
+var notice: Label
+var balance: Label
+var active_panel := ""
+var job_art: JOB_ART
+var hud_refresh := 0.0
+var seated := false
+var _lock_button: Button
+var rest_pose := ""
+var seat_origin := Vector3.ZERO
+var seat_avatar_yaw := 0.0
+var seat_visual: Node3D
+var seat_visual_rest := Transform3D.IDENTITY
+var _room_memberships: Array = []
+var _pending_hire := ""
+var _hire_timeout := 0
+var state_message := ""
+var notice_timer := 0.0
+var course_index := 0
+
+func setup(room_id: String, room_host: Node3D, body_player: CharacterBody3D, room_hud: CanvasLayer) -> void:
+	id = room_id if TITLE.has(room_id) else "home"
+	host = room_host
+	player = body_player
+	hud = room_hud
+	art = ART.new()
+	art.name = "RoomArt"
+	add_child(art)
+	art.build(id,_snapshot())
+	_create_hud()
+	var account := _account()
+	if _visiting(): return
+	if account!=null and account.has_signal("pet_result"):
+		account.pet_result.connect(_pet_result)
+		if account.has_signal("bank_result"): account.bank_result.connect(_bank_result)
+		account.pet_snapshot_changed.connect(_sync_pet_actors)
+	if id=="home" and account!=null and account.has_signal("yard_result"):
+		account.yard_result.connect(_on_yard_result)
+	if id in ["home","store"] and account!=null and account.has_signal("furniture_result"):
+		account.furniture_result.connect(_on_furniture_result)
+	if account!=null and account.has_signal("class_result"):
+		account.class_result.connect(_on_class_result)
+	if id=="home":
+		pets = PET_ACTORS.new()
+		pets.name = "IndoorPets"
+		add_child(pets)
+		pets.configure(player,HOUSING_PLACEMENT.room_count(_snapshot()))
+		_sync_pet_actors()
+	if id != "home":
+		job_art = JOB_ART.new()
+		add_child(job_art)
+		job_art.setup(id,art,hud)
+	if id in ["bank","vet","library"]: feedback("Hi! Welcome to %s." % TITLE[id])
+
+func spawn_position() -> Vector3:
+	return Vector3(0,.04,3.5 if id=="home" else 5.5)
+
+func bounds() -> Vector2:
+	return Vector2(30,5.12) if id=="home" else Vector2(9,7.12)
+
+func close_modal() -> void:
+	if is_modal_open():
+		if active_panel == "home":
+			art.clear_placement_ghost()
+		if active_panel == "bank": feedback("Have a nice day!")
+		active_panel = ""
+		_pending_hire = ""
+		panel.hide()
+		host.set_zone_modal(false)
+	elif seated:
+		_stand()
+
+func is_modal_open() -> bool:
+	return is_instance_valid(panel) and panel.visible
+
+func _visiting() -> bool:
+	return id=="home" and is_instance_valid(host) and host.get("guest_variant") is String and not str(host.guest_variant).is_empty()
+
+func refresh_guest_decor() -> void:
+	if _visiting(): art.redraw_decor(_snapshot())
+
+func refresh_home_lock() -> void:
+	if is_instance_valid(_lock_button):
+		_lock_button.text="Unlock front door" if host.home_locked==true else "Lock front door"
+
+func _snapshot() -> Dictionary:
+	if _visiting(): return host.profile_snapshot()
+	var snapshot: Dictionary = host.profile_snapshot() if is_instance_valid(host) and host.has_method("profile_snapshot") else {}
+	var account := _account() if id in ["home","store"] else null
+	if account != null and account.furniture_available():
+		snapshot.furniture = account.furniture_rows()
+	return snapshot
+
+func _on_yard_result(_ok: bool,message: String) -> void:
+	if is_modal_open() and active_panel=="home":
+		_home_menu(false)
+	feedback(message)
+
+func _on_furniture_result(ok: bool, message: String) -> void:
+	if ok:
+		if id=="home":
+			art.redraw_decor(_snapshot())
+		if is_modal_open():
+			if active_panel=="home":
+				_home_menu(false)
+			elif active_panel=="store":
+				_store_menu(false)
+	feedback(message)
+
+func _send_furniture(operation: String, args: Dictionary) -> void:
+	var account := _account()
+	if account.furniture_waiting():
+		feedback("Waiting for the last furniture change.")
+	elif account.furniture_command(operation,args):
+		feedback("Saving your furniture change.")
+	else:
+		feedback("Could not reach the account server. Nothing was changed here.")
+
+func _commit(next: Dictionary, message: String) -> bool:
+	if not host.has_method("profile_commit") or not host.profile_commit(next):
+		feedback("Could not save. Nothing was changed.")
+		return false
+	feedback(message)
+	return true
+
+func _service() -> RefCounted:
+	return host.get("profile") as RefCounted
+
+func _account() -> Node:
+	var node := get_node_or_null("/root/WillowbrookBrowserSession")
+	return node if OS.has_feature("web") and node != null and node.has_method("job_offer") else null
+
+func _near(at: Vector3, radius := 1.75) -> bool:
+	return absf(player.position.y-at.y)<1.35 and Vector2(player.position.x-at.x,player.position.z-at.z).length() <= radius
+
+func _near_exit() -> bool:
+	if id=="home": return absf(player.position.x)<1.25 and player.position.z>=4.0
+	return _near(Vector3(0,0,6.57),.96)
+
+func _desk() -> Vector3:
+	match id:
+		"store": return Vector3(0,0,-1.8)
+		"salon": return Vector3(0,0,-3.5)
+		"cafe": return Vector3(4.5,0,-3.7)
+	return Vector3(0,0,1.2)
+
+func _near_clerk() -> bool:
+	var actor := art.conversation_actor
+	if not is_instance_valid(actor):
+		return false
+	var at := player.global_position
+	var npc_at := actor.global_position
+	# Remain on the public side of the desk. Eye-level sight crosses low counters,
+	# but not partitions, cabinets, or walls.
+	if at.z <= npc_at.z + .45:
+		return false
+	# The Store register is a solid 1.65m prop. At its normal checkout
+	# queue, terminate LOS on the customer-side counter, not inside the till.
+	if id == "store" and absf(at.x) <= 1.9 and at.z >= -2.35 and at.z <= -.3:
+		return PROX.visible_from(self,at,npc_at,4.75,Vector3(0,0,-2.35),[player.get_rid()])
+	var reach := 4.75 if id == "store" else 4.3
+	return PROX.visible_from(self,at,npc_at,reach,npc_at,[player.get_rid()])
+
+func _face_customer() -> void:
+	if is_instance_valid(art.conversation_actor):
+		var actor := art.conversation_actor
+		var direction := player.global_position - actor.global_position
+		actor.rotation.y = atan2(direction.x,direction.z)
+
+func interaction_prompt() -> String:
+	if not is_instance_valid(player) or is_modal_open(): return ""
+	if seated: return "Stand up"
+	if _near_exit(): return "Return to town"
+	if _visiting(): return ""
+	var account := _account()
+	var service := _service()
+	if account != null:
+		var offer: Dictionary = account.job_offer(false)
+		if not offer.is_empty(): return String(offer.label)
+	elif service != null and service.has_method("prompt"):
+		var task: String = service.prompt(id,player.position)
+		if not task.is_empty(): return task
+	var candidate := _near_seat()
+	if not candidate.is_empty(): return "Lie down" if candidate.get("pose") == "lie" else "Sit down"
+	if id=="home": return "Decorate your home" if absf(player.position.z)<4.0 else ""
+	if _near_clerk():
+		match id:
+			"bank": return "Talk to the teller"
+			"vet": return "Talk to the vet"
+			"library": return "Talk to the librarian"
+			"store": return "Talk to the shopkeeper"
+			"salon": return "Talk to the stylist"
+			"cafe": return "Talk to the barista"
+	return ""
+
+func interact() -> bool:
+	var prompt := interaction_prompt()
+	if prompt.is_empty(): return false
+	if prompt.begins_with("Talk to "):
+		_face_customer()
+	match prompt:
+		"Return to town": host.go_to_town()
+		"Stand up": _stand()
+		"Sit down","Lie down": toggle_rest()
+		"Decorate your home": _home_menu()
+		"Talk to the teller": _bank_menu()
+		"Talk to the vet": _vet_menu()
+		"Talk to the librarian": _library_menu()
+		"Talk to the shopkeeper": _store_menu()
+		"Talk to the barista", "Talk to the stylist": _work_menu()
+		_:
+			var account := _account()
+			if account != null:
+				account.interact_job(account.job_offer(false))
+				return true
+			var service := _service()
+			if service == null or not service.has_method("perform"): return false
+			_show_result(service.perform(id,player.position))
+	return true
+
+func _process(delta: float) -> void:
+	if not is_instance_valid(player) or not is_instance_valid(host): return
+	if seated:
+		_update_seat_visual()
+	if _class_request_until>0 and Time.get_ticks_msec()>_class_request_until:
+		_class_request_until=0
+		if is_modal_open() and active_panel=="library":
+			feedback("No confirmation yet. Retry the same payment without paying twice.")
+			_library_menu(false)
+	if _bank_request_until>0 and Time.get_ticks_msec()>_bank_request_until:
+		_bank_request_until=0
+		if active_panel=="bank" and is_modal_open():
+			_bank_menu(false)
+			feedback("No receipt yet. Check the same request without paying twice.")
+	if _pet_request_until>0 and Time.get_ticks_msec()>_pet_request_until:
+		_pet_request_until=0
+		if is_modal_open(): feedback("The server did not respond. Check the connection before trying again.")
+	if notice_timer>0:
+		notice_timer-=delta
+		if notice_timer<=0 and not is_modal_open():
+			notice.text = ""
+			state_message = ""
+	hud_refresh -= delta
+	if hud_refresh>0: return
+	hud_refresh=.10
+	var snapshot := _snapshot()
+	var account := _account()
+	if is_modal_open():
+		var membership_list := _memberships(snapshot)
+		var changed := membership_list != _room_memberships
+		var expired := not _pending_hire.is_empty() and Time.get_ticks_msec() >= _hire_timeout
+		if changed or expired:
+			var hired := membership_list.has(_pending_hire)
+			if hired:
+				feedback("You're hired for %s!" % _pending_hire.capitalize())
+			_pending_hire = ""
+			_refresh_hire_menu()
+	if balance != null:
+		balance.text = ("Temporary Stars: %d" if account != null else "Stars: %d") % int(snapshot.get("stars",0))
+	var service := _service()
+	if job_art != null and service != null and service.has_method("current_marker"):
+		var suggested: Dictionary = {}
+		var actual: Dictionary = service.current_marker(id)
+		if account != null:
+			var active_items: Array = account.job_markers(true)
+			actual = active_items[0] if not active_items.is_empty() else {}
+		if actual.is_empty() and service.has_method("available_markers"):
+			var best := 5.5
+			for row: Dictionary in (account.job_markers() if account != null else service.available_markers(id)):
+				if not row.has("position"): continue
+				var distance := player.position.distance_to(row.position)
+				if distance<best:
+					best=distance
+					suggested=row
+		job_art.update_status(snapshot,actual,is_modal_open(),suggested)
+
+func _show_result(result: Dictionary) -> void:
+	var message: String = result.get("message",result.get("text",""))
+	if not message.is_empty(): feedback(message)
+
+func feedback(message: String) -> void:
+	state_message = message
+	notice_timer = 6.0
+	if notice != null: notice.text = message
+
+func _work_menu(reset := true) -> void:
+	_open_panel("job",TITLE[id], "Pick up the kit at the start marker, then follow each highlighted station. Stay there until each task finishes.",reset)
+	_hire_button(id)
+
+
+func _memberships(snapshot: Dictionary = {}) -> Array:
+	var account := _account()
+	if account != null:
+		return account.job_memberships().duplicate()
+	var service := _service()
+	if service != null and service.has_method("memberships"):
+		return service.memberships().duplicate()
+	var result: Array = snapshot.get("memberships",[]).duplicate()
+	var legacy: Variant = snapshot.get("employed","")
+	if legacy is String and not legacy.is_empty() and not result.has(legacy):
+		result.append(legacy)
+	return result
+
+
+func _refresh_hire_menu() -> void:
+	match active_panel:
+		"job": _work_menu(false)
+		"bank": _bank_menu(false)
+		"vet": _vet_menu(false)
+		"library": _library_menu(false)
+		"store": _store_menu(false)
+
+
+func _hire_button(job: String) -> void:
+	if job not in JOBS: return
+	var memberships := _memberships(_snapshot())
+	if memberships.has(job):
+		_label("You are hired for %s. Find the shift's starting station." % job.capitalize())
+		return
+	# Talking is easier than reaching the small server-authorized hiring area.
+	if not _near(_desk(),1.7):
+		_label("Move closer to the front of the counter, then talk again to get hired.")
+		return
+	var button := _button("Get hired: " + job.capitalize(),func():
+		var account := _account()
+		if account != null:
+			if not _pending_hire.is_empty():
+				return
+			_pending_hire = job
+			_hire_timeout = Time.get_ticks_msec()+6000
+			feedback("Checking with town staff.")
+			account.job_action("hire",job)
+			_refresh_hire_menu()
+			return
+		var service := _service()
+		if service == null or not service.has_method("hire"):
+			feedback("Visit the job board to get hired.")
+			return
+		_show_result(service.hire(job,id,player.position))
+		_refresh_hire_menu()
+	)
+	button.disabled = not _pending_hire.is_empty()
+
+func _bank_menu(reset := true) -> void:
+	var account := _account()
+	if account!=null and account.has_method("pets_available") and account.pets_available():
+		_online_bank(reset,account)
+		return
+	var p := _snapshot()
+	var home: Dictionary = p.get("home",{})
+	var loan: Dictionary = p.get("loan",{})
+	var stars: int = p.get("stars",0)
+	var owed := int(loan.get("balance",0))
+	_open_panel("bank","Willow Bank","Play stars only. No interest, deadlines, fees, or penalties. Housing in this browser preview lasts for this session only." if _account()!=null else "Play stars only. Home loans have no interest, deadlines, fees, or penalties.",reset)
+	_label("You have %d stars." % stars)
+	_hire_button("bank")
+	if home.is_empty():
+		var eligible := not _memberships(p).is_empty()
+		_label("Get hired to qualify for a 100-star starter home loan." if not eligible else "Choose a starter plot. You move in right away.")
+		var plots := OptionButton.new()
+		fields.add_child(plots)
+		for i in range(6): plots.add_item("Plot %d" % (i+1),i)
+		var apply := _button("Apply for starter home",func():
+			var next := _snapshot()
+			if not _memberships(next).is_empty() and next.get("home",{}).is_empty():
+				next.home = {"plot":plots.get_selected_id(),"variant":"starter"}
+				next.loan = {"principal":100,"balance":100}
+				if _commit(next,"You have a starter home!"): _bank_menu(false)
+		)
+		apply.disabled = not eligible
+	elif owed > 0:
+		_label("Home %d · %s · %d of %d stars to repay." % [int(home.get("plot",0))+1,str(home.get("variant","starter")).capitalize(),owed,int(loan.get("principal",owed))])
+		if stars<=0:
+			_label("Earn stars before making a loan payment.")
+		else:
+			var maximum := mini(stars,owed)
+			var custom := _spinner("Payment in stars",1,maximum,mini(10,maximum))
+			_button("Make payment",func(): _repay(int(custom.value)))
+			if maximum == owed and maximum > 1:
+				_button("Pay off loan (%d stars)" % owed,_repay.bind(owed))
+	else:
+		match str(home.get("variant","starter")):
+			"starter": _button("Apply for cottage upgrade · 200 stars",_upgrade.bind("cottage",200))
+			"cottage": _button("Apply for family home upgrade · 300 stars",_upgrade.bind("family",300))
+			_: _label("Your family home is fully paid and upgraded.")
+
+func _repay(amount: int) -> void:
+	var next := _snapshot()
+	var loan: Dictionary = next.get("loan",{})
+	var owed: int = loan.get("balance",0)
+	if amount<1 or amount>owed or amount>int(next.get("stars",0)):
+		feedback("Choose a payment within your balance and loan amount.")
+		return
+	next.stars -= amount
+	loan.balance = owed-amount
+	if _commit(next,"Paid %d stars toward your home." % amount): _bank_menu(false)
+
+func _upgrade(variant: String, cost: int) -> void:
+	var next := _snapshot()
+	if int(next.get("loan",{}).get("balance",0))>0 or next.get("home",{}).is_empty(): return
+	next.home.variant = variant
+	next.loan = {"principal":cost,"balance":cost}
+	if _commit(next,"Your %s is ready to move into." % variant): _bank_menu(false)
+
+func _online_bank(reset: bool,account: Node) -> void:
+	_open_panel("bank","Willow Bank","Play stars only. The 100-star starter mortgage has no upfront cost, interest, deadlines, fees, or penalties.",reset)
+	_label("You have %d saved stars." % account.saved_stars())
+	_hire_button("bank")
+	var home: Dictionary = account.saved_home()
+	if not home.is_empty():
+		var mortgage: Dictionary = account.saved_mortgage()
+		_label("You own plot %d (%s)." % [int(home.plot)+1,str(home.variant).capitalize()])
+		if mortgage.is_empty():
+			_label("No current mortgage information is available.")
+			return
+		if account.pending_bank_action():
+			var retry := _button("Check the same Bank request",_online_bank_action.bind("retry",null))
+			retry.disabled = _bank_request_until>0
+			return
+		var owed := int(mortgage.get("balance",0))
+		if owed>0:
+			_label("%d of %d stars remain on the mortgage." % [owed,int(mortgage.get("principal",owed))])
+			var maximum := mini(owed,int(account.saved_stars()))
+			if maximum<1:
+				_label("Earn stars before making a loan payment.")
+				return
+			var payment := _spinner("Payment in stars",1,maximum,mini(10,maximum))
+			_button("Make payment",func(): _online_bank_action("repay",int(payment.value)))
+			if maximum==owed and maximum>1:
+				_button("Pay off loan (%d stars)" % owed,_online_bank_action.bind("repay",owed))
+			return
+		var variant: String = {"starter":"cottage","cottage":"family"}.get(home.variant,"")
+		if variant.is_empty():
+			_label("This mortgage is fully paid." if home.variant!="family" else "Your family home is fully paid and upgraded.")
+			return
+		var spec: Dictionary = DATA.data.homeVariants.get(variant,{})
+		var rooms := int(spec.get("rooms",0))
+		if rooms!=(2 if variant=="cottage" else 3) or int(spec.get("cost",0))!=(200 if variant=="cottage" else 300):
+			_label("The next home upgrade is not available in this build.")
+			return
+		_label("Add room %d inside and upgrade the outside of your current home." % rooms)
+		_button("Upgrade to %s (%d-star loan)" % [variant.capitalize(),int(spec.cost)],_online_bank_action.bind("upgrade",variant))
+		return
+	var plots := OptionButton.new()
+	for row: Dictionary in account.homes_for_bank():
+		if not bool(row.available): continue
+		plots.add_item("Plot %d" % (int(row.plot)+1),int(row.plot))
+	fields.add_child(plots)
+	var eligible: bool = account.eligible_for_home()
+	if not eligible: _label("Get hired for a regular job to qualify for a starter home.")
+	if plots.item_count==0: _label("No starter plots are available.")
+	var claim := _button("Apply for starter home",func(): _online_pet_action("housing","claim",plots.get_selected_id()))
+	claim.disabled = not eligible or plots.item_count==0
+
+func _online_bank_action(operation: String, argument: Variant) -> void:
+	if _bank_request_until>0: return
+	var account := _account()
+	if account==null or not account.has_method("bank_command") or not account.bank_command(operation,argument):
+		feedback("Could not send your Bank request. Check your connection and mortgage.")
+		return
+	_bank_request_until=Time.get_ticks_msec()+8000
+	_bank_menu(false)
+	feedback("Checking with Willow Bank.")
+
+func _bank_result(text: String) -> void:
+	_bank_request_until=0
+	if active_panel=="bank" and is_modal_open():
+		_bank_menu(false)
+		if not text.is_empty(): feedback(text)
+
+func _pet_state() -> Dictionary:
+	var account := _account()
+	if account!=null and account.has_method("pets_available") and account.pets_available(): return account.pet_state()
+	return PETS.state(_snapshot())
+
+func _sync_pet_actors() -> void:
+	if is_instance_valid(pets): pets.synchronize(_pet_state())
+
+func _online_pet_action(feature: String,operation: String,argument: Variant) -> void:
+	if _pet_request_until>0: return
+	var account := _account()
+	if account==null or not account.has_method("pet_command") or not account.pet_command(feature,operation,argument):
+		feedback("Could not reach the town server.")
+		return
+	_pet_request_until=Time.get_ticks_msec()+8000
+	feedback("Checking with the town server…")
+
+func _pet_result(action: String,operation: String,ok: bool,text: String) -> void:
+	if operation not in ["adopt","equip","claim"]: return
+	_pet_request_until=0
+	if ok:
+		_sync_pet_actors()
+		if active_panel=="vet" and operation=="adopt": _vet_menu()
+		if active_panel=="home" and operation=="equip": _home_menu()
+		if active_panel=="bank" and action=="housing" and operation=="claim": _bank_menu(false)
+	if is_modal_open() and not text.is_empty(): feedback(text)
+
+func _vet_menu(reset := true) -> void:
+	var account := _account()
+	_open_panel("vet","Willowbrook Vet · Adoption","Welcome another pet for 8 stars. You can adopt more than one of each.",reset)
+	_hire_button("vet")
+	var current := _pet_state()
+	_label("Owned pets: %d" % current.get("owned",[]).size())
+	if account!=null and (not account.has_method("pets_available") or not account.pets_available()):
+		_label("Online pet adoption is unavailable on this server.")
+		return
+	var kinds := OptionButton.new()
+	kinds.fit_to_longest_item=false
+	fields.add_child(kinds)
+	for kind: String in PETS.SPECIES: kinds.add_item(PETS.display(kind))
+	kinds.select(_pet_species_index)
+	kinds.item_selected.connect(func(index: int): _pet_species_index=index)
+	var adopt := _button("Adopt · 8 stars",func():
+		var kind: String=PETS.SPECIES[kinds.selected]
+		if account!=null:
+			_online_pet_action("pets","adopt",kind)
+			return
+		var next := _snapshot()
+		if int(next.get("stars",0))<PETS.COST:
+			feedback("You need 8 stars to adopt.")
+			return
+		var state := PETS.state(next)
+		state.owned.append({"id":Crypto.new().generate_random_bytes(12).hex_encode(),"species":kind})
+		next.stars-=PETS.COST
+		next.pet={}
+		next.pets=state
+		if _commit(next,"Your %s was adopted!" % PETS.display(kind)): _vet_menu()
+	)
+	adopt.disabled=(account.saved_stars() if account!=null else int(_snapshot().get("stars",0)))<PETS.COST
+
+func _home_pets() -> void:
+	var state := _pet_state()
+	var selection := OptionButton.new()
+	selection.name="OutdoorPetChoice"
+	selection.fit_to_longest_item=false
+	selection.add_item("Leave all pets home")
+	var ids: Array = [null]
+	var kinds: Dictionary = {}
+	for pet: Dictionary in state.get("owned",[]):
+		var key: String=pet.species
+		kinds[key]=int(kinds.get(key,0))+1
+		selection.add_item("%s %d" % [PETS.display(key),kinds[key]])
+		ids.append(pet.id)
+		if pet.id==state.get("activeId"): selection.select(ids.size()-1)
+	var change := func():
+		var id_choice: Variant=ids[selection.selected]
+		if _account()!=null:
+			_online_pet_action("pets","equip",id_choice)
+			return
+		var next := _snapshot()
+		var current := PETS.state(next)
+		current.activeId=id_choice
+		next.pet={}
+		next.pets=current
+		if _commit(next,"All pets will stay home." if id_choice==null else "Your pet will follow you outside."):
+			_sync_pet_actors()
+			_home_menu(false)
+	_label("Outdoor companion")
+	fields.add_child(selection)
+	_button("Save companion choice",change)
+
+func _library_menu(reset := true) -> void:
+	var p := _snapshot()
+	_open_panel("library","Willowbrook Library · Classes","Study any job, even before you get hired. Classes raise only that job's pay from 3 stars to 5, 8, then 10.",reset)
+	_hire_button("library")
+	var account := _account()
+	if account!=null and (not account.has_method("classes_available") or not account.classes_available()):
+		_label("Saved-star classes are unavailable on this server.")
+		return
+	var pending: Dictionary = account.pending_class_payment() if account!=null else {}
+	if not pending.is_empty():
+		if _class_request_until>0:
+			_label("Saving your tuition payment…")
+		else:
+			_button("Retry same payment",_pay_class.bind(str(pending.course),int(pending.amount)))
+		return
+	var course := OptionButton.new()
+	for job in JOBS: course.add_item(job.capitalize())
+	course.select(course_index)
+	fields.add_child(course)
+	course.item_selected.connect(func(index: int):
+		course_index = index
+		_library_menu()
+	)
+	var job: String = JOBS[course_index]
+	var classes: Dictionary = account.class_state() if account!=null else p.get("classes",{})
+	var state: Dictionary = classes.get(job,{})
+	var tier: int = state.get("tier",0)
+	var paid: int = state.get("paid",0)
+	if tier>=3:
+		_label("All three tiers complete. This job earns 10 stars.")
+		return
+	var cost: int = [50,120,200][tier]
+	var remain := maxi(1,cost-paid)
+	var stars: int = account.saved_stars() if account!=null else p.get("stars",0)
+	if account!=null: _label("Saved Stars: %d" % stars)
+	_label("Current pay: %d stars. Tier %d tuition: %d stars. Paid %d; %d to go." % [[3,5,8,10][tier],tier+1,cost,paid,remain])
+	_button("Pay 1 star",_pay_class.bind(job,1)).disabled = stars<1
+	_button("Pay remaining %d stars" % remain,_pay_class.bind(job,remain)).disabled = stars<remain
+	var spin := _spinner("Partial tuition",1,remain,mini(10,remain))
+	_button("Make partial payment",func(): _pay_class(job,int(spin.value))).disabled = stars<1
+
+func _pay_class(job: String, amount: int) -> void:
+	var account := _account()
+	if account!=null:
+		if _class_request_until>0: return
+		if account.has_method("class_command") and account.class_command(job,amount):
+			_class_request_until=Time.get_ticks_msec()+8000
+			_library_menu(false)
+		else: feedback("Couldn't send tuition. Reconnect and check your balance.")
+		return
+	var service := _service()
+	if service != null and service.has_method("take_class"):
+		_show_result(service.take_class(job,amount))
+		_library_menu(false)
+
+func _on_class_result(_ok: bool,text: String) -> void:
+	_class_request_until=0
+	if not is_modal_open() or active_panel!="library": return
+	feedback(text)
+	_library_menu(false)
+
+func _store_menu(reset := true) -> void:
+	var p := _snapshot()
+	_open_panel("store","Town Store · Furniture","Order furnishings with stars. Collect the package outside your front door before decorating.",reset)
+	_hire_button("store")
+	_hire_button("delivery")
+	if p.get("home",{}).is_empty():
+		_label("Get a home at Willow Bank first.")
+		return
+	var account := _account()
+	_label("Saved stars: %d" % account.saved_stars() if account != null and account.furniture_available() else "You have %d stars." % int(p.get("stars",0)))
+	var selector := OptionButton.new()
+	selector.fit_to_longest_item = false
+	fields.add_child(selector)
+	var kinds: Array[String] = []
+	for kind: String in DATA.data.furnitureCatalog:
+		var spec: Dictionary = DATA.data.furnitureCatalog[kind]
+		if spec.get("rewardOnly",false): continue
+		kinds.append(kind)
+		selector.add_item("%s · %d stars each" % [spec.name,int(spec.price)])
+	var amount := _spinner("Copies",1,10,1)
+	var total := _label("")
+	var update := func(_value: float): total.text = "Total: %d stars" % (int(DATA.data.furnitureCatalog[kinds[selector.selected]].price)*int(amount.value))
+	selector.item_selected.connect(update)
+	amount.value_changed.connect(update)
+	update.call(0.0)
+	_button("Order furniture",func(): _place_order(kinds[selector.selected],int(amount.value)))
+	if account != null and account.furniture_available():
+		var resale := OptionButton.new()
+		resale.fit_to_longest_item = false
+		var sell_rows: Array[Dictionary] = []
+		for item: Dictionary in p.get("furniture",[]):
+			var spec: Dictionary = DATA.data.furnitureCatalog.get(item.get("kind",""),{})
+			if item.has("x") or spec.is_empty() or spec.get("rewardOnly",false): continue
+			sell_rows.append(item)
+			resale.add_item("%s: %d stars each" % [spec.name,int(spec.price)/2])
+		if sell_rows.is_empty():
+			resale.free()
+			_label("No packed furniture to resell. Trophies cannot be sold.")
+		else:
+			_label("Resell packed furniture")
+			fields.add_child(resale)
+			var copies := _spinner("Copies to sell",1,mini(10,int(sell_rows[0].quantity)),1)
+			resale.item_selected.connect(func(index: int):
+				copies.max_value = mini(10,int(sell_rows[index].quantity))
+				copies.value = 1
+			)
+			_button("Sell selected furniture",func(): _send_furniture("sell",{"kind":str(sell_rows[resale.selected].kind),"quantity":int(copies.value)}))
+
+func _place_order(kind: String, quantity: int) -> void:
+	var p := _snapshot()
+	var spec: Dictionary = DATA.data.furnitureCatalog.get(kind,{})
+	if quantity<1 or quantity>10 or p.get("home",{}).is_empty() or spec.is_empty() or spec.get("rewardOnly",false): return
+	var account := _account()
+	if account != null:
+		if not account.furniture_available():
+			feedback("Reconnect to order saved furniture.")
+			return
+		_send_furniture("buy",{"kind":kind,"quantity":quantity})
+		return
+	var cost := quantity*int(spec.price)
+	if cost>int(p.get("stars",0)):
+		feedback("You need %d stars for this order." % cost)
+		return
+	p.stars -= cost
+	var deliveries: Array = p.get("deliveries",[])
+	deliveries.append({"kind":kind,"quantity":quantity})
+	p.deliveries = deliveries
+	if _commit(p,"Order placed. Collect it outside your front door."): _store_menu(false)
+
+func _home_menu(reset := true) -> void:
+	if _visiting(): return
+	var p := _snapshot()
+	var account := _account()
+	var intro := "Place, move, or pack saved furniture. The Town Store handles purchases and resale." if account != null and account.furniture_available() else "Place furniture, or pack it away without losing it. Orders arrive outside your front door."
+	_open_panel("home","Decorate your home",intro,reset)
+	if account!=null and account.has_method("home_visits_available") and account.home_visits_available() and host.home_locked!=null:
+		_lock_button=_button("",func():
+			if not account.home_visit_command("lock",host.home_locked!=true): feedback("Could not change the door lock.")
+		)
+		refresh_home_lock()
+	_home_pets()
+	var room_count := HOUSING_PLACEMENT.room_count(p)
+	var pieces: Array = p.get("furniture",[])
+	var stock := OptionButton.new()
+	var stock_indices: Array[int] = []
+	var placed := OptionButton.new()
+	var placed_indices: Array[int] = []
+	for i in range(pieces.size()):
+		var item: Dictionary = pieces[i]
+		var spec: Dictionary = DATA.data.furnitureCatalog.get(item.get("kind",""),{})
+		if spec.is_empty(): continue
+		if item.has("x"):
+			placed_indices.append(i)
+			placed.add_item("%s · Room %d" % [spec.name,int(item.get("room",0))+1])
+		else:
+			stock_indices.append(i)
+			stock.add_item("%s × %d" % [spec.name,int(item.get("quantity",1))])
+	if not stock_indices.is_empty():
+		fields.add_child(stock)
+		var room_choice := _spinner("Room",1,room_count,clampf(floorf((player.position.x+HOUSING_PLACEMENT.ROOM_STRIDE*.5)/HOUSING_PLACEMENT.ROOM_STRIDE)+1,1,room_count))
+		var x := _spinner("Left / right",-5,5,1.75,.25)
+		var z := _spinner("Back / front",-4,4,-1.75,.25)
+		var rotation := _spinner("Turn",0,270,0,90)
+		var surfaces := OptionButton.new()
+		surfaces.fit_to_longest_item = false
+		surfaces.add_item("On the floor")
+		var supports: Array[Dictionary] = [{}]
+		for index in placed_indices:
+			var supporter: Dictionary = pieces[index]
+			if supporter.has("supportId"): continue
+			for surface: Dictionary in DATA.data.furnitureSurfaces.get(supporter.get("kind",""),[]):
+				supports.append({"index":index,"surface":surface})
+				var spec: Dictionary = DATA.data.furnitureCatalog[supporter.kind]
+				surfaces.add_item("%s / %s (Room %d)" % [spec.name,surface.label,int(supporter.room)+1])
+		fields.add_child(surfaces)
+		var preview_notice := _label("Adjust the furniture to preview its location.")
+		preview_notice.name = "PlacementPreviewStatus"
+		var redraw_preview := func() -> void:
+			var candidate := _prepare_furniture(p,stock_indices[stock.selected],int(room_choice.value)-1,x.value,z.value,int(rotation.value/90),supports[surfaces.selected])
+			var item: Dictionary = candidate.get("item",{})
+			var error: String = candidate.get("error","")
+			preview_notice.text = "Green preview: ready to place." if error.is_empty() else error
+			if item.is_empty(): art.clear_placement_ghost()
+			else: art.show_placement_ghost(item,error.is_empty())
+		stock.item_selected.connect(func(_selected): redraw_preview.call())
+		for field: SpinBox in [room_choice,x,z,rotation]:
+			field.value_changed.connect(func(_value): redraw_preview.call())
+		surfaces.item_selected.connect(func(option: int):
+			if option<1:
+				redraw_preview.call()
+				return
+			var selected: Dictionary = pieces[int(supports[option].index)]
+			var surface: Dictionary = supports[option].surface
+			var offset := Vector2(float(surface.x),float(surface.z)).rotated(-int(selected.rotation)*PI/2)
+			x.value = snappedf(float(selected.x)+offset.x,.25)
+			z.value = snappedf(float(selected.z)+offset.y,.25)
+			rotation.value = int(selected.rotation)*90
+			room_choice.value = int(selected.room)+1
+			redraw_preview.call()
+		)
+		var confirm := _button("Place selected furniture",func(): _place_furniture(stock_indices[stock.selected],int(room_choice.value)-1,x.value,z.value,int(rotation.value/90),supports[surfaces.selected]))
+		confirm.name = "ConfirmFurniturePlacement"
+		redraw_preview.call()
+	else:
+		stock.free()
+		if account != null and account.furniture_available():
+			_label("No packed furniture. Order from the Town Store, or earn the Town Explorer trophy.")
+		else:
+			_label("No packed furniture. The Town Store sells furnishings.")
+	if not placed_indices.is_empty():
+		fields.add_child(placed)
+		_button("Pack selected item",func(): _pack_furniture(placed_indices[placed.selected]))
+		if account != null and account.furniture_available():
+			var initial: Dictionary = pieces[placed_indices[placed.selected]]
+			var move_x := _spinner("Move left / right",-4,4,float(initial.x),.25)
+			var move_z := _spinner("Move back / front",-3,3,float(initial.z),.25)
+			var move_rotation := _spinner("Turn displayed item",0,270,int(initial.rotation)*90,90)
+			placed.item_selected.connect(func(index: int):
+				var current: Dictionary = pieces[placed_indices[index]]
+				move_x.value = float(current.x)
+				move_z.value = float(current.z)
+				move_rotation.value = int(current.rotation)*90
+			)
+			_button("Move selected furniture",func():
+				var current: Dictionary = pieces[placed_indices[placed.selected]]
+				var request := {"id":str(current.id),"expectedRevision":int(current.get("revision",0)),"room":int(current.room),"x":move_x.value,"z":move_z.value,"rotation":int(move_rotation.value/90)}
+				if current.has("supportId"):
+					request.supportId = current.supportId
+					request.surfaceId = current.surfaceId
+				_send_furniture("move",request)
+			)
+	else:
+		placed.free()
+
+	if account != null and account.yard_eligible():
+		_label("Improve your yard - saved stars: %d" % account.saved_stars())
+		for row: Array in [["fence","Yard fence",30],["trees","Yard trees",20],["decor","Yard decorations",15]]:
+			var yard_kind: String = row[0]
+			var installed := bool(account.yard_flags().get(yard_kind,false))
+			var cost: int = row[2]
+			var button := _button("%s: %s" % [row[1],"Installed" if installed else "Buy for %d stars" % cost],func():
+				if account.buy_yard(yard_kind):
+					feedback("Saving your yard improvement.")
+				elif account.yard_waiting():
+					feedback("Waiting for your last yard purchase.")
+				else:
+					feedback("Could not reach the server. Nothing changed here.")
+			)
+			button.disabled = installed or cost > account.saved_stars()
+
+func _add_stock(pieces: Array, kind: String, qty: int) -> void:
+	if qty<=0 or not DATA.data.furnitureCatalog.has(kind): return
+	for item: Dictionary in pieces:
+		if item.get("kind","")==kind and not item.has("x"):
+			item.quantity = int(item.get("quantity",1))+qty
+			return
+	pieces.append({"kind":kind,"quantity":qty})
+
+func _footprint(item: Dictionary) -> Rect2:
+	return HOUSING_PLACEMENT.footprint(item)
+
+
+func _placement_player_radius() -> float:
+	for child: Node in player.get_children():
+		if child is CollisionShape3D and not child.disabled and child.shape is CapsuleShape3D:
+			return float(child.shape.radius) * maxf(absf(child.global_basis.get_scale().x),absf(child.global_basis.get_scale().z)) + .015
+	return .325
+
+
+func _prepare_furniture(p: Dictionary,index: int,room_index: int,x: float,z: float,turns: int,support: Dictionary) -> Dictionary:
+	var pieces: Array = p.get("furniture",[])
+	if index<0 or index>=pieces.size():
+		return {"error":"Choose a packed item first."}
+	var source: Dictionary = pieces[index]
+	var kind := String(source.get("kind",""))
+	if source.has("x") or not DATA.data.furnitureCatalog.has(kind):
+		return {"error":"Choose a packed item first."}
+	var item := {"kind":kind,"room":room_index,"x":x,"z":z,"rotation":turns}
+	var supporter: Dictionary = {}
+	var surface: Dictionary = {}
+	if not support.is_empty():
+		var at := int(support.get("index",-1))
+		if at<0 or at>=pieces.size():
+			return {"item":item,"error":"Choose an available furniture surface."}
+		supporter = pieces[at]
+		var chosen: Variant = support.get("surface")
+		if not supporter.has("x") or not supporter.has("id") or not chosen is Dictionary:
+			return {"item":item,"error":"Choose an available furniture surface."}
+		surface = HOUSING_PLACEMENT.surface_for(String(supporter.get("kind","")),String(chosen.get("id","")))
+		if surface.is_empty():
+			return {"item":item,"error":"Choose an available furniture surface."}
+		item.supportId = supporter.id
+		item.surfaceId = surface.id
+		item.y = float(surface.y)
+	var error := HOUSING_PLACEMENT.placement_error(item,pieces,HOUSING_PLACEMENT.room_count(p),art.to_local(player.global_position),_placement_player_radius(),supporter,surface)
+	return {"item":item,"error":error}
+
+
+func _place_furniture(index: int, room_index: int, x: float, z: float, turns: int, support: Dictionary = {}) -> void:
+	var p := _snapshot()
+	var result := _prepare_furniture(p,index,room_index,x,z,turns,support)
+	var error := String(result.get("error",""))
+	if not error.is_empty():
+		feedback(error)
+		return
+	var pieces: Array = p.get("furniture",[])
+	var source: Dictionary = pieces[index]
+	var item: Dictionary = result.item
+	var account := _account()
+	if account != null:
+		if not account.furniture_available():
+			feedback("Reconnect to sync your saved trophy.")
+			return
+		item.erase("y")
+		_send_furniture("place",item)
+		return
+	item.id = "f-%s" % str(Time.get_ticks_usec())
+	if int(source.get("quantity",1))<=1: pieces.remove_at(index)
+	else: source.quantity = int(source.quantity)-1
+	pieces.append(item)
+	p.furniture = pieces
+	if _commit(p,"Furniture placed."):
+		art.redraw_decor(p); _home_menu(false)
+
+
+func _pack_furniture(index: int) -> void:
+	var p := _snapshot()
+	var pieces: Array = p.get("furniture",[])
+	if index<0 or index>=pieces.size() or not pieces[index].has("x"): return
+	var item: Dictionary = pieces[index]
+	var account := _account()
+	if account != null:
+		if not account.furniture_available():
+			feedback("Reconnect to sync your saved trophy.")
+			return
+		_send_furniture("pack",{"id":str(item.id),"expectedRevision":int(item.get("revision",0))})
+		return
+	pieces.remove_at(index)
+	var packed: Array[String] = [str(item.kind)]
+	for i in range(pieces.size()-1,-1,-1):
+		if item.has("id") and pieces[i].get("supportId","")==item.id:
+			packed.append(str(pieces[i].kind))
+			pieces.remove_at(i)
+	for kind in packed: _add_stock(pieces,kind,1)
+	p.furniture = pieces
+	if _commit(p,"Furniture packed away."):
+		art.redraw_decor(p); _home_menu(false)
+
+func _near_seat() -> Dictionary:
+	if id=="home":
+		var candidate := {}
+		var closest := 1.85
+		var stride := HOUSING_PLACEMENT.ROOM_STRIDE
+		var room_index := int(floor((player.position.x+stride*.5)/stride))
+		for item: Dictionary in _snapshot().get("furniture",[]):
+			var kind := String(item.get("kind",""))
+			if kind not in ["chair","sofa","bed"] or not item.has("x") or item.get("supportId")!=null or int(item.get("room",0)) != room_index: continue
+			var point := Vector3(float(room_index)*stride+float(item.x),0,float(item.z))
+			var reach := Vector2(player.position.x-point.x,player.position.z-point.z).length()
+			if reach >= closest or not _near(point,closest): continue
+			var mapped := art.to_global(point)
+			if not PROX.visible_from(self,player.global_position,mapped,closest,mapped,[player.get_rid()]): continue
+			var height := .61 if kind == "bed" else (.66 if kind == "sofa" else .60)
+			candidate = {"at":point+Vector3.UP*height,"visual_yaw":float(item.get("rotation",0))*PI/2.0,"pose":"lie" if kind == "bed" else "sit"}
+			closest = reach
+		return candidate
+	elif not art.public_seats.is_empty():
+		var nearest := {}
+		var closest := 1.45
+		for spec: Dictionary in art.public_seats:
+			var chair: Node3D = spec.chair
+			var dist := Vector2(player.global_position.x-chair.global_position.x,player.global_position.z-chair.global_position.z).length()
+			if dist <= closest and absf(player.global_position.y-chair.global_position.y)<1.35:
+				closest = dist
+				nearest = {"at":player.get_parent().to_local(chair.to_global(spec.surface)),"visual_yaw":chair.global_rotation.y}
+		return nearest
+	else:
+		for at: Vector3 in SEATS.get(id,[]):
+			if _near(at,1.45): return {"at":at+Vector3.UP*.43,"yaw":PI}
+	return {}
+
+
+func toggle_rest() -> bool:
+	if _visiting(): return false
+	if is_modal_open(): return false
+	if seated:
+		_stand()
+		return true
+	var spec := _near_seat()
+	if spec.is_empty() or not player.is_physics_processing() or not player.is_on_floor(): return false
+	_sit(spec)
+	return true
+
+func leave_rest_for_motion() -> void:
+	if seated and not is_modal_open(): _stand()
+
+func network_rest_pose() -> String:
+	return "sit" if seated and id in ["bank","vet","salon","cafe","library"] and rest_pose == "sit" else ""
+
+func network_rest_yaw() -> float:
+	return seat_avatar_yaw
+
+func _sit(spec: Dictionary) -> void:
+	if spec.is_empty(): return
+	seated = true
+	rest_pose = String(spec.get("pose","sit"))
+	seat_origin = player.position
+	player.velocity = Vector3.ZERO
+	player.held.clear()
+	player.set_physics_process(false)
+	player.position = spec.at
+	seat_avatar_yaw = float(spec.get("visual_yaw",spec.get("yaw",0.0)))
+	seat_visual = host.get("arena_avatar") as Node3D
+	if is_instance_valid(seat_visual):
+		seat_visual_rest = seat_visual.transform
+		_update_seat_visual()
+	if host.has_method("set_room_seated"): host.set_room_seated(true)
+
+
+func _update_seat_visual() -> void:
+	if not is_instance_valid(seat_visual):
+		return
+	# The camera can still orbit; the avatar rather than camera follows the chair.
+	var yaw := wrapf(seat_avatar_yaw-player.global_rotation.y,-PI,PI)
+	seat_visual.rotation = Vector3(0,yaw,0)
+	var offset := Vector3(0,-.02625*seat_visual.scale.y,.02875*seat_visual.scale.z)
+	if rest_pose == "lie":
+		seat_visual.rotate_object_local(Vector3.RIGHT,-PI/2.0)
+		offset = Vector3(0,.11*seat_visual.scale.y,.26*seat_visual.scale.z)
+	seat_visual.position = seat_visual_rest.origin+offset.rotated(Vector3.UP,yaw)
+
+
+func _stand() -> void:
+	seated = false
+	rest_pose = ""
+	if is_instance_valid(seat_visual):
+		seat_visual.transform = seat_visual_rest
+		seat_visual = null
+	player.position = seat_origin
+	player.velocity = Vector3.ZERO
+	player.held.clear()
+	player.set_physics_process(true)
+	if host.has_method("set_room_seated"): host.set_room_seated(false)
+
+func _create_hud() -> void:
+	balance = Label.new()
+	balance.position = Vector2(18,96)
+	balance.add_theme_font_size_override("font_size",18)
+	balance.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(balance)
+	notice = Label.new()
+	notice.position = Vector2(18,122)
+	notice.add_theme_font_size_override("font_size",16)
+	notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud.add_child(notice)
+	panel = CenterContainer.new()
+	panel.name = "RoomDialog"
+	hud.add_child(panel)
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.mouse_filter=Control.MOUSE_FILTER_STOP
+	var window := PanelContainer.new()
+	panel.add_child(window)
+	var margin := MarginContainer.new()
+	for edge in ["left","right","top","bottom"]: margin.add_theme_constant_override("margin_"+edge,16)
+	window.add_child(margin)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation",8)
+	margin.add_child(column)
+	heading = Label.new()
+	heading.add_theme_font_size_override("font_size",24)
+	heading.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(heading)
+	body = Label.new()
+	body.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(body)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size=Vector2(320,210)
+	scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus=true
+	column.add_child(scroll)
+	fields = VBoxContainer.new()
+	fields.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	fields.add_theme_constant_override("separation",6)
+	scroll.add_child(fields)
+	var done := Button.new()
+	done.text="Done"
+	done.custom_minimum_size.y=44
+	done.pressed.connect(close_modal)
+	column.add_child(done)
+	panel.hide()
+
+func _open_panel(name_: String,title: String,message: String,reset := true) -> void:
+	active_panel=name_
+	if art != null:
+		art.clear_placement_ghost()
+	var logical_width := get_viewport().get_visible_rect().size.x
+	var physical_width := float(get_viewport().get_window().size.x)
+	panel.offset_right = -logical_width*.52 if name_=="home" and physical_width>=800.0 else 0.0
+	_room_memberships = _memberships(_snapshot())
+	heading.text=title
+	body.text=message
+	for child in fields.get_children():
+		fields.remove_child(child)
+		child.queue_free()
+	panel.show()
+	host.set_zone_modal(true)
+	if not reset and not state_message.is_empty(): _label(state_message)
+
+func _label(value: String) -> Label:
+	var label := Label.new()
+	label.text=value
+	label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	fields.add_child(label)
+	return label
+
+func _button(title: String,callback: Callable) -> Button:
+	var button := Button.new()
+	button.text=title
+	button.custom_minimum_size.y=44
+	button.pressed.connect(callback)
+	fields.add_child(button)
+	return button
+
+func _spinner(title: String,low: float,high: float,value: float,step := 1.0) -> SpinBox:
+	var row := HBoxContainer.new()
+	fields.add_child(row)
+	var caption := Label.new()
+	caption.text=title
+	caption.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	row.add_child(caption)
+	var spin := SpinBox.new()
+	spin.min_value=low
+	spin.max_value=high
+	spin.step=step
+	spin.value=value
+	row.add_child(spin)
+	return spin
+

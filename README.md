@@ -44,7 +44,7 @@ With Node.js 24, run the command below from the repository root. Replace
 server source (`$export` in the Windows example).
 
 ```sh
-node ./paintball_prototype/network/browser/server.mjs --web-root "/path/to/web-export" --port 24862
+node ./game/network/browser/server.mjs --web-root "/path/to/web-export" --port 24862
 ```
 
 Open **http://127.0.0.1:24862/** on the server itself. This is a loopback-only
