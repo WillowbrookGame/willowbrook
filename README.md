@@ -8,7 +8,7 @@ repository does not include any server accounts, credentials, or saves.
 **No PowerShell, Godot, or Node.js installation is needed on the host.**
 Use a 64-bit Intel or AMD Linux machine with Docker Engine and Docker Compose.
 
-1. Download the [Linux Docker bundle from Early Alpha 1](https://github.com/WillowbrookGame/willowbrook/releases/tag/v0.1.0-alpha.1). Choose `willowbrook-linux-x86_64-preview.tar.gz` under **Assets**, not the automatically generated Source code archives.
+1. Download the [Linux Docker bundle from Early Alpha 1](https://github.com/WillowbrookGame/willowbrook/releases/tag/v0.1.0-alpha.1). Choose `willowbrook-linux-x86_64-preview-docs-r2.tar.gz` under **Assets**, not the automatically generated Source code archives.
 2. Extract it to a fresh directory and open a terminal in the extracted `willowbrook/` folder. Run `sha256sum -c SHA256SUMS` before starting.
 3. Follow the [first-start instructions](deploy/DOCKER.md#first-start) to create your owner account, start Willowbrook, and invite players from Parent Desk.
 
