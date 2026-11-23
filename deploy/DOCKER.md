@@ -23,9 +23,13 @@ docker compose up -d
 
 This is a one-time owner setup for a new named volume. The password goes through
 stdin, not Compose, shell history, environment files, or a command argument.
-Use `http://127.0.0.1:24863/parent.html` on the Linux host, sign in as
-`family_owner`, and create or invite player accounts. Players start at
-`http://127.0.0.1:24863/`. Local HTTP is not a LAN address. To administer remotely
+Open `http://127.0.0.1:24863/parent.html` on the Linux host. Sign in as
+`family_owner` and choose **Make parent invite**. In a separate browser profile
+or after signing out, redeem that code under **Parent invite** and sign in as
+the new parent. The parent can then choose **Make player invite**. Open
+**Player invite** to redeem the child's code, choose a nickname and character,
+and sign into the game at `http://127.0.0.1:24863/`. Local HTTP is not a LAN
+address. To administer remotely
 without opening ingress, use a local SSH port-forward to the same loopback port
 from an authorized administrator computer and open the same URL there.
 
