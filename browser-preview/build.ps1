@@ -51,8 +51,8 @@ $releaseNotices = [ordered]@{
  'LICENSE' = 'LICENSE'
  'LICENSING.md' = 'LICENSING.md'
  'THIRD_PARTY_ART.md' = 'THIRD_PARTY_ART.md'
- 'paintball_prototype/beach_audio/SOURCES.md' = 'THIRD_PARTY_BEACH_AUDIO.md'
- 'paintball_prototype/scuba/audio/SOURCES.md' = 'THIRD_PARTY_SCUBA_AUDIO.md'
+ 'game/beach_audio/SOURCES.md' = 'THIRD_PARTY_BEACH_AUDIO.md'
+ 'game/scuba/audio/SOURCES.md' = 'THIRD_PARTY_SCUBA_AUDIO.md'
 }
 foreach($source in $releaseNotices.Keys){
  Copy-Item -LiteralPath (Join-Path $project $source) -Destination (Join-Path $outPath $releaseNotices[$source])

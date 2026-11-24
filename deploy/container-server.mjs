@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import {accessSync, constants} from 'node:fs';
 import {getLanSite} from './lan-config.mjs';
-import {startLocalServer} from '../paintball_prototype/network/browser/server.mjs';
+import {startLocalServer} from '../game/network/browser/server.mjs';
 
 export function containerPaintballOptions({enabled=process.env.WILLOWBROOK_PAINTBALL,
  runtime='/opt/willowbrook-paintball', access=accessSync}={}) {

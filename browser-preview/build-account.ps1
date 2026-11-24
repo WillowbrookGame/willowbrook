@@ -9,7 +9,7 @@ $output=[IO.Path]::GetFullPath($Out)
 if($output -eq $project -or $output.StartsWith($project+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Export to a directory outside the canonical project.'}
 $stage=Join-Path ([IO.Path]::GetTempPath()) ('willowbrook-export-'+[Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $stage|Out-Null
-foreach($node in @('project.godot','export_presets.cfg','LICENSE','LICENSING.md','THIRD_PARTY_ART.md','paintball_prototype','web-arcade','browser-preview')){
+foreach($node in @('project.godot','export_presets.cfg','LICENSE','LICENSING.md','THIRD_PARTY_ART.md','game','web-arcade','browser-preview')){
  Copy-Item -LiteralPath (Join-Path $project $node) -Destination $stage -Recurse
 }
 $file=Join-Path $stage 'project.godot'

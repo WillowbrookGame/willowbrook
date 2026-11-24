@@ -8,12 +8,12 @@ import { randomBytes } from 'node:crypto';
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
 import { resolve,join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { startLocalServer } from '../paintball_prototype/network/browser/server.mjs';
-import { privateHttpsSite, requestMatchesSite } from '../paintball_prototype/network/browser/https_site_policy.mjs';
-import { openPreviewAccounts } from '../paintball_prototype/network/browser/preview_accounts.mjs';
-import { createFamilyDesk } from '../paintball_prototype/network/browser/family_desk_preview.mjs';
-import * as store from '../paintball_prototype/network/browser/standalone-runtime/world-store.mjs';
-import { selectRuntime } from '../paintball_prototype/network/browser/runtime_source.mjs';
+import { startLocalServer } from '../game/network/browser/server.mjs';
+import { privateHttpsSite, requestMatchesSite } from '../game/network/browser/https_site_policy.mjs';
+import { openPreviewAccounts } from '../game/network/browser/preview_accounts.mjs';
+import { createFamilyDesk } from '../game/network/browser/family_desk_preview.mjs';
+import * as store from '../game/network/browser/standalone-runtime/world-store.mjs';
+import { selectRuntime } from '../game/network/browser/runtime_source.mjs';
 
 const webRoot=resolve(process.argv[2]),cert=await readFile(process.argv[3]),key=await readFile(process.argv[4]);
 const workerPath=process.argv[5];

@@ -19,7 +19,7 @@ try {
   }
 }
 const child = spawnSync(process.execPath, [
-  '/app/paintball_prototype/network/browser/parent_desk_setup.mjs',
+  '/app/game/network/browser/parent_desk_setup.mjs',
   '--accounts-dir', state, '--parent-desk-file', marker, '--owner', username,
 ], {stdio:'inherit'});
 process.exit(child.status ?? 1);

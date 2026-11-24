@@ -2,7 +2,7 @@ import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,basename,resolve} from 'node:path';
 import {createInterface} from 'node:readline';
-import {startLocalServer} from '../paintball_prototype/network/browser/server.mjs';
+import {startLocalServer} from '../game/network/browser/server.mjs';
 const webRoot=resolve(process.argv[2]),source=process.argv[3]?resolve(process.argv[3]):undefined;
 const input=createInterface({input:process.stdin,terminal:false});
 let fixture,server,closing=false;
