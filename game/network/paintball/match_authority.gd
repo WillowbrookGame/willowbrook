@@ -1,9 +1,8 @@
 extends Node3D
 ## Authoritative virtual match. No account persistence/open sockets or user-facing HUD.
-const WORLD = preload("res://game/arena.tscn")
+const YARD_SCENE = preload("res://game/warehouse_yard.tscn")
 const RULES = preload("res://game/match_rules.gd")
 const PLAYER = preload("res://game/player.gd")
-const LOCAL = preload("res://game/match_local.gd")
 const YARD = preload("res://game/warehouse_yard.gd")
 const ROUND_MS := 180000
 const HOLD_MS := 20000
@@ -25,8 +24,10 @@ var _event_id := 0
 var _next_bot_id := 0
 
 func _ready() -> void:
-	arena = WORLD.instantiate() as Node3D
-	arena.set_script(null) # exact shipped Warehouse subtree; no local HUD/player setup
+	# Share only the yard; the client scene owns its own HUD, camera and exit.
+	arena = Node3D.new()
+	arena.name = "PaintballArena"
+	arena.add_child(YARD_SCENE.instantiate())
 	add_child(arena)
 	var exit_collision := StaticBody3D.new()
 	var mask := CollisionShape3D.new()
@@ -76,7 +77,7 @@ func _add_slot(id: String, alias: String, bot: bool) -> void:
 	body.set_physics_process(false)
 	var idx := _spawns.size()
 	_spawns.append(id)
-	body.position = LOCAL.SPAWNS[idx]
+	body.position = YARD.SPAWNS[idx]
 	slots[id] = {"id":id,"alias":alias,"bot":bot,"body":body,"connected":true,"ready":bot,"hold":0,"retired":false,"last_input":-1,"last_at":-1,"axis":Vector2.ZERO,"pitch":0.0,"jump":false,"paint":false,"next_paint":0,"route":idx*3,"ticks_blocked":0}
 	rules.points[id] = 0
 	rules.totals[id] = 0
@@ -112,7 +113,7 @@ func _begin_round(now: int) -> void:
 	for i in _spawns.size():
 		var s: Dictionary=slots[_spawns[i]]
 		var body: PLAYER=s.body
-		body.position=LOCAL.SPAWNS[i]
+		body.position=YARD.SPAWNS[i]
 		body.velocity=Vector3.ZERO
 		body.touch_motion=Vector2.ZERO
 		body.movement_locked=true
@@ -269,7 +270,7 @@ func step(delta: float, now: int) -> void:
 
 func _bot(s: Dictionary, dt: float, now: int) -> void:
 	var body: PLAYER=s.body
-	var goal: Vector3=LOCAL.PATROL[int(s.route)%LOCAL.PATROL.size()]
+	var goal: Vector3=YARD.PATROL[int(s.route)%YARD.PATROL.size()]
 	var offset:=goal-body.position
 	offset.y=0
 	if offset.length_squared()<1.2 or int(s.ticks_blocked)>48:
