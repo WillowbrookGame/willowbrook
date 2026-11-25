@@ -7,6 +7,7 @@ const ARENA := "res://game/arena.tscn"
 const BEACH := "res://game/beach.tscn"
 const DIVE_DOOR := Vector3(-24.15,0,12.45)
 const DIVE_ROOM_SCRIPT := "res://game/scuba/shop.gd"
+const BANK_ROOM_SCENE := "res://game/bank/room.tscn"
 const VET_ROOM_SCENE := "res://game/vet/room.tscn"
 const ROOM := "res://game/room.tscn"
 const ROOM_NAMES := {"bank":"Willowbrook Bank","vet":"Willowbrook Vet","salon":"Salon","store":"General Store","cafe":"Sunny Cafe","library":"Willowbrook Library","arcade":"Willowbrook Arcade","home":"Home","dive_shop":"Dive Shop"}
@@ -1416,6 +1417,7 @@ func visit_ejected() -> void:
 
 func _room_resource(destination: String) -> String:
 	match destination:
+		"bank": return BANK_ROOM_SCENE
 		"vet": return VET_ROOM_SCENE
 		"dive_shop": return DIVE_ROOM_SCRIPT
 		"arcade": return "res://game/arcade/room.gd"

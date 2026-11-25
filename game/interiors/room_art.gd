@@ -3,7 +3,7 @@ extends Node3D
 const ART := "res://game/interiors/art/"
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const PALETTE := {"bank":"e2eafa","salon":"f3e2ec","cafe":"f5e5d0","store":"e0ebdf","library":"ece4d6"}
+const PALETTE := {"salon":"f3e2ec","cafe":"f5e5d0","store":"e0ebdf","library":"ece4d6"}
 const ROOM_FLOORS := ["e3c6a1","e1d4b5","d5d6bd"]
 const ROOM_WALLS := ["f1e6d5","e0ebe4","e8e2ef"]
 var materials: Dictionary = {}
@@ -47,7 +47,6 @@ func _room_tint(id: String) -> Color:
 
 func _build_room_details(id: String) -> void:
 	match id:
-		"bank": _bank()
 		"library": _library()
 		"salon":
 			npc("female-b","Stylist",Vector3(0,0,-5.7))
@@ -81,15 +80,6 @@ func room_shell(hw: float, hd: float, tint: Color) -> void:
 	box("DoorLintel",Vector3(0,3.6,hd+.1),Vector3(3,.8,.22),tint,true,3)
 	window_at(0,-hd+.05)
 	exit_mat(hd-.6)
-
-func _bank() -> void:
-	piece("desk",Vector3(0,0,-.5),Vector3(3.6,1.25,1.25),PI,true)
-	piece("computerScreen",Vector3(1.05,1.25,-.45),Vector3(.65,.55,.45),PI)
-	piece("computerKeyboard",Vector3(1.05,1.26,-.95),Vector3(.6,.06,.22),PI)
-	piece("desk",Vector3(5.5,0,1),Vector3(2.6,1.05,1.2),PI,true)
-	piece("chairDesk",Vector3(5.5,0,2.7),Vector3(1.06,1.25,1.05),PI,true)
-	_public_furniture()
-	npc("female-a","Teller",Vector3(0,0,-2.0))
 
 func _public_furniture() -> void:
 	for z: float in [1,3.5]:
