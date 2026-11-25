@@ -1,5 +1,6 @@
 extends SceneTree
 const ROOM := preload("res://game/interiors/room.gd")
+const BANK_ROOM := preload("res://game/bank/room.tscn")
 const VET_ROOM := preload("res://game/vet/room.tscn")
 class MockProfile extends RefCounted:
 	var data := {"stars":150,"employed":"bank","home":{},"loan":{},"classes":{},"pet":{},"furniture":[],"deliveries":[]}
@@ -43,7 +44,7 @@ func _run() -> void:
 		var hud := CanvasLayer.new()
 		host.add_child(pc)
 		host.add_child(hud)
-		var room = VET_ROOM.instantiate() if zone=="vet" else ROOM.new()
+		var room = VET_ROOM.instantiate() if zone=="vet" else (BANK_ROOM.instantiate() if zone=="bank" else ROOM.new())
 		host.add_child(room)
 		room.setup(zone,host,pc,hud)
 		_check(room.art.get_child_count()>10,"Room art missing: "+zone)
