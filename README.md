@@ -95,4 +95,4 @@ Willowbrook is in **Early Alpha**. We're looking for contributors to make the ga
 - **3D art, animation & audio:** Cozy low-poly props, furniture, fish, gentle sound effects, and a proposed toy-style character rig. No Git experience needed. Start with the [Art & Asset Guide](ART_GUIDE.md).
 - **Testing & docs:** Browser and tablet playtesting, and clearer setup instructions for parents.
 
-Start with [Contributing](CONTRIBUTING.md), check the [Roadmap](ROADMAP.md), or [suggest an idea](https://github.com/WillowbrookGame/willowbrook/issues/new/choose). Report security concerns privately as described in the [Security Policy](SECURITY.md).
+Start with [Contributing](CONTRIBUTING.md), check the [Roadmap](ROADMAP.md), or [suggest an idea](https://github.com/WillowbrookGame/willowbrook/issues/new/choose). Read the [Code of Conduct](CODE_OF_CONDUCT.md) and report security concerns privately as described in the [Security Policy](SECURITY.md).
