@@ -189,6 +189,10 @@ func _near_clerk() -> bool:
 	# but not partitions, cabinets, or walls.
 	if at.z <= npc_at.z + .45:
 		return false
+	# The tall Salon reception desk blocks a direct ray to the stylist.
+	# The customer aisle can talk across it; keep the rest of the sight checks.
+	if id == "salon" and absf(at.x) <= 1.6 and at.z >= -4.24 and at.z <= -1.8:
+		return PROX.visible_from(self,at,npc_at,4.3,Vector3(0,0,-4.24),[player.get_rid()])
 	return PROX.visible_from(self,at,npc_at,4.3,npc_at,[player.get_rid()])
 
 func _face_customer() -> void:
