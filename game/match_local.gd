@@ -6,13 +6,12 @@ const ARENA_COLLISION_MASK := 7
 const BOT_TURN_SPEED := 7.0
 const BOT_AIM_TOLERANCE := 0.17
 const BOT_AIM_TIMEOUT := 0.55
+const YARD = preload("res://game/warehouse_yard.gd")
 const RULES = preload("res://game/match_rules.gd")
 const AVATAR = preload("res://game/character-male-a.glb")
 const FX = preload("res://game/arena_marker.gd")
 const NAMES: Array[String] = ["You", "Pip", "Scout", "Sunny"]
 const COLORS := [Color("#4ce9fc"), Color("#ff7886"), Color("#9cff6b"), Color("#ffbc52")]
-const SPAWNS := [Vector3(-1.65,0.04,7.05), Vector3(-17.6,0.08,4.4), Vector3(13.8,0.08,5.2), Vector3(2.3,0.08,-8.0)]
-const PATROL := [Vector3(-11.1,0,-8.1),Vector3(-18.6,0,3.7),Vector3(-10.5,0,8.3),Vector3(5.6,0,8.0),Vector3(10.1,0,5.7),Vector3(19.2,0,5.0),Vector3(10.0,0,-6.0),Vector3(4.2,0,-8.0),Vector3(-8.9,0,-9.3)]
 var rules := RULES.new()
 var player: CharacterBody3D
 var fx: Node3D
@@ -104,20 +103,20 @@ func _reset_field() -> void:
 	if bots.is_empty():
 		for index in range(1,NAMES.size()):
 			_create_bot(index)
-	player.position = SPAWNS[0]
+	player.position = YARD.SPAWNS[0]
 	player.velocity = Vector3.ZERO
 	fx.clear_round_paint()
 	for index in range(bots.size()):
 		var bot := bots[index]
 		var body: CharacterBody3D = bot.body
-		body.position = SPAWNS[index+1]
+		body.position = YARD.SPAWNS[index+1]
 		body.velocity = Vector3.ZERO
 		bot.reload = 1.5 + index * 0.4
 		bot.target = null
 		bot.aim_left = 0.0
-		bot.route = (index * 3) % PATROL.size()
+		bot.route = (index * 3) % YARD.PATROL.size()
 		bot.stuck = 0.0
-		var facing: Vector3 = PATROL[bot.route] - body.position
+		var facing: Vector3 = YARD.PATROL[bot.route] - body.position
 		body.rotation.y = atan2(-facing.x,-facing.z)
 		bot.animation.play("idle")
 		bot.animation.advance(0.0)
@@ -171,13 +170,13 @@ func tick(delta: float) -> void:
 
 func _update_bot(bot: Dictionary, delta: float) -> void:
 	var body: CharacterBody3D = bot.body
-	var goal: Vector3 = PATROL[bot.route]
+	var goal: Vector3 = YARD.PATROL[bot.route]
 	var move := goal - body.position
 	move.y = 0.0
 	if move.length_squared() < 0.9 or bot.stuck > 0.65:
-		bot.route = (int(bot.route) + rng.randi_range(1,3)) % PATROL.size()
+		bot.route = (int(bot.route) + rng.randi_range(1,3)) % YARD.PATROL.size()
 		bot.stuck = 0.0
-		goal = PATROL[bot.route]
+		goal = YARD.PATROL[bot.route]
 		move = Vector3(goal.x-body.position.x,0,goal.z-body.position.z)
 	bot.reload -= delta
 	if bot.reload <= 0.0 and not is_instance_valid(bot.target):

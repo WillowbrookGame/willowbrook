@@ -6,6 +6,10 @@ const WORLD_BOUNDS := Vector2(24.2, 20.9)
 const SOUTH_LOBBY := Vector3(-1.65, 0.04, 7.05)
 const TOWN_EXIT := Vector3(-1.65, 0, 9.95)
 
+# Placement shared by the local and authoritative matches. Keep slot order stable.
+const SPAWNS := [Vector3(-1.65,0.04,7.05), Vector3(-17.6,0.08,4.4), Vector3(13.8,0.08,5.2), Vector3(2.3,0.08,-8.0)]
+const PATROL := [Vector3(-11.1,0,-8.1),Vector3(-18.6,0,3.7),Vector3(-10.5,0,8.3),Vector3(5.6,0,8.0),Vector3(10.1,0,5.7),Vector3(19.2,0,5.0),Vector3(10.0,0,-6.0),Vector3(4.2,0,-8.0),Vector3(-8.9,0,-9.3)]
+
 const COLLISION_PREFIXES := [
 	"Container_", "Forklift_", "Catwalk_", "RollUpDoor_", "SideDoor_",
 	"Spawn_Blue_", "Spawn_Red_",
