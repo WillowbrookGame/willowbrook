@@ -1364,7 +1364,7 @@ func _room_resource(destination: String) -> String:
 		"bank": return BANK_ROOM_SCENE
 		"vet": return VET_ROOM_SCENE
 		"dive_shop": return DIVE_ROOM_SCENE
-		"arcade": return "res://game/arcade/room.gd"
+		"arcade": return "res://game/arcade/room.tscn"
 		_: return "res://game/interiors/room.gd"
 
 

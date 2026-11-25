@@ -1,6 +1,6 @@
 extends SceneTree
 
-const ROOM = preload("res://game/arcade/room.gd")
+const ROOM = preload("res://game/arcade/room.tscn")
 
 class Host extends Node3D:
 	var dialog := false
@@ -35,7 +35,7 @@ func _initialize() -> void:
 func _run() -> void:
 	var host := Host.new()
 	var player := CharacterBody3D.new()
-	var room := ROOM.new()
+	var room = ROOM.instantiate()
 	var canvas := CanvasLayer.new()
 	root.add_child(host)
 	host.add_child(player)
@@ -154,6 +154,33 @@ func _run() -> void:
 		_check(session.leaves == 1 and not host.dialog and not snapshot.is_empty(),"leaves seat and doesn't mutate authoritative state")
 		session.queue_free()
 	host.queue_free()
+	set_meta("willowbrook_save_override","")
+	set_meta("fishing_save_override","")
+	change_scene_to_file("res://game/town.tscn")
+	await scene_changed
+	var town: Node3D = current_scene
+	var door := Vector3(0,0,-47)
+	town.player.position = door + Vector3(0,.04,1.3)
+	var event := InputEventKey.new()
+	event.physical_keycode = KEY_E
+	event.pressed = true
+	town._unhandled_key_input(event)
+	_check(town.changing,"Town door accepts Arcade entry")
+	if not town.changing:
+		quit(1)
+		return
+	await scene_changed
+	var map: Node3D = current_scene
+	_check(map.room_id == "arcade" and map.room.scene_file_path == ROOM.resource_path,"Town loads Arcade PackedScene with the same zone ID")
+	_check(map.player.position.is_equal_approx(map.room.spawn_position()),"Arcade entry spawn unchanged")
+	map._refresh_prompt()
+	map.enter_button.pressed.emit()
+	_check(map.changing,"Arcade exit button returns to Town")
+	if not map.changing:
+		quit(1)
+		return
+	await scene_changed
+	_check(current_scene.player.position.is_equal_approx(door + Vector3(0,.04,2)),"Arcade exit returns to the same Town doorstep")
 	print("ARCADE: all 8 cabinets, help/play/close, original models/art, representative mechanics tested")
 	quit(1 if failed else 0)
 
