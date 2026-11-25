@@ -17,10 +17,7 @@ const VET_ROOM_SCENE := "res://game/vet/room.tscn"
 const ROOM := "res://game/room.tscn"
 const ROOM_NAMES := {"bank":"Willowbrook Bank","vet":"Willowbrook Vet","salon":"Salon","store":"General Store","cafe":"Sunny Cafe","library":"Willowbrook Library","arcade":"Willowbrook Arcade","home":"Home","dive_shop":"Dive Shop"}
 const TOWN_LAYOUT = preload("res://game/town_layout.gd")
-const BEACH_LAYOUT = preload("res://game/beach_layout.gd")
-const BEACH_RECOVERY = preload("res://game/beach_recovery.gd")
 const FERRY = preload("res://game/ferry_landing.gd")
-const BEACH_UI = preload("res://game/beach_fishing_ui.gd")
 const ENTRY := Vector3(0, 0, -7.7)
 const WAREHOUSE_YARD = preload("res://game/warehouse_yard.gd")
 const INTERACT_RANGE := 2.25
@@ -61,10 +58,8 @@ var beach_scenery: Node3D
 const TOWN_WEATHER = preload("res://game/town_weather.gd")
 var _weather_badge: Label
 var _activity_weather_y := 64.0
-var beach_recovery := BEACH_RECOVERY.new()
+var beach_activities: RefCounted
 var fishing_ui: Node3D
-var slide_time := -1.0
-var _beach_slide_avatar := Transform3D.IDENTITY
 var player: PLAYER
 var camera: Camera3D
 var camera_probe := SphereShape3D.new()
@@ -105,16 +100,8 @@ var paintball_lobby_view: Node
 var enter_button: Button
 var door_position: Vector3
 var changing := false
-var _ferry_card: ColorRect
-var _ferry_landing: FERRY
-var _ferry_points: Array[Vector3] = []
-var _ferry_segment := 0
-var _ferry_clock := 0.0
-var _ferry_foot := Vector3.ZERO
-var _ferry_previous_avatar := Transform3D.IDENTITY
-var _ferry_previous_motion_lock := false
-const FERRY_WALK_MPS := 3.6
-const FERRY_SAIL_SECONDS := 1.80
+const FERRY_CROSSING = preload("res://game/ferry_crossing.gd")
+var ferry_crossing := FERRY_CROSSING.new()
 @onready var yard := get_node_or_null("WarehouseYard") as WAREHOUSE_YARD
 
 func _ready() -> void:
@@ -161,10 +148,7 @@ func _ready() -> void:
 	if arena:
 		_build_arena()
 	elif beach:
-		beach_scenery = BEACH_LAYOUT.new()
-		beach_scenery.name = "BeachLayout"
-		add_child(beach_scenery)
-		door_position = BEACH_LAYOUT.TOWN_DOOR
+		_build_beach()
 	elif not indoor:
 		playground = PLAYGROUND.new()
 		_build_town()
@@ -252,7 +236,7 @@ func _build_player() -> void:
 	player.name = "Player"
 	player.jump_enabled = true
 	add_child(player)
-	player.position = WAREHOUSE_YARD.SOUTH_LOBBY if arena else (BEACH_LAYOUT.SPAWN if beach else TOWN_LAYOUT.SPAWN)
+	player.position = WAREHOUSE_YARD.SOUTH_LOBBY if arena else (_beach_spawn() if beach else TOWN_LAYOUT.SPAWN)
 	if beach and get_tree().has_meta("scuba_beach_return"):
 		get_tree().remove_meta("scuba_beach_return")
 		player.position = DIVE_DOOR + Vector3(0,.06,.75)
@@ -485,12 +469,7 @@ func _build_ui() -> void:
 			vehicles.dialog_opened.connect(_on_beach_dialog_opened)
 			vehicles.dialog_closed.connect(_on_beach_dialog_closed)
 	if beach:
-		fishing_ui = BEACH_UI.new()
-		fishing_ui.name = "BeachFishing"
-		add_child(fishing_ui)
-		fishing_ui.setup(player,beach_scenery,hud,arena_avatar,arena_animation,profile)
-		fishing_ui.dialog_opened.connect(_on_beach_dialog_opened)
-		fishing_ui.dialog_closed.connect(_on_beach_dialog_closed)
+		_build_beach_fishing(hud)
 	if arena and get_tree().has_meta("paintball_online"):
 		get_tree().remove_meta("paintball_online")
 		var account := get_node_or_null("/root/WillowbrookBrowserSession")
@@ -537,7 +516,7 @@ func _process(_delta: float) -> void:
 		touch_fire_button.visible = camera_thumbstick.visible and not blocked
 	_refresh_prompt()
 	if jump_button != null:
-		jump_button.visible = not _hide_seeker_locked and not zone_modal and (player.is_physics_processing() or (arena_online != null and arena_online.is_playing())) and slide_time < 0.0 and (arena_match == null or arena_match.is_playing())
+		jump_button.visible = not _hide_seeker_locked and not zone_modal and (player.is_physics_processing() or (arena_online != null and arena_online.is_playing())) and not _beach_is_sliding() and (arena_match == null or arena_match.is_playing())
 
 func _physics_process(delta: float) -> void:
 	var controller_look := Vector2.ZERO
@@ -580,34 +559,20 @@ func _physics_process(delta: float) -> void:
 	if not arena:
 		if vehicles != null:
 			vehicles.tick_drive(delta)
-		if _ferry_landing != null:
-			_tick_ferry(delta)
+		if ferry_crossing.landing != null:
+			if ferry_crossing.tick(delta,arena_avatar,arena_animation,camera,get_node("WorldHUD"),"Town" if beach else "the Island"):
+				_finish_ferry()
 			return
-		if beach and beach_recovery.tick(player,delta,slide_time < 0.0 and not zone_modal):
-			if fishing_ui != null:
-				fishing_ui.recover_from_water()
+		if beach_activities != null and beach_activities.recover(player,fishing_ui,delta,zone_modal):
 			_reset_input_context()
 		_update_camera(delta)
-		if slide_time >= 0.0:
-			slide_time += delta
-			player.position = BEACH_LAYOUT.slide_pose(slide_time)
-			if BEACH_LAYOUT.slide_is_seated(slide_time):
-				PLAYGROUND.apply_seat_avatar(arena_avatar,_beach_slide_avatar.origin,wrapf(-player.global_rotation.y,-PI,PI),BEACH_LAYOUT.slide_pitch(slide_time))
-			else:
-				arena_avatar.transform = _beach_slide_avatar
-			if slide_time >= BEACH_LAYOUT.SLIDE_SECONDS:
-				slide_time = -1.0
-				player.velocity = Vector3.ZERO
-				player.jump_buffer = 0.0
-				player.held.clear()
-				if fishing_ui != null:
-					fishing_ui.set_actions_suspended(false)
-				player.set_physics_process(true)
+		if beach_activities != null:
+			beach_activities.tick_slide(player,arena_avatar,fishing_ui,delta)
 		var walking := player.active and player.get_real_velocity().length_squared() > 0.15 and player.is_physics_processing()
 		var scooter: Node3D = vehicles.scooter_mount() if vehicles != null else null
 		if scooter == null:
 			SCOOTER_RIDER.clear(arena_avatar)
-		var next_clip := "sit" if BEACH_LAYOUT.slide_is_seated(slide_time) else ("walk" if walking or slide_time >= 0.0 else "idle")
+		var next_clip := "sit" if _beach_is_seated() else ("walk" if walking or _beach_is_sliding() else "idle")
 		if room_seated:
 			next_clip = "idle" if room != null and room.get("rest_pose") == "lie" else "sit"
 		elif scooter != null:
@@ -616,10 +581,10 @@ func _physics_process(delta: float) -> void:
 			next_clip = "sit"
 		elif playground != null and not playground.ride.is_empty():
 			next_clip = playground.animation_name()
-		elif slide_time < 0.0 and not player.is_on_floor():
+		elif not _beach_is_sliding() and not player.is_on_floor():
 			next_clip = "jump" if player.velocity.y > 0.0 else "fall"
 		if arena_animation.current_animation != next_clip:
-			arena_animation.play(next_clip,0.0 if slide_time >= 0.0 or scooter != null else .12)
+			arena_animation.play(next_clip,0.0 if _beach_is_sliding() or scooter != null else .12)
 		if scooter == null:
 			arena_animation.advance(delta)
 		else:
@@ -664,7 +629,7 @@ func _update_camera(delta := 0.0) -> void:
 	# Leave vehicle/arena cameras as before. Their visuals or firing view must
 	# not be moved by a walking-camera preference.
 	if not arena and first_person and (vehicles == null or not vehicles.is_driving()):
-		var seated := room_seated or BEACH_LAYOUT.slide_is_seated(slide_time) or (playground != null and not playground.ride.is_empty())
+		var seated := room_seated or _beach_is_seated() or (playground != null and not playground.ride.is_empty())
 		var eye_offset := Vector3.UP * (-0.31 if seated else 0.11) - yaw_basis.z * 0.12
 		var eye_distance := _camera_clear_distance(pivot,eye_offset)
 		camera.global_transform = Transform3D(view_basis,pivot + eye_offset.normalized() * eye_distance)
@@ -759,7 +724,7 @@ func _normal_interaction_text() -> String:
 		return ""
 	if vehicles != null and vehicles.is_driving():
 		return vehicles.interaction_prompt()
-	if slide_time < 0.0 and (playground == null or playground.ride.is_empty()):
+	if not _beach_is_sliding() and (playground == null or playground.ride.is_empty()):
 		var hunt := get_node_or_null("/root/WillowbrookBrowserSession")
 		if OS.has_feature("web") and hunt != null and hunt.has_method("hunt_prompt"):
 			var treasure: String = hunt.hunt_prompt()
@@ -798,13 +763,13 @@ func _normal_interaction_text() -> String:
 			if not vehicle_prompt.is_empty():
 				return vehicle_prompt
 	if fishing_ui != null:
-		if fishing_ui.is_modal_open() or slide_time >= 0.0:
+		if fishing_ui.is_modal_open() or _beach_is_sliding():
 			return ""
 		if _near_ferry():
 			return "Ferry to town"
 		if _near_at(DIVE_DOOR,2.25) and player.position.z > 11.8:
 			return "Enter Dive Shop"
-		if _near_at(BEACH_LAYOUT.SLIDE_ENTRY) and fishing_ui.game.line.is_empty():
+		if _near_at(beach_scenery.SLIDE_ENTRY) and fishing_ui.game.line.is_empty():
 			return "Ride the slide"
 		return fishing_ui.interaction_prompt()
 	if _near_ferry():
@@ -817,7 +782,7 @@ func _normal_interaction_text() -> String:
 
 func _interact() -> void:
 	if arena_online != null: return
-	if _hide_seeker_locked or changing or zone_modal or slide_time >= 0.0 or (arena_match != null and not arena_match.is_playing()) or (fishing_ui != null and fishing_ui.is_modal_open()):
+	if _hide_seeker_locked or changing or zone_modal or _beach_is_sliding() or (arena_match != null and not arena_match.is_playing()) or (fishing_ui != null and fishing_ui.is_modal_open()):
 		return
 	if _interaction_text() == "Tag":
 		var hide_seek := get_node("/root/WillowbrookBrowserSession")
@@ -887,21 +852,14 @@ func _interact() -> void:
 		get_tree().set_meta("room_destination","dive_shop")
 		_change_zone(ROOM)
 		if not changing: get_tree().remove_meta("room_destination")
-	elif beach and _near_at(BEACH_LAYOUT.SLIDE_ENTRY) and fishing_ui.game.line.is_empty():
-		slide_time = 0.0
-		_beach_slide_avatar = arena_avatar.transform
-		player.jump_buffer = 0.0
-		fishing_ui.set_actions_suspended(true)
-		player.position = BEACH_LAYOUT.slide_pose(0.0)
-		player.set_physics_process(false)
-		player.held.clear()
-		player.velocity = Vector3.ZERO
+	elif beach and _near_at(beach_scenery.SLIDE_ENTRY) and fishing_ui.game.line.is_empty():
+		beach_activities.begin_slide(player,arena_avatar,fishing_ui)
 		look_yaw = PI
 		player.rotation.y = look_yaw
 	elif _near_ferry():
 		_take_ferry()
 	elif fishing_ui != null and fishing_ui.try_interact():
-		if fishing_ui.is_modal_open() or slide_time >= 0.0:
+		if fishing_ui.is_modal_open() or _beach_is_sliding():
 			_release_look()
 	elif town_progress != null and not arena and not beach and not _near_door() and town_progress.talk():
 		return
@@ -911,7 +869,7 @@ func _interact() -> void:
 func _near_ferry() -> bool:
 	if arena or indoor or player.position.y > 1.15 or player.position.y < -0.20:
 		return false
-	return _near_at(BEACH_LAYOUT.TOWN_DOOR if beach else TOWN_LAYOUT.BEACH_DOOR,2.7)
+	return _near_at(door_position if beach else TOWN_LAYOUT.BEACH_DOOR,2.7)
 
 func _take_ferry() -> void:
 	if changing or not _near_ferry():
@@ -920,13 +878,7 @@ func _take_ferry() -> void:
 	if landing == null:
 		return
 	changing = true
-	_ferry_landing = landing
-	_ferry_previous_avatar = arena_avatar.transform
-	_ferry_previous_motion_lock = player.movement_locked
-	_ferry_points = landing.boarding_points()
-	_ferry_segment = 0
-	_ferry_clock = 0.0
-	_ferry_foot = player.global_position
+	ferry_crossing.begin(landing,player,arena_avatar)
 	_reset_input_context()
 	player.velocity = Vector3.ZERO
 	player.movement_locked = true
@@ -935,57 +887,13 @@ func _take_ferry() -> void:
 	arena_avatar.show()
 
 
-func _tick_ferry(delta: float) -> void:
-	# Only the local visual moves. Keep the physical/network player at the
-	# dock until the normal scene change, rather than broadcasting water poses.
-	var body_yaw := PI
-	var clip := "idle"
-	if _ferry_segment < _ferry_points.size():
-		var target := _ferry_points[_ferry_segment]
-		var forward := target - _ferry_foot
-		if Vector2(forward.x,forward.z).length_squared() > .001:
-			body_yaw = atan2(-forward.x,-forward.z)
-		_ferry_foot = _ferry_foot.move_toward(target,FERRY_WALK_MPS * delta)
-		if _ferry_foot.is_equal_approx(target):
-			_ferry_segment += 1
-		clip = "walk"
-	else:
-		_ferry_clock += delta
-		# A short beat fully aboard before motion makes the departure legible.
-		_ferry_landing.sail(clampf((_ferry_clock-.28)/FERRY_SAIL_SECONDS,0.0,1.0))
-		_ferry_foot = _ferry_landing.deck_position()
-		if _ferry_clock >= 1.52 and not is_instance_valid(_ferry_card):
-			_ferry_card = FERRY.sailing_card(get_node("WorldHUD"),"Town" if beach else "the Island")
-		if _ferry_clock >= .28+FERRY_SAIL_SECONDS+.24:
-			_finish_ferry()
-			return
-	var rotation := Basis(Vector3.UP,body_yaw) * _ferry_previous_avatar.basis
-	var pose := Transform3D(rotation,_ferry_foot+_ferry_previous_avatar.origin)
-	arena_avatar.global_transform = arena_avatar.global_transform.interpolate_with(pose,minf(delta*18.0,1.0)) if clip == "walk" else pose
-	if arena_animation.current_animation != clip:
-		arena_animation.play(clip,.11)
-	arena_animation.advance(delta)
-	arena_avatar.show()
-	var pivot := _ferry_foot + Vector3(.65,1.50,1.04)
-	var arm := Vector3(-4.45,4.40,-7.35)
-	# The crossing camera follows an authored elevated route above the dock.
-	# The player-only invisible shore rail must not shorten this boom.
-	var shot := Transform3D(Basis.IDENTITY,pivot+arm).looking_at(pivot)
-	camera.global_transform = camera.global_transform.interpolate_with(shot,1.0-exp(-6.2*delta))
-
-
 func _finish_ferry() -> void:
 	_change_zone(TOWN if beach else BEACH,"beach_town_return" if beach else "")
 	if not changing:
-		player.movement_locked = _ferry_previous_motion_lock
-		_ferry_landing.sail(0.0)
-		_ferry_landing = null
-		arena_avatar.transform = _ferry_previous_avatar
+		ferry_crossing.restore_pose(player,arena_avatar)
 		if fishing_ui != null:
 			fishing_ui.set_actions_suspended(false)
-		if is_instance_valid(_ferry_card):
-			_ferry_card.queue_free()
-		_ferry_card = null
+		ferry_crossing.dismiss_card()
 		_reset_input_context()
 
 func _change_zone(scene: String, flag := "") -> void:
@@ -1003,6 +911,26 @@ func _turn_arena_view(relative: Vector2, sensitivity: float) -> void:
 	var pitch_limit := 1.10 if first_person and not arena and (vehicles == null or not vehicles.is_driving()) else 0.65
 	look_pitch = clampf(look_pitch - relative.y * sensitivity, -1.05, pitch_limit)
 	player.rotation.y = look_yaw
+
+func _build_beach() -> void:
+	pass
+
+
+func _beach_spawn() -> Vector3:
+	return Vector3.ZERO
+
+
+func _build_beach_fishing(_hud: CanvasLayer) -> void:
+	pass
+
+
+func _beach_is_sliding() -> bool:
+	return beach_activities != null and beach_activities.is_sliding()
+
+
+func _beach_is_seated() -> bool:
+	return beach_activities != null and beach_activities.is_seated()
+
 
 func _on_beach_dialog_opened() -> void:
 	set_zone_modal(true)
@@ -1099,7 +1027,7 @@ func _toggle_mouse_look() -> void:
 
 
 func _gamepad_input_blocked() -> bool:
-	if _gamepad_blurred or Time.get_ticks_msec()<_gamepad_connected_grace_until or _world_input_blocked() or slide_time >= 0.0 or (playground != null and not playground.ride.is_empty()):
+	if _gamepad_blurred or Time.get_ticks_msec()<_gamepad_connected_grace_until or _world_input_blocked() or _beach_is_sliding() or (playground != null and not playground.ride.is_empty()):
 		return true
 	var focused := get_viewport().gui_get_focus_owner()
 	return focused is LineEdit or focused is TextEdit
@@ -1114,7 +1042,7 @@ func _route_gamepad(event: InputEvent) -> void:
 		"primary":
 			if arena:
 				_fire_marker()
-			elif fishing_ui != null and slide_time < 0.0:
+			elif fishing_ui != null and not _beach_is_sliding():
 				fishing_ui.click(camera)
 
 func _input(event: InputEvent) -> void:
@@ -1159,7 +1087,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if arena:
 				_fire_marker()
 				get_viewport().set_input_as_handled()
-			elif fishing_ui != null and slide_time < 0.0:
+			elif fishing_ui != null and not _beach_is_sliding():
 				fishing_ui.click(camera)
 				get_viewport().set_input_as_handled()
 
@@ -1200,7 +1128,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_E:
 			_interact()
 		KEY_R:
-			if not changing and fishing_ui != null and slide_time < 0.0 and fishing_ui.put_away():
+			if not changing and fishing_ui != null and not _beach_is_sliding() and fishing_ui.put_away():
 				get_viewport().set_input_as_handled()
 			elif not _world_input_blocked() and indoor and room != null and room.has_method("toggle_rest") and room.toggle_rest():
 				get_viewport().set_input_as_handled()
@@ -1471,7 +1399,7 @@ func can_open_network_menu() -> bool:
 
 func _can_use_world_controls() -> bool:
 	# Shared by local jump and the multiplayer menu; each retains its own extra guards.
-	return not _hide_seeker_locked and not changing and not zone_modal and player.is_physics_processing() and slide_time < 0.0 and (playground == null or playground.ride.is_empty())
+	return not _hide_seeker_locked and not changing and not zone_modal and player.is_physics_processing() and not _beach_is_sliding() and (playground == null or playground.ride.is_empty())
 
 
 func _town_ride_session() -> Node:

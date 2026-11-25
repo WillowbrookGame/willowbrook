@@ -179,11 +179,11 @@ func _run() -> void:
 	ui.primary.pressed.emit()
 	beach.player.position = beach.beach_scenery.SLIDE_ENTRY
 	beach._interact()
-	if not check(beach.slide_time==0.0 and not beach.player.is_physics_processing(),"Slide did not start"):
+	if not check(beach.beach_activities.slide_time==0.0 and not beach.player.is_physics_processing(),"Slide did not start"):
 		return
 	for i in range(430):
 		await physics_frame
-	if not check(beach.slide_time<0.0 and beach.player.is_physics_processing() and absf(beach.player.position.z-14.35)<.3,"Slide did not return control"):
+	if not check(beach.beach_activities.slide_time<0.0 and beach.player.is_physics_processing() and absf(beach.player.position.z-14.35)<.3,"Slide did not return control"):
 		return
 	beach.player.position = beach.beach_scenery.TOWN_DOOR
 	var beach_ambience: WeakRef = weakref(ui.wave_audio)
