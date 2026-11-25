@@ -3,7 +3,7 @@ const ART = preload("res://game/interiors/room_art.gd")
 const JOB_ART = preload("res://game/interiors/room_jobs.gd")
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const TITLE := {"salon":"Beauty Salon","cafe":"Sunny Cafe","store":"Town Store","home":"Your Home"}
+const TITLE := {"salon":"Beauty Salon","cafe":"Sunny Cafe","home":"Your Home"}
 const JOBS := ["delivery","bank","vet","salon","cafe","store","library","nursery","park","singing"]
 const PETS = preload("res://game/pets/catalog.gd")
 const PET_ACTORS = preload("res://game/pets/actors.gd")
@@ -56,7 +56,7 @@ func setup(room_id: String, room_host: Node3D, body_player: CharacterBody3D, roo
 		account.pet_snapshot_changed.connect(_sync_pet_actors)
 	if id=="home" and account!=null and account.has_signal("yard_result"):
 		account.yard_result.connect(_on_yard_result)
-	if id in ["home","store"] and account!=null and account.has_signal("furniture_result"):
+	if _uses_furniture_account() and account!=null and account.has_signal("furniture_result"):
 		account.furniture_result.connect(_on_furniture_result)
 	if id=="home":
 		pets = PET_ACTORS.new()
@@ -119,10 +119,13 @@ func refresh_home_lock() -> void:
 	if is_instance_valid(_lock_button):
 		_lock_button.text="Unlock front door" if host.home_locked==true else "Lock front door"
 
+func _uses_furniture_account() -> bool:
+	return id == "home"
+
 func _snapshot() -> Dictionary:
 	if _visiting(): return host.profile_snapshot()
 	var snapshot: Dictionary = host.profile_snapshot() if is_instance_valid(host) and host.has_method("profile_snapshot") else {}
-	var account := _account() if id in ["home","store"] else null
+	var account := _account() if _uses_furniture_account() else null
 	if account != null and account.furniture_available():
 		snapshot.furniture = account.furniture_rows()
 	return snapshot
@@ -139,8 +142,6 @@ func _on_furniture_result(ok: bool, message: String) -> void:
 		if is_modal_open():
 			if active_panel=="home":
 				_home_menu(false)
-			elif active_panel=="store":
-				_store_menu(false)
 	feedback(message)
 
 func _send_furniture(operation: String, args: Dictionary) -> void:
@@ -175,7 +176,6 @@ func _near_exit() -> bool:
 
 func _desk() -> Vector3:
 	match id:
-		"store": return Vector3(0,0,-1.8)
 		"salon": return Vector3(0,0,-3.5)
 		"cafe": return Vector3(4.5,0,-3.7)
 	return Vector3(0,0,1.2)
@@ -190,12 +190,7 @@ func _near_clerk() -> bool:
 	# but not partitions, cabinets, or walls.
 	if at.z <= npc_at.z + .45:
 		return false
-	# The Store register is a solid 1.65m prop. At its normal checkout
-	# queue, terminate LOS on the customer-side counter, not inside the till.
-	if id == "store" and absf(at.x) <= 1.9 and at.z >= -2.35 and at.z <= -.3:
-		return PROX.visible_from(self,at,npc_at,4.75,Vector3(0,0,-2.35),[player.get_rid()])
-	var reach := 4.75 if id == "store" else 4.3
-	return PROX.visible_from(self,at,npc_at,reach,npc_at,[player.get_rid()])
+	return PROX.visible_from(self,at,npc_at,4.3,npc_at,[player.get_rid()])
 
 func _face_customer() -> void:
 	if is_instance_valid(art.conversation_actor):
@@ -223,7 +218,6 @@ func interaction_prompt() -> String:
 
 func _clerk_prompt() -> String:
 	match id:
-		"store": return "Talk to the shopkeeper"
 		"salon": return "Talk to the stylist"
 		"cafe": return "Talk to the barista"
 	return ""
@@ -241,7 +235,6 @@ func interact() -> bool:
 		"Stand up": _stand()
 		"Sit down","Lie down": toggle_rest()
 		"Decorate your home": _home_menu()
-		"Talk to the shopkeeper": _store_menu()
 		"Talk to the barista", "Talk to the stylist": _work_menu()
 		_:
 			if _interact_room_specific(prompt): return true
@@ -331,7 +324,6 @@ func _memberships(snapshot: Dictionary = {}) -> Array:
 func _refresh_hire_menu() -> void:
 	match active_panel:
 		"job": _work_menu(false)
-		"store": _store_menu(false)
 
 
 func _hire_button(job: String) -> void:
@@ -427,75 +419,6 @@ func _home_pets() -> void:
 	_label("Outdoor companion")
 	fields.add_child(selection)
 	_button("Save companion choice",change)
-
-func _store_menu(reset := true) -> void:
-	var p := _snapshot()
-	_open_panel("store","Town Store · Furniture","Order furnishings with stars. Collect the package outside your front door before decorating.",reset)
-	_hire_button("store")
-	_hire_button("delivery")
-	if p.get("home",{}).is_empty():
-		_label("Get a home at Willow Bank first.")
-		return
-	var account := _account()
-	_label("Saved stars: %d" % account.saved_stars() if account != null and account.furniture_available() else "You have %d stars." % int(p.get("stars",0)))
-	var selector := OptionButton.new()
-	selector.fit_to_longest_item = false
-	fields.add_child(selector)
-	var kinds: Array[String] = []
-	for kind: String in DATA.data.furnitureCatalog:
-		var spec: Dictionary = DATA.data.furnitureCatalog[kind]
-		if spec.get("rewardOnly",false): continue
-		kinds.append(kind)
-		selector.add_item("%s · %d stars each" % [spec.name,int(spec.price)])
-	var amount := _spinner("Copies",1,10,1)
-	var total := _label("")
-	var update := func(_value: float): total.text = "Total: %d stars" % (int(DATA.data.furnitureCatalog[kinds[selector.selected]].price)*int(amount.value))
-	selector.item_selected.connect(update)
-	amount.value_changed.connect(update)
-	update.call(0.0)
-	_button("Order furniture",func(): _place_order(kinds[selector.selected],int(amount.value)))
-	if account != null and account.furniture_available():
-		var resale := OptionButton.new()
-		resale.fit_to_longest_item = false
-		var sell_rows: Array[Dictionary] = []
-		for item: Dictionary in p.get("furniture",[]):
-			var spec: Dictionary = DATA.data.furnitureCatalog.get(item.get("kind",""),{})
-			if item.has("x") or spec.is_empty() or spec.get("rewardOnly",false): continue
-			sell_rows.append(item)
-			resale.add_item("%s: %d stars each" % [spec.name,int(spec.price)/2])
-		if sell_rows.is_empty():
-			resale.free()
-			_label("No packed furniture to resell. Trophies cannot be sold.")
-		else:
-			_label("Resell packed furniture")
-			fields.add_child(resale)
-			var copies := _spinner("Copies to sell",1,mini(10,int(sell_rows[0].quantity)),1)
-			resale.item_selected.connect(func(index: int):
-				copies.max_value = mini(10,int(sell_rows[index].quantity))
-				copies.value = 1
-			)
-			_button("Sell selected furniture",func(): _send_furniture("sell",{"kind":str(sell_rows[resale.selected].kind),"quantity":int(copies.value)}))
-
-func _place_order(kind: String, quantity: int) -> void:
-	var p := _snapshot()
-	var spec: Dictionary = DATA.data.furnitureCatalog.get(kind,{})
-	if quantity<1 or quantity>10 or p.get("home",{}).is_empty() or spec.is_empty() or spec.get("rewardOnly",false): return
-	var account := _account()
-	if account != null:
-		if not account.furniture_available():
-			feedback("Reconnect to order saved furniture.")
-			return
-		_send_furniture("buy",{"kind":kind,"quantity":quantity})
-		return
-	var cost := quantity*int(spec.price)
-	if cost>int(p.get("stars",0)):
-		feedback("You need %d stars for this order." % cost)
-		return
-	p.stars -= cost
-	var deliveries: Array = p.get("deliveries",[])
-	deliveries.append({"kind":kind,"quantity":quantity})
-	p.deliveries = deliveries
-	if _commit(p,"Order placed. Collect it outside your front door."): _store_menu(false)
 
 func _home_menu(reset := true) -> void:
 	if _visiting(): return
