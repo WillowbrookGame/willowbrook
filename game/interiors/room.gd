@@ -3,13 +3,13 @@ const ART = preload("res://game/interiors/room_art.gd")
 const JOB_ART = preload("res://game/interiors/room_jobs.gd")
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const TITLE := {"salon":"Beauty Salon","cafe":"Sunny Cafe","home":"Your Home"}
+const TITLE := {"salon":"Beauty Salon","home":"Your Home"}
 const JOBS := ["delivery","bank","vet","salon","cafe","store","library","nursery","park","singing"]
 const PETS = preload("res://game/pets/catalog.gd")
 const PET_ACTORS = preload("res://game/pets/actors.gd")
 var pets: PET_ACTORS
 var _pet_request_until := 0
-const SEATS := {"cafe":[Vector3(-3.65,0,3.6),Vector3(3.65,0,3.6)],"salon":[Vector3(-5,0,3.3),Vector3(5,0,3.3)]}
+const SEATS := {"salon":[Vector3(-5,0,3.3),Vector3(5,0,3.3)]}
 
 var id := ""
 var host: Node3D
@@ -83,7 +83,7 @@ func _fallback_seats() -> Array:
 	return SEATS.get(id, [])
 
 func _publishes_sitting() -> bool:
-	return id in ["salon","cafe"]
+	return id == "salon"
 
 func spawn_position() -> Vector3:
 	return Vector3(0,.04,3.5 if id=="home" else 5.5)
@@ -177,7 +177,6 @@ func _near_exit() -> bool:
 func _desk() -> Vector3:
 	match id:
 		"salon": return Vector3(0,0,-3.5)
-		"cafe": return Vector3(4.5,0,-3.7)
 	return Vector3(0,0,1.2)
 
 func _near_clerk() -> bool:
@@ -219,7 +218,6 @@ func interaction_prompt() -> String:
 func _clerk_prompt() -> String:
 	match id:
 		"salon": return "Talk to the stylist"
-		"cafe": return "Talk to the barista"
 	return ""
 
 func _interact_room_specific(_prompt: String) -> bool:
@@ -235,7 +233,7 @@ func interact() -> bool:
 		"Stand up": _stand()
 		"Sit down","Lie down": toggle_rest()
 		"Decorate your home": _home_menu()
-		"Talk to the barista", "Talk to the stylist": _work_menu()
+		"Talk to the stylist": _work_menu()
 		_:
 			if _interact_room_specific(prompt): return true
 			var account := _account()
