@@ -65,9 +65,9 @@ func _run() -> void:
 
 
 func _check_ride(origin) -> bool:
-	if origin == null or not origin.changing or origin._ferry_landing == null:
+	if origin == null or not origin.changing or origin.ferry_crossing.landing == null:
 		return false
-	var landing = origin._ferry_landing
+	var landing = origin.ferry_crossing.landing
 	var boat := landing.get_node("WillowbrookShuttle") as Node3D
 	var mesh := boat.find_child("InnerscenePassengerFerry",false,false) as Node3D
 	var gate := boat.find_child("PortGate",true,false) as Node3D
@@ -86,17 +86,17 @@ func _check_ride(origin) -> bool:
 		if not is_instance_valid(origin) or current_scene != origin:
 			break
 		var moved := boat.global_position.z-start_z
-		var on_deck: bool = origin._ferry_segment == origin._ferry_points.size()
+		var on_deck: bool = origin.ferry_crossing.segment == origin.ferry_crossing.points.size()
 		if not on_deck:
-			_check(moved < .01 and not is_instance_valid(origin._ferry_card),"Boat departed or card covered player before boarding")
-			saw_walk = saw_walk or (origin.arena_avatar.visible and origin.arena_animation.current_animation=="walk" and origin._ferry_foot.distance_to(start_player) > 1.0)
+			_check(moved < .01 and not is_instance_valid(origin.ferry_crossing.card),"Boat departed or card covered player before boarding")
+			saw_walk = saw_walk or (origin.arena_avatar.visible and origin.arena_animation.current_animation=="walk" and origin.ferry_crossing.foot.distance_to(start_player) > 1.0)
 		elif moved < .01:
 			saw_deck = saw_deck or (saw_walk and origin.arena_avatar.visible and origin.arena_avatar.global_position.distance_to(landing.deck_position()) < .28)
-		elif moved > 1.3 and not is_instance_valid(origin._ferry_card):
+		elif moved > 1.3 and not is_instance_valid(origin.ferry_crossing.card):
 			_check(gate == null or gate.rotation.x < 1.50,"Port gate did not begin closing after boarding")
 			saw_carried = saw_carried or (saw_deck and origin.arena_avatar.visible and origin.arena_avatar.global_position.distance_to(landing.deck_position()) < .28)
 		_check(Vector2(origin.player.global_position.x-start_player.x,origin.player.global_position.z-start_player.z).length() < .14,"Ferry moved network player hull position before scene transition")
-		if is_instance_valid(origin._ferry_card):
+		if is_instance_valid(origin.ferry_crossing.card):
 			_check(on_deck and moved > 4.0,"Sailing card hid the rider too early")
 			saw_late_card = true
 			return saw_walk and saw_deck and saw_carried

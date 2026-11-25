@@ -105,16 +105,8 @@ var paintball_lobby_view: Node
 var enter_button: Button
 var door_position: Vector3
 var changing := false
-var _ferry_card: ColorRect
-var _ferry_landing: FERRY
-var _ferry_points: Array[Vector3] = []
-var _ferry_segment := 0
-var _ferry_clock := 0.0
-var _ferry_foot := Vector3.ZERO
-var _ferry_previous_avatar := Transform3D.IDENTITY
-var _ferry_previous_motion_lock := false
-const FERRY_WALK_MPS := 3.6
-const FERRY_SAIL_SECONDS := 1.80
+const FERRY_CROSSING = preload("res://game/ferry_crossing.gd")
+var ferry_crossing := FERRY_CROSSING.new()
 @onready var yard := get_node_or_null("WarehouseYard") as WAREHOUSE_YARD
 
 func _ready() -> void:
@@ -580,8 +572,9 @@ func _physics_process(delta: float) -> void:
 	if not arena:
 		if vehicles != null:
 			vehicles.tick_drive(delta)
-		if _ferry_landing != null:
-			_tick_ferry(delta)
+		if ferry_crossing.landing != null:
+			if ferry_crossing.tick(delta,arena_avatar,arena_animation,camera,get_node("WorldHUD"),"Town" if beach else "the Island"):
+				_finish_ferry()
 			return
 		if beach and beach_recovery.tick(player,delta,slide_time < 0.0 and not zone_modal):
 			if fishing_ui != null:
@@ -920,13 +913,7 @@ func _take_ferry() -> void:
 	if landing == null:
 		return
 	changing = true
-	_ferry_landing = landing
-	_ferry_previous_avatar = arena_avatar.transform
-	_ferry_previous_motion_lock = player.movement_locked
-	_ferry_points = landing.boarding_points()
-	_ferry_segment = 0
-	_ferry_clock = 0.0
-	_ferry_foot = player.global_position
+	ferry_crossing.begin(landing,player,arena_avatar)
 	_reset_input_context()
 	player.velocity = Vector3.ZERO
 	player.movement_locked = true
@@ -935,57 +922,13 @@ func _take_ferry() -> void:
 	arena_avatar.show()
 
 
-func _tick_ferry(delta: float) -> void:
-	# Only the local visual moves. Keep the physical/network player at the
-	# dock until the normal scene change, rather than broadcasting water poses.
-	var body_yaw := PI
-	var clip := "idle"
-	if _ferry_segment < _ferry_points.size():
-		var target := _ferry_points[_ferry_segment]
-		var forward := target - _ferry_foot
-		if Vector2(forward.x,forward.z).length_squared() > .001:
-			body_yaw = atan2(-forward.x,-forward.z)
-		_ferry_foot = _ferry_foot.move_toward(target,FERRY_WALK_MPS * delta)
-		if _ferry_foot.is_equal_approx(target):
-			_ferry_segment += 1
-		clip = "walk"
-	else:
-		_ferry_clock += delta
-		# A short beat fully aboard before motion makes the departure legible.
-		_ferry_landing.sail(clampf((_ferry_clock-.28)/FERRY_SAIL_SECONDS,0.0,1.0))
-		_ferry_foot = _ferry_landing.deck_position()
-		if _ferry_clock >= 1.52 and not is_instance_valid(_ferry_card):
-			_ferry_card = FERRY.sailing_card(get_node("WorldHUD"),"Town" if beach else "the Island")
-		if _ferry_clock >= .28+FERRY_SAIL_SECONDS+.24:
-			_finish_ferry()
-			return
-	var rotation := Basis(Vector3.UP,body_yaw) * _ferry_previous_avatar.basis
-	var pose := Transform3D(rotation,_ferry_foot+_ferry_previous_avatar.origin)
-	arena_avatar.global_transform = arena_avatar.global_transform.interpolate_with(pose,minf(delta*18.0,1.0)) if clip == "walk" else pose
-	if arena_animation.current_animation != clip:
-		arena_animation.play(clip,.11)
-	arena_animation.advance(delta)
-	arena_avatar.show()
-	var pivot := _ferry_foot + Vector3(.65,1.50,1.04)
-	var arm := Vector3(-4.45,4.40,-7.35)
-	# The crossing camera follows an authored elevated route above the dock.
-	# The player-only invisible shore rail must not shorten this boom.
-	var shot := Transform3D(Basis.IDENTITY,pivot+arm).looking_at(pivot)
-	camera.global_transform = camera.global_transform.interpolate_with(shot,1.0-exp(-6.2*delta))
-
-
 func _finish_ferry() -> void:
 	_change_zone(TOWN if beach else BEACH,"beach_town_return" if beach else "")
 	if not changing:
-		player.movement_locked = _ferry_previous_motion_lock
-		_ferry_landing.sail(0.0)
-		_ferry_landing = null
-		arena_avatar.transform = _ferry_previous_avatar
+		ferry_crossing.restore_pose(player,arena_avatar)
 		if fishing_ui != null:
 			fishing_ui.set_actions_suspended(false)
-		if is_instance_valid(_ferry_card):
-			_ferry_card.queue_free()
-		_ferry_card = null
+		ferry_crossing.dismiss_card()
 		_reset_input_context()
 
 func _change_zone(scene: String, flag := "") -> void:
