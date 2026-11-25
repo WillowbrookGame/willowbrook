@@ -3,14 +3,13 @@ const ART = preload("res://game/interiors/room_art.gd")
 const JOB_ART = preload("res://game/interiors/room_jobs.gd")
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const TITLE := {"salon":"Beauty Salon","cafe":"Sunny Cafe","store":"Town Store","library":"Willowbrook Library","home":"Your Home"}
+const TITLE := {"salon":"Beauty Salon","cafe":"Sunny Cafe","store":"Town Store","home":"Your Home"}
 const JOBS := ["delivery","bank","vet","salon","cafe","store","library","nursery","park","singing"]
 const PETS = preload("res://game/pets/catalog.gd")
 const PET_ACTORS = preload("res://game/pets/actors.gd")
 var pets: PET_ACTORS
-var _class_request_until := 0
 var _pet_request_until := 0
-const SEATS := {"library":[Vector3(-5,0,3),Vector3(5,0,3)],"cafe":[Vector3(-3.65,0,3.6),Vector3(3.65,0,3.6)],"salon":[Vector3(-5,0,3.3),Vector3(5,0,3.3)]}
+const SEATS := {"cafe":[Vector3(-3.65,0,3.6),Vector3(3.65,0,3.6)],"salon":[Vector3(-5,0,3.3),Vector3(5,0,3.3)]}
 
 var id := ""
 var host: Node3D
@@ -39,7 +38,6 @@ var _pending_hire := ""
 var _hire_timeout := 0
 var state_message := ""
 var notice_timer := 0.0
-var course_index := 0
 
 func setup(room_id: String, room_host: Node3D, body_player: CharacterBody3D, room_hud: CanvasLayer) -> void:
 	id = room_id if not _room_title(room_id).is_empty() else "home"
@@ -60,8 +58,6 @@ func setup(room_id: String, room_host: Node3D, body_player: CharacterBody3D, roo
 		account.yard_result.connect(_on_yard_result)
 	if id in ["home","store"] and account!=null and account.has_signal("furniture_result"):
 		account.furniture_result.connect(_on_furniture_result)
-	if account!=null and account.has_signal("class_result"):
-		account.class_result.connect(_on_class_result)
 	if id=="home":
 		pets = PET_ACTORS.new()
 		pets.name = "IndoorPets"
@@ -81,13 +77,13 @@ func _new_room_art() -> ART:
 	return ART.new()
 
 func _welcomes_visitors() -> bool:
-	return id == "library"
+	return false
 
 func _fallback_seats() -> Array:
 	return SEATS.get(id, [])
 
 func _publishes_sitting() -> bool:
-	return id in ["salon","cafe","library"]
+	return id in ["salon","cafe"]
 
 func spawn_position() -> Vector3:
 	return Vector3(0,.04,3.5 if id=="home" else 5.5)
@@ -227,7 +223,6 @@ func interaction_prompt() -> String:
 
 func _clerk_prompt() -> String:
 	match id:
-		"library": return "Talk to the librarian"
 		"store": return "Talk to the shopkeeper"
 		"salon": return "Talk to the stylist"
 		"cafe": return "Talk to the barista"
@@ -246,7 +241,6 @@ func interact() -> bool:
 		"Stand up": _stand()
 		"Sit down","Lie down": toggle_rest()
 		"Decorate your home": _home_menu()
-		"Talk to the librarian": _library_menu()
 		"Talk to the shopkeeper": _store_menu()
 		"Talk to the barista", "Talk to the stylist": _work_menu()
 		_:
@@ -264,11 +258,6 @@ func _process(delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(host): return
 	if seated:
 		_update_seat_visual()
-	if _class_request_until>0 and Time.get_ticks_msec()>_class_request_until:
-		_class_request_until=0
-		if is_modal_open() and active_panel=="library":
-			feedback("No confirmation yet. Retry the same payment without paying twice.")
-			_library_menu(false)
 	if _pet_request_until>0 and Time.get_ticks_msec()>_pet_request_until:
 		_pet_request_until=0
 		if is_modal_open(): feedback("The server did not respond. Check the connection before trying again.")
@@ -342,7 +331,6 @@ func _memberships(snapshot: Dictionary = {}) -> Array:
 func _refresh_hire_menu() -> void:
 	match active_panel:
 		"job": _work_menu(false)
-		"library": _library_menu(false)
 		"store": _store_menu(false)
 
 
@@ -439,67 +427,6 @@ func _home_pets() -> void:
 	_label("Outdoor companion")
 	fields.add_child(selection)
 	_button("Save companion choice",change)
-
-func _library_menu(reset := true) -> void:
-	var p := _snapshot()
-	_open_panel("library","Willowbrook Library · Classes","Study any job, even before you get hired. Classes raise only that job's pay from 3 stars to 5, 8, then 10.",reset)
-	_hire_button("library")
-	var account := _account()
-	if account!=null and (not account.has_method("classes_available") or not account.classes_available()):
-		_label("Saved-star classes are unavailable on this server.")
-		return
-	var pending: Dictionary = account.pending_class_payment() if account!=null else {}
-	if not pending.is_empty():
-		if _class_request_until>0:
-			_label("Saving your tuition payment…")
-		else:
-			_button("Retry same payment",_pay_class.bind(str(pending.course),int(pending.amount)))
-		return
-	var course := OptionButton.new()
-	for job in JOBS: course.add_item(job.capitalize())
-	course.select(course_index)
-	fields.add_child(course)
-	course.item_selected.connect(func(index: int):
-		course_index = index
-		_library_menu()
-	)
-	var job: String = JOBS[course_index]
-	var classes: Dictionary = account.class_state() if account!=null else p.get("classes",{})
-	var state: Dictionary = classes.get(job,{})
-	var tier: int = state.get("tier",0)
-	var paid: int = state.get("paid",0)
-	if tier>=3:
-		_label("All three tiers complete. This job earns 10 stars.")
-		return
-	var cost: int = [50,120,200][tier]
-	var remain := maxi(1,cost-paid)
-	var stars: int = account.saved_stars() if account!=null else p.get("stars",0)
-	if account!=null: _label("Saved Stars: %d" % stars)
-	_label("Current pay: %d stars. Tier %d tuition: %d stars. Paid %d; %d to go." % [[3,5,8,10][tier],tier+1,cost,paid,remain])
-	_button("Pay 1 star",_pay_class.bind(job,1)).disabled = stars<1
-	_button("Pay remaining %d stars" % remain,_pay_class.bind(job,remain)).disabled = stars<remain
-	var spin := _spinner("Partial tuition",1,remain,mini(10,remain))
-	_button("Make partial payment",func(): _pay_class(job,int(spin.value))).disabled = stars<1
-
-func _pay_class(job: String, amount: int) -> void:
-	var account := _account()
-	if account!=null:
-		if _class_request_until>0: return
-		if account.has_method("class_command") and account.class_command(job,amount):
-			_class_request_until=Time.get_ticks_msec()+8000
-			_library_menu(false)
-		else: feedback("Couldn't send tuition. Reconnect and check your balance.")
-		return
-	var service := _service()
-	if service != null and service.has_method("take_class"):
-		_show_result(service.take_class(job,amount))
-		_library_menu(false)
-
-func _on_class_result(_ok: bool,text: String) -> void:
-	_class_request_until=0
-	if not is_modal_open() or active_panel!="library": return
-	feedback(text)
-	_library_menu(false)
 
 func _store_menu(reset := true) -> void:
 	var p := _snapshot()
