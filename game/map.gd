@@ -7,6 +7,7 @@ const ARENA := "res://game/arena.tscn"
 const BEACH := "res://game/beach.tscn"
 const DIVE_DOOR := Vector3(-24.15,0,12.45)
 const DIVE_ROOM_SCRIPT := "res://game/scuba/shop.gd"
+const SALON_ROOM_SCENE := "res://game/salon/room.tscn"
 const CAFE_ROOM_SCENE := "res://game/cafe/room.tscn"
 const STORE_ROOM_SCENE := "res://game/store/room.tscn"
 const LIBRARY_ROOM_SCENE := "res://game/library/room.tscn"
@@ -1420,6 +1421,7 @@ func visit_ejected() -> void:
 
 func _room_resource(destination: String) -> String:
 	match destination:
+		"salon": return SALON_ROOM_SCENE
 		"cafe": return CAFE_ROOM_SCENE
 		"store": return STORE_ROOM_SCENE
 		"library": return LIBRARY_ROOM_SCENE

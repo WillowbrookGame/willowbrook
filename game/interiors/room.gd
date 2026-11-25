@@ -3,13 +3,12 @@ const ART = preload("res://game/interiors/room_art.gd")
 const JOB_ART = preload("res://game/interiors/room_jobs.gd")
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const TITLE := {"salon":"Beauty Salon","home":"Your Home"}
+const TITLE := {"home":"Your Home"}
 const JOBS := ["delivery","bank","vet","salon","cafe","store","library","nursery","park","singing"]
 const PETS = preload("res://game/pets/catalog.gd")
 const PET_ACTORS = preload("res://game/pets/actors.gd")
 var pets: PET_ACTORS
 var _pet_request_until := 0
-const SEATS := {"salon":[Vector3(-5,0,3.3),Vector3(5,0,3.3)]}
 
 var id := ""
 var host: Node3D
@@ -80,10 +79,10 @@ func _welcomes_visitors() -> bool:
 	return false
 
 func _fallback_seats() -> Array:
-	return SEATS.get(id, [])
+	return []
 
 func _publishes_sitting() -> bool:
-	return id == "salon"
+	return false
 
 func spawn_position() -> Vector3:
 	return Vector3(0,.04,3.5 if id=="home" else 5.5)
@@ -175,8 +174,6 @@ func _near_exit() -> bool:
 	return _near(Vector3(0,0,6.57),.96)
 
 func _desk() -> Vector3:
-	match id:
-		"salon": return Vector3(0,0,-3.5)
 	return Vector3(0,0,1.2)
 
 func _near_clerk() -> bool:
@@ -189,10 +186,6 @@ func _near_clerk() -> bool:
 	# but not partitions, cabinets, or walls.
 	if at.z <= npc_at.z + .45:
 		return false
-	# The tall Salon reception desk blocks a direct ray to the stylist.
-	# The customer aisle can talk across it; keep the rest of the sight checks.
-	if id == "salon" and absf(at.x) <= 1.6 and at.z >= -4.24 and at.z <= -1.8:
-		return PROX.visible_from(self,at,npc_at,4.3,Vector3(0,0,-4.24),[player.get_rid()])
 	return PROX.visible_from(self,at,npc_at,4.3,npc_at,[player.get_rid()])
 
 func _face_customer() -> void:
@@ -220,8 +213,6 @@ func interaction_prompt() -> String:
 	return _clerk_prompt() if _near_clerk() else ""
 
 func _clerk_prompt() -> String:
-	match id:
-		"salon": return "Talk to the stylist"
 	return ""
 
 func _interact_room_specific(_prompt: String) -> bool:
@@ -237,7 +228,6 @@ func interact() -> bool:
 		"Stand up": _stand()
 		"Sit down","Lie down": toggle_rest()
 		"Decorate your home": _home_menu()
-		"Talk to the stylist": _work_menu()
 		_:
 			if _interact_room_specific(prompt): return true
 			var account := _account()
