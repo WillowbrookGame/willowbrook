@@ -3,7 +3,7 @@ extends Node3D
 const ART := "res://game/interiors/art/"
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const PALETTE := {"salon":"f3e2ec","cafe":"f5e5d0"}
+const PALETTE := {"salon":"f3e2ec"}
 const ROOM_FLOORS := ["e3c6a1","e1d4b5","d5d6bd"]
 const ROOM_WALLS := ["f1e6d5","e0ebe4","e8e2ef"]
 var materials: Dictionary = {}
@@ -37,10 +37,12 @@ func build(id: String, profile: Dictionary) -> void:
 			var at := Vector3(spec.x,0.03,spec.z)
 			var dimensions := Vector3(spec.w,spec.h,spec.d)
 			var holder := piece(spec.file,at,dimensions,float(spec.rotation),true)
-			if id == "cafe" and spec.file == "chairCushion":
-				_register_public_seat(holder,dimensions.y)
+			_register_shop_piece(spec,holder,dimensions)
 	_build_room_details(id)
 	label_3d("Town  →",Vector3(0,2.75,6.82),42,false)
+
+func _register_shop_piece(_spec: Dictionary, _holder: Node3D, _dimensions: Vector3) -> void:
+	pass
 
 func _room_tint(id: String) -> Color:
 	return Color(PALETTE.get(id,"e5e9ed"))
@@ -52,17 +54,6 @@ func _build_room_details(id: String) -> void:
 			for x: float in [-5.0,5.0]:
 				piece("rugRectangle",Vector3(x,.018,3),Vector3(2.8,.025,3))
 				piece("lampRoundFloor",Vector3(x+signf(x)*1.5,0,3.8),Vector3(.55,1.9,.55),0,true)
-		"cafe":
-			npc("male-b","Barista",Vector3(4.5,0,-4.9))
-			box("MenuBoard",Vector3(0,2.8,-6.65),Vector3(4.4,1.8,.12),Color("#52746e"))
-			label_3d("Sunny Cafe  •  Fresh from the oven",Vector3(0,2.8,-6.56),44,false)
-			for x: float in [-1.55,0,1.55]:
-				piece("food/plate-rectangle",Vector3(x,1.23,-4.8),Vector3(.75,.1,.7))
-				piece("food/muffin" if x==0 else "food/croissant",Vector3(x,1.33,-4.8),Vector3(.45,.28,.48))
-			for x: float in [-5.0,5.0]:
-				for z: float in [-.5,3.6]:
-					piece("food/cup-coffee",Vector3(x-.4,.88,z),Vector3(.24,.22,.25))
-					piece("food/croissant",Vector3(x+.35,.88,z+.12),Vector3(.42,.23,.4))
 func room_shell(hw: float, hd: float, tint: Color) -> void:
 	box("Floor",Vector3(0,-.12,0),Vector3(hw*2+.4,.24,hd*2+.35),Color("#e1c9a4"),true)
 	box("BackWall",Vector3(0,2,-hd-.1),Vector3(hw*2+.4,4,.22),tint,true,3)
