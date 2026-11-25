@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability (Private)
+    url: https://github.com/WillowbrookGame/willowbrook/security/advisories/new
+    about: Report privacy, Parent Desk, or self-hosting security issues privately instead of opening a public issue.
+  - name: Read the Art & Asset Guide
+    url: https://github.com/WillowbrookGame/willowbrook/blob/main/ART_GUIDE.md
+    about: Check scale, style, licensing, and starter prop ideas before creating an asset.
