@@ -1,0 +1,65 @@
+name: Submit art or audio
+description: Share a 3D model, icon, animation, or sound effect (no Git required).
+title: "Asset: "
+labels: ["art"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping bring Willowbrook to life! See the [Art & Asset Guide](https://github.com/WillowbrookGame/willowbrook/blob/main/ART_GUIDE.md) for scale, style, and triangle tips.
+        **Issues and attachments are public.** Check your files for private family information before uploading them.
+        **Tip:** Put `.glb` or `.blend` files inside a `.zip` before dragging them into the description box.
+  - type: dropdown
+    id: category
+    attributes:
+      label: Where does this fit?
+      options:
+        - Town
+        - Homes / Furniture
+        - Beach & Fishing
+        - Arcade
+        - Character / Rig / Animation
+        - 2D Icon / UI
+        - Audio (SFX / Ambience)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Preview and ZIP attachment
+      description: Attach a ZIP containing your exported file (.glb, PNG/SVG, or .ogg). For visual assets, also attach a screenshot or render. Editable source is welcome if you can share it.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Asset notes
+      description: Intended real-world size (in meters), interactive/walkable/sittable parts, or anything maintainers should know.
+  - type: dropdown
+    id: license
+    attributes:
+      label: License
+      description: We prefer CC0 or CC BY 4.0 for original contributions.
+      options:
+        - CC0 1.0 (Public Domain)
+        - CC BY 4.0
+        - Other (explain below)
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Creator, source, and credit
+      description: Say "original" if it's your own work, or list the exact source, original creator, license, and your changes. Include your preferred public credit name and optional portfolio link.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have the right to share this asset under the license selected above.
+          required: true
+        - label: This submission is family-friendly and contains no private family data.
+          required: true
