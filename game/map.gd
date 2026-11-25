@@ -6,7 +6,7 @@ const TOWN := "res://game/town.tscn"
 const ARENA := "res://game/arena.tscn"
 const BEACH := "res://game/beach.tscn"
 const DIVE_DOOR := Vector3(-24.15,0,12.45)
-const DIVE_ROOM_SCRIPT := "res://game/scuba/shop.gd"
+const DIVE_ROOM_SCENE := "res://game/scuba/shop.tscn"
 const HOME_ROOM_SCENE := "res://game/home/room.tscn"
 const SALON_ROOM_SCENE := "res://game/salon/room.tscn"
 const CAFE_ROOM_SCENE := "res://game/cafe/room.tscn"
@@ -66,6 +66,9 @@ var camera_probe := SphereShape3D.new()
 var camera_arm := Vector3.ZERO
 var camera_distance := 0.0
 var camera_tight := false
+var _camera_tight_enter := 1.58
+var _camera_tight_leave := 2.10
+var _camera_collision_mask := 1
 var look_yaw := 0.0
 const DEFAULT_LOOK_PITCH := -0.17
 var look_pitch := DEFAULT_LOOK_PITCH
@@ -169,9 +172,14 @@ func _ready() -> void:
 	_build_ui()
 	if indoor and room != null:
 		player.position = room.spawn_position()
-		if room_id == "dive_shop":
-			look_yaw = .65
+		if room.has_method("spawn_yaw"):
+			look_yaw = room.spawn_yaw()
 			player.rotation.y = look_yaw
+		if room.has_method("camera_profile"):
+			var tuning: Dictionary = room.camera_profile()
+			_camera_tight_enter = float(tuning.get("tight_enter", _camera_tight_enter))
+			_camera_tight_leave = float(tuning.get("tight_leave", _camera_tight_leave))
+			_camera_collision_mask = int(tuning.get("collision_mask", _camera_collision_mask))
 		if room.has_method("bounds"):
 			player.world_bounds = room.bounds()
 	var session := get_node_or_null("/root/WillowbrookBrowserSession" if OS.has_feature("web") else "/root/WillowbrookSession")
@@ -649,12 +657,10 @@ func _update_camera(delta := 0.0) -> void:
 	# Switch viewpoint instead of leaving the lens behind the avatar when
 	# the boom is too short. Require extra space before switching back.
 	if delta > 0.0:
-		var tight_enter := 2.25 if room_id == "dive_shop" else 1.58
-		var tight_leave := 2.68 if room_id == "dive_shop" else 2.10
 		if camera_tight:
-			camera_tight = allowed < tight_leave
+			camera_tight = allowed < _camera_tight_leave
 		else:
-			camera_tight = allowed < tight_enter
+			camera_tight = allowed < _camera_tight_enter
 	if camera_tight:
 		var eye_offset := -yaw_basis.z * 0.19
 		var eye_distance := _camera_clear_distance(pivot, eye_offset)
@@ -671,7 +677,7 @@ func _camera_clear_distance(origin: Vector3, motion: Vector3) -> float:
 	query.shape = camera_probe
 	query.transform = Transform3D(Basis.IDENTITY, origin)
 	query.motion = motion
-	query.collision_mask = 5 if room_id == "dive_shop" else 1
+	query.collision_mask = _camera_collision_mask
 	query.exclude = [player.get_rid()]
 	var fraction := get_world_3d().direct_space_state.cast_motion(query)
 	if fraction.size() == 2 and fraction[0] < 1.0:
@@ -1357,7 +1363,7 @@ func _room_resource(destination: String) -> String:
 		"library": return LIBRARY_ROOM_SCENE
 		"bank": return BANK_ROOM_SCENE
 		"vet": return VET_ROOM_SCENE
-		"dive_shop": return DIVE_ROOM_SCRIPT
+		"dive_shop": return DIVE_ROOM_SCENE
 		"arcade": return "res://game/arcade/room.gd"
 		_: return "res://game/interiors/room.gd"
 
