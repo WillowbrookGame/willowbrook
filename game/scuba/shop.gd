@@ -111,6 +111,14 @@ func _place_gear(asset: String, at: Vector3, width: float) -> void:
 	midpoint.y=aabb.position.y
 	root.position=at-midpoint*factor
 
+func spawn_yaw() -> float:
+	return .65
+
+
+func camera_profile() -> Dictionary:
+	return {"tight_enter": 2.25, "tight_leave": 2.68, "collision_mask": 5}
+
+
 func spawn_position() -> Vector3:
 	return Vector3(2.11,.04,.54)
 
