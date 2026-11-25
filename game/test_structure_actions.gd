@@ -32,13 +32,21 @@ func _run() -> void:
 	town.player.set_physics_process(false)
 	failures += _check(town, false, "Player physics off")
 	town.player.set_physics_process(true)
-	town.slide_time = 0.2
-	failures += _check(town, false, "Slide in progress")
-	town.slide_time = -1.0
 	town.playground.ride = "swing"
 	failures += _check(town, false, "Playground ride")
 	town.playground.ride = ""
 	failures += _check(town, true, "Restored controls")
+	if change_scene_to_file("res://game/beach.tscn") != OK:
+		quit(1)
+		return
+	await scene_changed
+	var island := current_scene
+	island.player.position = island.beach_scenery.SLIDE_ENTRY
+	island._interact()
+	if not island.beach_activities.is_sliding():
+		failures += 1
+		push_error("Island slide did not start at its entry point")
+	failures += _check(island, false, "Island slide in progress")
 	if failures == 0:
 		print("PASS: both control actions agree through seven world states")
 	quit(1 if failures > 0 else 0)

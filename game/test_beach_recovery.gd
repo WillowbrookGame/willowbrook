@@ -25,11 +25,11 @@ func _run() -> void:
 	player.position = Vector3(0,.66,-15)
 	player.velocity = Vector3.ZERO
 	await _frames(16)
-	_check(beach.beach_recovery.last_safe.distance_to(Vector3(0,.635,-15))<.15,"Safe grounded deck point gets recorded")
-	var checkpoint: Vector3 = beach.beach_recovery.last_safe
+	_check(beach.beach_activities.recovery.last_safe.distance_to(Vector3(0,.635,-15))<.15,"Safe grounded deck point gets recorded")
+	var checkpoint: Vector3 = beach.beach_activities.recovery.last_safe
 	beach._request_world_jump()
 	await _frames(9)
-	_check(player.position.y>1.1 and beach.beach_recovery.last_safe.is_equal_approx(checkpoint),"A legitimate deck jump doesn't reset, and airborne positions aren't checkpoints")
+	_check(player.position.y>1.1 and beach.beach_activities.recovery.last_safe.is_equal_approx(checkpoint),"A legitimate deck jump doesn't reset, and airborne positions aren't checkpoints")
 	await _frames(68)
 	_check(player.is_on_floor() and player.position.z<-14.7,"A normal jump lands on the deck without teleporting")
 
@@ -79,11 +79,11 @@ func _run() -> void:
 	player.position = beach.beach_scenery.SLIDE_ENTRY
 	player.velocity = Vector3.ZERO
 	beach._interact()
-	_check(beach.slide_time>=0.0,"Slide boarding still works")
-	beach.slide_time = beach.beach_scenery.SLIDE_SECONDS-.035
+	_check(beach.beach_activities.slide_time>=0.0,"Slide boarding still works")
+	beach.beach_activities.slide_time = beach.beach_scenery.SLIDE_SECONDS-.035
 	_check(fishing.game.line.is_empty() and not fishing.splash_pending and fishing.game.equipped,"A live cast is canceled by recovery in the same physics frame")
 	await _frames(8)
-	_check(beach.slide_time<0.0 and player.is_physics_processing() and player.position.distance_to(Vector3(-46.05,.04,14.35))<.3,"Recovery doesn't override the slide's on-land exit")
+	_check(beach.beach_activities.slide_time<0.0 and player.is_physics_processing() and player.position.distance_to(Vector3(-46.05,.04,14.35))<.3,"Recovery doesn't override the slide's on-land exit")
 	print("Beach water recovery checks: ",failures," failures")
 	quit(failures)
 
