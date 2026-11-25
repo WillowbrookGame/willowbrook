@@ -2,10 +2,11 @@ extends Node3D
 ## Willowbrook's walkable town uses original web-world coordinates, in meters.
 ## The host owns interaction, character, and camera; this node owns scenery.
 const ROOT := "res://game/town_assets/"
-const WORLD_BOUNDS := Vector2(80, 62)
-const SPAWN := Vector3(0, 0.04, 3.5)
-const ARENA_DOOR := Vector3(36, 0, -46)
-const ARCADE_DOOR := Vector3(0, 0, -47)
+const ROUTES = preload("res://game/town_routes.gd")
+const WORLD_BOUNDS := ROUTES.WORLD_BOUNDS
+const SPAWN := ROUTES.SPAWN
+const ARENA_DOOR := ROUTES.ARENA_DOOR
+const ARCADE_DOOR := ROUTES.ARCADE_DOOR
 # Exact browser interaction points, separate from art and collision tolerances.
 const BUSINESS_DOORS := {
 	"bank": Vector3(-56.142857,0,-45), "vet": Vector3(-20.142857,0,-45),
@@ -32,8 +33,8 @@ const OUTDOOR_ROLES := {
 	"car_lot": Vector3(19,0,3), "scooter_bay": Vector3(-20,0,5),
 }
 const FERRY = preload("res://game/ferry_landing.gd")
-const BEACH_DOOR := Vector3(-5, 0, 58)
-const BEACH_RETURN := Vector3(-5, 0.04, 55)
+const BEACH_DOOR := ROUTES.BEACH_DOOR
+const BEACH_RETURN := ROUTES.BEACH_RETURN
 const GRASS := Color("#94ba77")
 const SAND := Color("#d9b887")
 const STONE := Color("#d0c8ad")

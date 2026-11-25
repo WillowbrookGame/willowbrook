@@ -16,7 +16,7 @@ const BANK_ROOM_SCENE := "res://game/bank/room.tscn"
 const VET_ROOM_SCENE := "res://game/vet/room.tscn"
 const ROOM := "res://game/room.tscn"
 const ROOM_NAMES := {"bank":"Willowbrook Bank","vet":"Willowbrook Vet","salon":"Salon","store":"General Store","cafe":"Sunny Cafe","library":"Willowbrook Library","arcade":"Willowbrook Arcade","home":"Home","dive_shop":"Dive Shop"}
-const TOWN_LAYOUT = preload("res://game/town_layout.gd")
+const TOWN_ROUTES = preload("res://game/town_routes.gd")
 const FERRY = preload("res://game/ferry_landing.gd")
 const ENTRY := Vector3(0, 0, -7.7)
 const WAREHOUSE_YARD = preload("res://game/warehouse_yard.gd")
@@ -210,28 +210,15 @@ func _ready() -> void:
 	_refresh_prompt()
 
 func _sync_town_home_exteriors() -> void:
-	var town_layout := get_node_or_null("TownLayout")
-	if town_layout == null:
-		return
-	var rows: Array = []
-	var account := _pets_account()
-	if OS.has_feature("web") and account != null and account.pets_available():
-		rows = account.town_home_exteriors()
-	else:
-		var own: Variant = profile_snapshot().get("home")
-		if own is Dictionary and own.get("variant") in ["cottage","family"]:
-			rows.append({"plot": own.get("plot",-1),"variant":own.variant})
-	if rows != _home_exterior_rows:
-		_home_exterior_rows = rows.duplicate(true)
-		town_layout.set_home_exteriors(rows)
+	pass
+
 
 func _build_town() -> void:
-	door_position = TOWN_LAYOUT.ARENA_DOOR
-	var town := TOWN_LAYOUT.new()
-	town.name = "TownLayout"
-	add_child(town)
-	playground.bind_layout(town)
-	_sync_town_home_exteriors()
+	pass
+
+
+func _build_town_features(_hud: CanvasLayer) -> void:
+	pass
 
 
 func _build_arena() -> void:
@@ -244,7 +231,7 @@ func _build_player() -> void:
 	player.name = "Player"
 	player.jump_enabled = true
 	add_child(player)
-	player.position = WAREHOUSE_YARD.SOUTH_LOBBY if arena else (_beach_spawn() if beach else TOWN_LAYOUT.SPAWN)
+	player.position = WAREHOUSE_YARD.SOUTH_LOBBY if arena else (_beach_spawn() if beach else TOWN_ROUTES.SPAWN)
 	if beach and get_tree().has_meta("scuba_beach_return"):
 		get_tree().remove_meta("scuba_beach_return")
 		player.position = DIVE_DOOR + Vector3(0,.06,.75)
@@ -260,18 +247,18 @@ func _build_player() -> void:
 		player.rotation.y = look_yaw
 	if not arena and not beach and not indoor and get_tree().has_meta("beach_town_return"):
 		get_tree().remove_meta("beach_town_return")
-		player.position = TOWN_LAYOUT.BEACH_RETURN
+		player.position = TOWN_ROUTES.BEACH_RETURN
 		look_yaw = 0.0
 		player.rotation.y = look_yaw
 	if not arena:
-		player.world_bounds = Vector2(56,54) if beach else (Vector2(10,8) if indoor else TOWN_LAYOUT.WORLD_BOUNDS)
+		player.world_bounds = Vector2(56,54) if beach else (Vector2(10,8) if indoor else TOWN_ROUTES.WORLD_BOUNDS)
 		if beach:
 			player.collision_mask = 3
 		player.process_physics_priority = -10
 		player.floor_snap_length = 0.45
 	if not arena and not beach and not indoor and get_tree().has_meta("paintball_town_return"):
 		get_tree().remove_meta("paintball_town_return")
-		player.position = TOWN_LAYOUT.ARENA_DOOR + Vector3(0,0.04,1.6)
+		player.position = TOWN_ROUTES.ARENA_DOOR + Vector3(0,0.04,1.6)
 		look_yaw = PI
 		player.rotation.y = look_yaw
 	if arena:
@@ -456,26 +443,7 @@ func _build_ui() -> void:
 	if indoor and room != null:
 		room.setup(room_id,self,player,hud)
 	elif not arena and not beach and not indoor:
-		var progression_path := "res://game/progression/town_progression.gd"
-		if ResourceLoader.exists(progression_path):
-			town_progress = load(progression_path).new()
-			town_progress.name = "TownProgression"
-			add_child(town_progress)
-			town_progress.setup(self,player,hud)
-		var home_path := "res://game/progression/home_lot.gd"
-		if ResourceLoader.exists(home_path):
-			home_lot = load(home_path).new()
-			home_lot.name = "HomeLot"
-			add_child(home_lot)
-			home_lot.setup(self,player,hud,TOWN_LAYOUT.HOME_DOORS)
-		var vehicle_path := "res://game/vehicles/town_vehicles.gd"
-		if ResourceLoader.exists(vehicle_path):
-			vehicles = load(vehicle_path).new()
-			vehicles.name = "TownVehicles"
-			add_child(vehicles)
-			vehicles.setup(self,player,arena_avatar,hud)
-			vehicles.dialog_opened.connect(_on_beach_dialog_opened)
-			vehicles.dialog_closed.connect(_on_beach_dialog_closed)
+		_build_town_features(hud)
 	if beach:
 		_build_beach_fishing(hud)
 	if arena and get_tree().has_meta("paintball_online"):
@@ -875,7 +843,7 @@ func _interact() -> void:
 func _near_ferry() -> bool:
 	if arena or indoor or player.position.y > 1.15 or player.position.y < -0.20:
 		return false
-	return _near_at(door_position if beach else TOWN_LAYOUT.BEACH_DOOR,2.7)
+	return _near_at(door_position if beach else TOWN_ROUTES.BEACH_DOOR,2.7)
 
 func _take_ferry() -> void:
 	if changing or not _near_ferry():
@@ -1277,7 +1245,7 @@ func _town_room_at() -> Dictionary:
 		return {}
 	var layout_script := town.get_script() as Script
 	var layout_constants := layout_script.get_script_constant_map()
-	var doors: Dictionary = layout_constants.get("BUSINESS_DOORS",{"arcade":TOWN_LAYOUT.ARCADE_DOOR})
+	var doors: Dictionary = layout_constants.get("BUSINESS_DOORS",{"arcade":TOWN_ROUTES.ARCADE_DOOR})
 	for id: String in doors:
 		var at: Vector3 = doors[id]
 		if _near_at(at,2.75):
