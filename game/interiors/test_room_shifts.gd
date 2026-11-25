@@ -69,6 +69,9 @@ func _run() -> void:
 		var room_map := current_scene
 		await physics_frame
 		await physics_frame
+		if zone == "salon":
+			room_map.player.position=Vector3(0,.04,-6.3)
+			check(not room_map.room._near_clerk(),"Salon clerk must not interact from behind reception")
 		var employer: Dictionary=TASK_DATA.data.employerSites[zone]
 		room_map.player.position=_clear_position(zone,employer,room_map)
 		_key_e()
