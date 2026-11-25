@@ -1,7 +1,31 @@
 # Willowbrook
 
-Willowbrook is a browser game families can host for their own players. This
-repository does not include any server accounts, credentials, or saves.
+**A cozy, invite-only 3D browser town that families host themselves.** Kids can play together on PCs and tablets, with no public lobbies, no ads, and no tracking. The game does not send player data to the Willowbrook project.
+
+> Looking for the family overview? Visit **[willowbrookgame.com](https://willowbrookgame.com)**.
+>
+> This repository does not contain any server accounts, credentials, or player saves.
+
+<table>
+  <tr>
+    <td><img src="https://willowbrookgame.com/media/card-town.webp" alt="Willowbrook Town Square" width="100%" /></td>
+    <td><img src="https://willowbrookgame.com/media/card-beach.webp" alt="Fishing from the beach pier" width="100%" /></td>
+  </tr>
+  <tr>
+    <td><img src="https://willowbrookgame.com/media/card-arcade.webp" alt="Retro arcade cabinets and an Air Hockey table" width="100%" /></td>
+    <td><img src="https://willowbrookgame.com/media/card-play.webp" alt="Warehouse Paintball Arena" width="100%" /></td>
+  </tr>
+</table>
+
+**[Host Willowbrook](#quick-start-host-the-prebuilt-game-on-linux)** · [See what’s playable](#whats-playable-today-early-alpha) · [Contribute](#ideas-and-contributions)
+
+## What's playable today (Early Alpha)
+
+- **Town & Jobs:** Explore Town, take jobs and library classes, earn Stars, and claim and decorate a home.
+- **Beach, Fishing & Scuba:** Cast from the pier, sell your catch at Marina's shop, or go diving offshore.
+- **Retro Arcade:** Play solo cabinets or challenge an invited friend to Air Hockey or HOOPS '88.
+- **Hide & Seek and Paintball:** Play Hide & Seek around Town or head to the warehouse for solo Paintball. Online Paintball is [optional and needs the matching worker](deploy/DOCKER.md#optional-online-paintball).
+- **Parent Desk:** Create one-time invites for your household's players or for other trusted parents. Accounts are managed on your own host.
 
 ## Quick start: host the prebuilt game on Linux
 
@@ -64,5 +88,11 @@ terms. See [Licensing](LICENSING.md) before changing what ships.
 
 ## Ideas and contributions
 
-See the [roadmap](ROADMAP.md) for proposed features and community plans,
-and [contributing](CONTRIBUTING.md) for proposing an idea or opening a pull request.
+Willowbrook is in **Early Alpha**. We're looking for contributors to make the game better, easier to host, and ready for more families.
+
+- **Godot 4 / GDScript:** Gameplay polish, browser and tablet performance, and making scenes easier to change and test.
+- **Self-hosting:** Help with Linux and macOS source build scripts, prebuilt `amd64` and `arm64` container images, or simpler private LAN HTTPS for tablets. These are areas for future work, not requirements for running the current bundle.
+- **3D art, animation & audio:** Cozy low-poly props, furniture, fish, gentle sound effects, and a proposed toy-style character rig. No Git experience needed. Start with the [Art & Asset Guide](ART_GUIDE.md).
+- **Testing & docs:** Browser and tablet playtesting, and clearer setup instructions for parents.
+
+Start with [Contributing](CONTRIBUTING.md), check the [Roadmap](ROADMAP.md), or [suggest an idea](https://github.com/WillowbrookGame/willowbrook/issues/new/choose). Report security concerns privately as described in the [Security Policy](SECURITY.md).
