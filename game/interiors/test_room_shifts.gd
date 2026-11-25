@@ -51,7 +51,13 @@ func _run() -> void:
 	var initial: Dictionary=current_scene.profile_snapshot()
 	for key: String in ["cafe","store","garden","park"]: initial.starter.completed[key]=Time.get_unix_time_from_system()
 	check(current_scene.profile_commit(initial),"Couldn't initialize disposable profile")
-	for zone: String in ["bank","vet","salon","store","cafe","library"]:
+	var zones: Array[String] = ["bank","vet","salon","store","cafe","library"]
+	var selected := OS.get_cmdline_user_args()
+	if not selected.is_empty():
+		if not check(selected.size()==1 and selected[0] in zones,"Choose one known business"):
+			quit(failures); return
+		zones = [selected[0]]
+	for zone: String in zones:
 		var town := current_scene
 		var front := -1.0 if zone in ["store","cafe"] else 1.0
 		var entry: Vector3 = TOWN.BUSINESS_DOORS[zone]
@@ -97,5 +103,5 @@ func _run() -> void:
 			quit(failures); return
 		await scene_changed
 		check(current_scene.profile.memberships().has(zone) and current_scene.profile_snapshot().stars==stars+3,"Lost profile on door from "+zone)
-	print("ROOM SHIFTS: enter, employer NPC, station and active checklist, timed steps, awarded stars, exit across six businesses.")
+	print("ROOM SHIFTS: enter, employer NPC, station and active checklist, timed steps, awarded stars, exit for %s." % ", ".join(zones))
 	quit(failures)

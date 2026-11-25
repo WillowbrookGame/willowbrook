@@ -7,6 +7,7 @@ const ARENA := "res://game/arena.tscn"
 const BEACH := "res://game/beach.tscn"
 const DIVE_DOOR := Vector3(-24.15,0,12.45)
 const DIVE_ROOM_SCRIPT := "res://game/scuba/shop.gd"
+const VET_ROOM_SCENE := "res://game/vet/room.tscn"
 const ROOM := "res://game/room.tscn"
 const ROOM_NAMES := {"bank":"Willowbrook Bank","vet":"Willowbrook Vet","salon":"Salon","store":"General Store","cafe":"Sunny Cafe","library":"Willowbrook Library","arcade":"Willowbrook Arcade","home":"Home","dive_shop":"Dive Shop"}
 const TOWN_LAYOUT = preload("res://game/town_layout.gd")
@@ -163,9 +164,10 @@ func _ready() -> void:
 		_build_town()
 	_build_player()
 	if indoor:
-		var path := DIVE_ROOM_SCRIPT if room_id == "dive_shop" else "res://game/%s/room.gd" % ("arcade" if room_id == "arcade" else "interiors")
+		var path := _room_resource(room_id)
 		if ResourceLoader.exists(path):
-			room = load(path).new()
+			var resource := load(path)
+			room = resource.instantiate() if resource is PackedScene else resource.new()
 			room.name = "IndoorRoom"
 			add_child(room)
 		else:
@@ -1412,9 +1414,17 @@ func visit_ejected() -> void:
 	if not guest_variant.is_empty() and not changing:
 		go_to_town()
 
+func _room_resource(destination: String) -> String:
+	match destination:
+		"vet": return VET_ROOM_SCENE
+		"dive_shop": return DIVE_ROOM_SCRIPT
+		"arcade": return "res://game/arcade/room.gd"
+		_: return "res://game/interiors/room.gd"
+
+
 func _enter_room_confirmed(target: Dictionary) -> void:
 	var tree := get_tree()
-	var path := "res://game/%s/room.gd" % ("arcade" if target.id == "arcade" else "interiors")
+	var path := _room_resource(target.id)
 	if not ResourceLoader.exists(path):
 		return
 	var side := float(target.side)

@@ -3,7 +3,7 @@ const ART = preload("res://game/interiors/room_art.gd")
 const JOB_ART = preload("res://game/interiors/room_jobs.gd")
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const TITLE := {"bank":"Willow Bank","vet":"Willowbrook Vet","salon":"Beauty Salon","cafe":"Sunny Cafe","store":"Town Store","library":"Willowbrook Library","home":"Your Home"}
+const TITLE := {"bank":"Willow Bank","salon":"Beauty Salon","cafe":"Sunny Cafe","store":"Town Store","library":"Willowbrook Library","home":"Your Home"}
 const JOBS := ["delivery","bank","vet","salon","cafe","store","library","nursery","park","singing"]
 const PETS = preload("res://game/pets/catalog.gd")
 const PET_ACTORS = preload("res://game/pets/actors.gd")
@@ -11,8 +11,7 @@ var pets: PET_ACTORS
 var _class_request_until := 0
 var _pet_request_until := 0
 var _bank_request_until := 0
-var _pet_species_index := 0
-const SEATS := {"vet":[Vector3(-6,0,1),Vector3(-6,0,3.5)],"bank":[Vector3(-6,0,1),Vector3(-6,0,3.5)],"library":[Vector3(-5,0,3),Vector3(5,0,3)],"cafe":[Vector3(-3.65,0,3.6),Vector3(3.65,0,3.6)],"salon":[Vector3(-5,0,3.3),Vector3(5,0,3.3)]}
+const SEATS := {"bank":[Vector3(-6,0,1),Vector3(-6,0,3.5)],"library":[Vector3(-5,0,3),Vector3(5,0,3)],"cafe":[Vector3(-3.65,0,3.6),Vector3(3.65,0,3.6)],"salon":[Vector3(-5,0,3.3),Vector3(5,0,3.3)]}
 
 var id := ""
 var host: Node3D
@@ -44,11 +43,11 @@ var notice_timer := 0.0
 var course_index := 0
 
 func setup(room_id: String, room_host: Node3D, body_player: CharacterBody3D, room_hud: CanvasLayer) -> void:
-	id = room_id if TITLE.has(room_id) else "home"
+	id = room_id if not _room_title(room_id).is_empty() else "home"
 	host = room_host
 	player = body_player
 	hud = room_hud
-	art = ART.new()
+	art = _new_room_art()
 	art.name = "RoomArt"
 	add_child(art)
 	art.build(id,_snapshot())
@@ -75,7 +74,22 @@ func setup(room_id: String, room_host: Node3D, body_player: CharacterBody3D, roo
 		job_art = JOB_ART.new()
 		add_child(job_art)
 		job_art.setup(id,art,hud)
-	if id in ["bank","vet","library"]: feedback("Hi! Welcome to %s." % TITLE[id])
+	if _welcomes_visitors(): feedback("Hi! Welcome to %s." % _room_title(id))
+
+func _room_title(key: String) -> String:
+	return TITLE.get(key, "")
+
+func _new_room_art() -> ART:
+	return ART.new()
+
+func _welcomes_visitors() -> bool:
+	return id in ["bank","library"]
+
+func _fallback_seats() -> Array:
+	return SEATS.get(id, [])
+
+func _publishes_sitting() -> bool:
+	return id in ["bank","salon","cafe","library"]
 
 func spawn_position() -> Vector3:
 	return Vector3(0,.04,3.5 if id=="home" else 5.5)
@@ -208,15 +222,19 @@ func interaction_prompt() -> String:
 	var candidate := _near_seat()
 	if not candidate.is_empty(): return "Lie down" if candidate.get("pose") == "lie" else "Sit down"
 	if id=="home": return "Decorate your home" if absf(player.position.z)<4.0 else ""
-	if _near_clerk():
-		match id:
-			"bank": return "Talk to the teller"
-			"vet": return "Talk to the vet"
-			"library": return "Talk to the librarian"
-			"store": return "Talk to the shopkeeper"
-			"salon": return "Talk to the stylist"
-			"cafe": return "Talk to the barista"
+	return _clerk_prompt() if _near_clerk() else ""
+
+func _clerk_prompt() -> String:
+	match id:
+		"bank": return "Talk to the teller"
+		"library": return "Talk to the librarian"
+		"store": return "Talk to the shopkeeper"
+		"salon": return "Talk to the stylist"
+		"cafe": return "Talk to the barista"
 	return ""
+
+func _interact_room_specific(_prompt: String) -> bool:
+	return false
 
 func interact() -> bool:
 	var prompt := interaction_prompt()
@@ -229,11 +247,11 @@ func interact() -> bool:
 		"Sit down","Lie down": toggle_rest()
 		"Decorate your home": _home_menu()
 		"Talk to the teller": _bank_menu()
-		"Talk to the vet": _vet_menu()
 		"Talk to the librarian": _library_menu()
 		"Talk to the shopkeeper": _store_menu()
 		"Talk to the barista", "Talk to the stylist": _work_menu()
 		_:
+			if _interact_room_specific(prompt): return true
 			var account := _account()
 			if account != null:
 				account.interact_job(account.job_offer(false))
@@ -309,7 +327,7 @@ func feedback(message: String) -> void:
 	if notice != null: notice.text = message
 
 func _work_menu(reset := true) -> void:
-	_open_panel("job",TITLE[id], "Pick up the kit at the start marker, then follow each highlighted station. Stay there until each task finishes.",reset)
+	_open_panel("job",_room_title(id), "Pick up the kit at the start marker, then follow each highlighted station. Stay there until each task finishes.",reset)
 	_hire_button(id)
 
 
@@ -331,7 +349,6 @@ func _refresh_hire_menu() -> void:
 	match active_panel:
 		"job": _work_menu(false)
 		"bank": _bank_menu(false)
-		"vet": _vet_menu(false)
 		"library": _library_menu(false)
 		"store": _store_menu(false)
 
@@ -515,43 +532,13 @@ func _pet_result(action: String,operation: String,ok: bool,text: String) -> void
 	_pet_request_until=0
 	if ok:
 		_sync_pet_actors()
-		if active_panel=="vet" and operation=="adopt": _vet_menu()
+		_on_room_pet_success(operation)
 		if active_panel=="home" and operation=="equip": _home_menu()
 		if active_panel=="bank" and action=="housing" and operation=="claim": _bank_menu(false)
 	if is_modal_open() and not text.is_empty(): feedback(text)
 
-func _vet_menu(reset := true) -> void:
-	var account := _account()
-	_open_panel("vet","Willowbrook Vet · Adoption","Welcome another pet for 8 stars. You can adopt more than one of each.",reset)
-	_hire_button("vet")
-	var current := _pet_state()
-	_label("Owned pets: %d" % current.get("owned",[]).size())
-	if account!=null and (not account.has_method("pets_available") or not account.pets_available()):
-		_label("Online pet adoption is unavailable on this server.")
-		return
-	var kinds := OptionButton.new()
-	kinds.fit_to_longest_item=false
-	fields.add_child(kinds)
-	for kind: String in PETS.SPECIES: kinds.add_item(PETS.display(kind))
-	kinds.select(_pet_species_index)
-	kinds.item_selected.connect(func(index: int): _pet_species_index=index)
-	var adopt := _button("Adopt · 8 stars",func():
-		var kind: String=PETS.SPECIES[kinds.selected]
-		if account!=null:
-			_online_pet_action("pets","adopt",kind)
-			return
-		var next := _snapshot()
-		if int(next.get("stars",0))<PETS.COST:
-			feedback("You need 8 stars to adopt.")
-			return
-		var state := PETS.state(next)
-		state.owned.append({"id":Crypto.new().generate_random_bytes(12).hex_encode(),"species":kind})
-		next.stars-=PETS.COST
-		next.pet={}
-		next.pets=state
-		if _commit(next,"Your %s was adopted!" % PETS.display(kind)): _vet_menu()
-	)
-	adopt.disabled=(account.saved_stars() if account!=null else int(_snapshot().get("stars",0)))<PETS.COST
+func _on_room_pet_success(_operation: String) -> void:
+	pass
 
 func _home_pets() -> void:
 	var state := _pet_state()
@@ -962,7 +949,7 @@ func _near_seat() -> Dictionary:
 				nearest = {"at":player.get_parent().to_local(chair.to_global(spec.surface)),"visual_yaw":chair.global_rotation.y}
 		return nearest
 	else:
-		for at: Vector3 in SEATS.get(id,[]):
+		for at: Vector3 in _fallback_seats():
 			if _near(at,1.45): return {"at":at+Vector3.UP*.43,"yaw":PI}
 	return {}
 
@@ -982,7 +969,7 @@ func leave_rest_for_motion() -> void:
 	if seated and not is_modal_open(): _stand()
 
 func network_rest_pose() -> String:
-	return "sit" if seated and id in ["bank","vet","salon","cafe","library"] and rest_pose == "sit" else ""
+	return "sit" if seated and _publishes_sitting() and rest_pose == "sit" else ""
 
 func network_rest_yaw() -> float:
 	return seat_avatar_yaw

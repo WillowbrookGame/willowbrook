@@ -3,7 +3,7 @@ extends Node3D
 const ART := "res://game/interiors/art/"
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const PALETTE := {"bank":"e2eafa","vet":"e0f1e7","salon":"f3e2ec","cafe":"f5e5d0","store":"e0ebdf","library":"ece4d6"}
+const PALETTE := {"bank":"e2eafa","salon":"f3e2ec","cafe":"f5e5d0","store":"e0ebdf","library":"ece4d6"}
 const ROOM_FLOORS := ["e3c6a1","e1d4b5","d5d6bd"]
 const ROOM_WALLS := ["f1e6d5","e0ebe4","e8e2ef"]
 var materials: Dictionary = {}
@@ -31,7 +31,7 @@ func build(id: String, profile: Dictionary) -> void:
 		_home(maxi(1,int(DATA.data.homeVariants.get(profile.get("home",{}).get("variant","starter"),{}).get("rooms",1))))
 		redraw_decor(profile)
 		return
-	room_shell(9.0,7.0,Color(PALETTE.get(id,"e5e9ed")))
+	room_shell(9.0,7.0,_room_tint(id))
 	if DATA.data.shopLayouts.has(id):
 		for spec: Dictionary in DATA.data.shopLayouts[id]:
 			var at := Vector3(spec.x,0.03,spec.z)
@@ -39,9 +39,15 @@ func build(id: String, profile: Dictionary) -> void:
 			var holder := piece(spec.file,at,dimensions,float(spec.rotation),true)
 			if id == "cafe" and spec.file == "chairCushion":
 				_register_public_seat(holder,dimensions.y)
+	_build_room_details(id)
+	label_3d("Town  →",Vector3(0,2.75,6.82),42,false)
+
+func _room_tint(id: String) -> Color:
+	return Color(PALETTE.get(id,"e5e9ed"))
+
+func _build_room_details(id: String) -> void:
 	match id:
 		"bank": _bank()
-		"vet": _vet()
 		"library": _library()
 		"salon":
 			npc("female-b","Stylist",Vector3(0,0,-5.7))
@@ -65,7 +71,6 @@ func build(id: String, profile: Dictionary) -> void:
 			npc("female-a","Shopkeeper",Vector3(0,0,-5.05))
 			piece("bookcaseClosedWide",Vector3(-7.6,0,-3.4),Vector3(2,2.1,.7),PI/2,true)
 			piece("chairCushion",Vector3(-5,0,-2.7),Vector3(.88,1.15,.83),PI/3,true)
-	label_3d("Town  →",Vector3(0,2.75,6.82),42,false)
 
 func room_shell(hw: float, hd: float, tint: Color) -> void:
 	box("Floor",Vector3(0,-.12,0),Vector3(hw*2+.4,.24,hd*2+.35),Color("#e1c9a4"),true)
@@ -85,19 +90,6 @@ func _bank() -> void:
 	piece("chairDesk",Vector3(5.5,0,2.7),Vector3(1.06,1.25,1.05),PI,true)
 	_public_furniture()
 	npc("female-a","Teller",Vector3(0,0,-2.0))
-
-func _vet() -> void:
-	piece("desk",Vector3(0,0,-.6),Vector3(3,1.05,1.1),PI,true)
-	piece("computerScreen",Vector3(.9,1.05,-.55),Vector3(.55,.48,.4),PI)
-	piece("computerKeyboard",Vector3(.9,1.05,-.9),Vector3(.5,.06,.2),PI)
-	piece("table",Vector3(5,0,-2),Vector3(1.8,1.1,2),0,true)
-	box("ExaminationPad",Vector3(5,1.15,-2),Vector3(1.65,.08,1.85),Color("#86bcb1"))
-	piece("rugRectangle",Vector3(5,.015,3.5),Vector3(3.4,.025,3))
-	piece("animal-dog",Vector3(5,0,3.5),Vector3(.88,.95,.83))
-	for x: float in [4.0,6.0]:
-		piece("food/plate-rectangle",Vector3(x,.02,4.5),Vector3(.42,.09,.37))
-	_public_furniture()
-	npc("male-a","Vet",Vector3(0,0,-2.1))
 
 func _public_furniture() -> void:
 	for z: float in [1,3.5]:
