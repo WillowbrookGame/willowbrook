@@ -3,8 +3,6 @@ extends Node3D
 const ART := "res://game/interiors/art/"
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const ROOM_FLOORS := ["e3c6a1","e1d4b5","d5d6bd"]
-const ROOM_WALLS := ["f1e6d5","e0ebe4","e8e2ef"]
 var materials: Dictionary = {}
 var decor: Node3D
 var placement_ghost: Node3D
@@ -26,10 +24,7 @@ func build(id: String, profile: Dictionary) -> void:
 	sun.light_color = Color("#fff3dc")
 	sun.light_energy = 0.53
 	add_child(sun)
-	if id == "home":
-		_home(maxi(1,int(DATA.data.homeVariants.get(profile.get("home",{}).get("variant","starter"),{}).get("rooms",1))))
-		redraw_decor(profile)
-		return
+	if _build_special_room(id,profile): return
 	room_shell(9.0,7.0,_room_tint(id))
 	if DATA.data.shopLayouts.has(id):
 		for spec: Dictionary in DATA.data.shopLayouts[id]:
@@ -39,6 +34,9 @@ func build(id: String, profile: Dictionary) -> void:
 			_register_shop_piece(spec,holder,dimensions)
 	_build_room_details(id)
 	label_3d("Town  →",Vector3(0,2.75,6.82),42,false)
+
+func _build_special_room(_id: String, _profile: Dictionary) -> bool:
+	return false
 
 func _register_shop_piece(_spec: Dictionary, _holder: Node3D, _dimensions: Vector3) -> void:
 	pass
@@ -71,31 +69,6 @@ func _register_public_seat(holder: Node3D, height: float) -> void:
 	# chairCushion's back is on -Z; the seat top is ~0.24 of its .46 m model.
 	public_seats.append({"chair":holder,"surface":Vector3(0,height*.522,-.02)})
 
-
-func _home(count: int) -> void:
-	for i in range(count):
-		var x := float(i)*12.0
-		var tint := Color(ROOM_WALLS[i])
-		box("HomeFloor",Vector3(x,-.12,0),Vector3(12,.24,10),Color(ROOM_FLOORS[i]),true)
-		box("HomeBackWall",Vector3(x,2,-5),Vector3(12,4,.18),tint,true,3)
-		window_at(x,-4.87)
-		if i == 0:
-			for side: float in [-1.0,1.0]:
-				box("HomeDoorWall",Vector3(side*3.75,2,5),Vector3(4.5,4,.18),tint,true,3)
-			box("HomeLintel",Vector3(0,3.65,5),Vector3(3,.7,.18),tint,true,3)
-			box("HomeLeftWall",Vector3(-6,2,0),Vector3(.18,4,10),tint,true,3)
-		else:
-			box("HomeFrontWall",Vector3(x,2,5),Vector3(12,4,.18),tint,true,3)
-		if i == count-1:
-			box("HomeSideWall",Vector3(x+6,2,0),Vector3(.18,4,10),tint,true,3)
-		else:
-			for side: float in [-1.0,1.0]:
-				box("Partition",Vector3(x+6,2,side*3.25),Vector3(.18,4,3.5),tint,true,3)
-			box("PartitionLintel",Vector3(x+6,3.65,0),Vector3(.18,.7,3),tint,true,3)
-	exit_mat(4.35)
-	decor = Node3D.new()
-	decor.name = "Furniture"
-	add_child(decor)
 
 func furniture_height(kind: String) -> float:
 	return HOUSING_PLACEMENT.height(kind)

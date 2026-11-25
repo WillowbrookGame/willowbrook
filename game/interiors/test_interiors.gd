@@ -1,5 +1,6 @@
 extends SceneTree
 const ROOM := preload("res://game/interiors/room.gd")
+const HOME_ROOM := preload("res://game/home/room.tscn")
 const SALON_ROOM := preload("res://game/salon/room.tscn")
 const CAFE_ROOM := preload("res://game/cafe/room.tscn")
 const STORE_ROOM := preload("res://game/store/room.tscn")
@@ -48,7 +49,7 @@ func _run() -> void:
 		var hud := CanvasLayer.new()
 		host.add_child(pc)
 		host.add_child(hud)
-		var room = VET_ROOM.instantiate() if zone=="vet" else (BANK_ROOM.instantiate() if zone=="bank" else LIBRARY_ROOM.instantiate() if zone=="library" else STORE_ROOM.instantiate() if zone=="store" else CAFE_ROOM.instantiate() if zone=="cafe" else SALON_ROOM.instantiate() if zone=="salon" else ROOM.new())
+		var room = VET_ROOM.instantiate() if zone=="vet" else (BANK_ROOM.instantiate() if zone=="bank" else LIBRARY_ROOM.instantiate() if zone=="library" else STORE_ROOM.instantiate() if zone=="store" else CAFE_ROOM.instantiate() if zone=="cafe" else SALON_ROOM.instantiate() if zone=="salon" else HOME_ROOM.instantiate() if zone=="home" else ROOM.new())
 		host.add_child(room)
 		room.setup(zone,host,pc,hud)
 		_check(room.art.get_child_count()>10,"Room art missing: "+zone)
