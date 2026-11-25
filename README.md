@@ -45,6 +45,27 @@ Linux host. To play on other devices in your household, follow the
 The following steps are for building and testing changes from source. Skip
 them if you're using the release bundle above.
 
+### Build the browser files on Linux
+
+Install Bash, Git, GNU coreutils, the standard **Godot 4.7.2** editor, and
+its matching standard export templates, including the Web release template.
+Get the editor and template package from the [Godot 4.7.2 release](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable),
+then install the templates in Godot using **Editor → Manage Export Templates**.
+No PowerShell is required.
+
+From the root of a Git checkout, use a new output directory outside it:
+
+```sh
+export_dir="$(mktemp -d)/web"
+./browser-preview/build-web.sh /path/to/Godot_v4.7.2-stable_linux.x86_64 "$export_dir"
+```
+
+Use `godot` in place of the executable path if the correct version is on your
+`PATH`. The build stages tracked working files (including local edits), so add
+new source files to Git before building. No temporary Godot cache is written
+inside the checkout. Start the preview with the Node.js command below, using
+`"$export_dir"` as the web root.
+
 ### Build the browser files on Windows
 
 PowerShell is used in these build instructions, not to run the server. A host
@@ -91,7 +112,7 @@ terms. See [Licensing](LICENSING.md) before changing what ships.
 Willowbrook is in **Early Alpha**. We're looking for contributors to make the game better, easier to host, and ready for more families.
 
 - **Godot 4 / GDScript:** Gameplay polish, browser and tablet performance, and making scenes easier to change and test.
-- **Self-hosting:** Help with Linux and macOS source build scripts, prebuilt `amd64` and `arm64` container images, or simpler private LAN HTTPS for tablets. These are areas for future work, not requirements for running the current bundle.
+- **Self-hosting:** Help validate the source build on macOS, prebuilt `amd64` and `arm64` container images, or simpler private LAN HTTPS for tablets. These are areas for future work, not requirements for running the current bundle.
 - **3D art, animation & audio:** Cozy low-poly props, furniture, fish, gentle sound effects, and a proposed toy-style character rig. No Git experience needed. Start with the [Art & Asset Guide](ART_GUIDE.md).
 - **Testing & docs:** Browser and tablet playtesting, and clearer setup instructions for parents.
 

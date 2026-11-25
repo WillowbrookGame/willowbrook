@@ -27,7 +27,8 @@ This is the maintainers' shortlist, not a release schedule. Open a GitHub issue 
 - [x] Add [private vulnerability reporting](SECURITY.md), a [public-safe bug report form](.github/ISSUE_TEMPLATE/bug.yml), and a [Code of Conduct](CODE_OF_CONDUCT.md).
 - [ ] Document one runnable headless Godot test for contributors. [Issue #14](https://github.com/WillowbrookGame/willowbrook/issues/14) Automate headless checks separately after the command is proven.
 - [ ] Publish one clearly named Docker bundle per new alpha with a standalone checksum. Keep existing Alpha 1 links valid.
-- [ ] Add a Linux browser source build first ([issue #15](https://github.com/WillowbrookGame/willowbrook/issues/15)), then validate macOS. Fix temporary staging cleanup and avoid duplicate splash settings in the Windows build.
+- [x] Add a Linux browser source build ([issue #15](https://github.com/WillowbrookGame/willowbrook/issues/15)).
+- [ ] Validate the source build on macOS. Fix temporary staging cleanup and avoid duplicate splash settings in the Windows build.
 - [ ] Explore prebuilt amd64 and arm64 container images after the standard build is repeatable. Verify ARM hosting and document whether the optional online Paintball worker is supported before publishing images. [Issue #16](https://github.com/WillowbrookGame/willowbrook/issues/16)
 
 ## Browser performance
