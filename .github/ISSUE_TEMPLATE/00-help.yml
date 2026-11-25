@@ -1,0 +1,44 @@
+name: Get help with Willowbrook
+description: Ask a general question or get help with home setup, tablets, Parent Desk, or playing the game.
+title: "Question: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome! We're happy to help you get Willowbrook running for your family.
+        **Please remember: questions are public.** Never share children's names, passwords, invite codes, or your home server's web address.
+        If you think someone got access who shouldn't have, [report it privately](https://github.com/WillowbrookGame/willowbrook/security/advisories/new) instead.
+  - type: dropdown
+    id: topic
+    attributes:
+      label: What do you need help with?
+      options:
+        - Setting up Willowbrook at home
+        - Connecting a PC or tablet on home Wi-Fi
+        - Using Parent Desk or invites
+        - Backing up or updating our world
+        - Playing the game / controls
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: devices
+    attributes:
+      label: What devices are you using?
+      description: Optional, but helpful for setup and tablet questions.
+      placeholder: "e.g., Linux mini PC host + Windows laptop and iPad"
+  - type: textarea
+    id: question
+    attributes:
+      label: How can we help?
+      description: Tell us what you're trying to do and where you got stuck.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I left out children's names, passwords, invite codes, save files, and private server addresses.
+          required: true
