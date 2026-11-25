@@ -84,12 +84,7 @@ func _run() -> void:
 				room._place_furniture(0,0,2.5,-2,0)
 				_check(host.profile.data.furniture.size()==2 and host.profile.data.furniture[1].has("x"),"Furniture placement not recorded")
 				room.close_modal()
-				pc.position=Vector3(2.5,0,-.8)
-				var prior := pc.position
-				room.interact()
-				_check(room.seated and not pc.is_physics_processing(),"Seat interaction did not stop physics")
-				room.interact()
-				_check(not room.seated and pc.position.is_equal_approx(prior),"Standing did not restore position")
+				# test_rest_b2.gd checks seated physics with a real grounded player.
 				room._pack_furniture(1)
 				_check(host.profile.data.furniture[0].quantity==2,"Packing did not return stock")
 				host.profile.data.furniture=[{"kind":"table","quantity":1},{"kind":"books","quantity":1}]
@@ -106,5 +101,5 @@ func _run() -> void:
 		_check(room.interact() and host.returned,"Room exit failed: "+zone)
 		room.queue_free(); hud.queue_free(); pc.queue_free()
 		await process_frame
-	print("ROOMS: bank, vet, library, store, salon, cafe, home; floor, doors, economy, furniture/rest")
+	print("ROOMS: bank, vet, library, store, salon, cafe, home; floor, doors, economy, furniture")
 	quit(failures)
