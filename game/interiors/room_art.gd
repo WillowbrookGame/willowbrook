@@ -3,7 +3,6 @@ extends Node3D
 const ART := "res://game/interiors/art/"
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const PALETTE := {"salon":"f3e2ec"}
 const ROOM_FLOORS := ["e3c6a1","e1d4b5","d5d6bd"]
 const ROOM_WALLS := ["f1e6d5","e0ebe4","e8e2ef"]
 var materials: Dictionary = {}
@@ -44,16 +43,12 @@ func build(id: String, profile: Dictionary) -> void:
 func _register_shop_piece(_spec: Dictionary, _holder: Node3D, _dimensions: Vector3) -> void:
 	pass
 
-func _room_tint(id: String) -> Color:
-	return Color(PALETTE.get(id,"e5e9ed"))
+func _room_tint(_id: String) -> Color:
+	return Color("e5e9ed")
 
-func _build_room_details(id: String) -> void:
-	match id:
-		"salon":
-			npc("female-b","Stylist",Vector3(0,0,-5.7))
-			for x: float in [-5.0,5.0]:
-				piece("rugRectangle",Vector3(x,.018,3),Vector3(2.8,.025,3))
-				piece("lampRoundFloor",Vector3(x+signf(x)*1.5,0,3.8),Vector3(.55,1.9,.55),0,true)
+func _build_room_details(_id: String) -> void:
+	pass
+
 func room_shell(hw: float, hd: float, tint: Color) -> void:
 	box("Floor",Vector3(0,-.12,0),Vector3(hw*2+.4,.24,hd*2+.35),Color("#e1c9a4"),true)
 	box("BackWall",Vector3(0,2,-hd-.1),Vector3(hw*2+.4,4,.22),tint,true,3)
