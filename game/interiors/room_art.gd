@@ -3,7 +3,7 @@ extends Node3D
 const ART := "res://game/interiors/art/"
 const DATA := preload("res://game/interiors/room_data.json")
 const HOUSING_PLACEMENT := preload("res://game/interiors/housing_placement.gd")
-const PALETTE := {"salon":"f3e2ec","cafe":"f5e5d0","store":"e0ebdf"}
+const PALETTE := {"salon":"f3e2ec","cafe":"f5e5d0"}
 const ROOM_FLOORS := ["e3c6a1","e1d4b5","d5d6bd"]
 const ROOM_WALLS := ["f1e6d5","e0ebe4","e8e2ef"]
 var materials: Dictionary = {}
@@ -63,13 +63,6 @@ func _build_room_details(id: String) -> void:
 				for z: float in [-.5,3.6]:
 					piece("food/cup-coffee",Vector3(x-.4,.88,z),Vector3(.24,.22,.25))
 					piece("food/croissant",Vector3(x+.35,.88,z+.12),Vector3(.42,.23,.4))
-		"store":
-			# The supplied register already includes its counter. Keep the
-			# customer aisle at z=-1.8 clear, on the server's employer point.
-			npc("female-a","Shopkeeper",Vector3(0,0,-5.05))
-			piece("bookcaseClosedWide",Vector3(-7.6,0,-3.4),Vector3(2,2.1,.7),PI/2,true)
-			piece("chairCushion",Vector3(-5,0,-2.7),Vector3(.88,1.15,.83),PI/3,true)
-
 func room_shell(hw: float, hd: float, tint: Color) -> void:
 	box("Floor",Vector3(0,-.12,0),Vector3(hw*2+.4,.24,hd*2+.35),Color("#e1c9a4"),true)
 	box("BackWall",Vector3(0,2,-hd-.1),Vector3(hw*2+.4,4,.22),tint,true,3)
