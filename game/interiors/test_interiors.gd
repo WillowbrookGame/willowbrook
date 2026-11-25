@@ -1,5 +1,6 @@
 extends SceneTree
 const ROOM := preload("res://game/interiors/room.gd")
+const VET_ROOM := preload("res://game/vet/room.tscn")
 class MockProfile extends RefCounted:
 	var data := {"stars":150,"employed":"bank","home":{},"loan":{},"classes":{},"pet":{},"furniture":[],"deliveries":[]}
 	func take_class(name_: String, amount: int) -> Dictionary:
@@ -42,7 +43,7 @@ func _run() -> void:
 		var hud := CanvasLayer.new()
 		host.add_child(pc)
 		host.add_child(hud)
-		var room := ROOM.new()
+		var room = VET_ROOM.instantiate() if zone=="vet" else ROOM.new()
 		host.add_child(room)
 		room.setup(zone,host,pc,hud)
 		_check(room.art.get_child_count()>10,"Room art missing: "+zone)
@@ -65,7 +66,7 @@ func _run() -> void:
 				var adopt := _button(room,"Adopt · 8 stars")
 				_check(adopt!=null and not adopt.disabled,"Adoption unavailable")
 				adopt.pressed.emit()
-				_check(host.profile.data.pet.kind=="cat" and host.profile.data.stars==132,"Pet purchase not recorded")
+				_check(host.profile.data.pets.owned.size()==1 and host.profile.data.stars==132,"Pet purchase not recorded")
 			"library":
 				room._pay_class("delivery",50)
 				_check(host.profile.data.stars==82 and host.profile.data.classes.delivery.tier==1,"Tuition not recorded")

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import {createRequire} from 'node:module';
 import {mkdtemp,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {startLocalServer} from './server.mjs';
-const source=resolve(process.argv[2]);
+import {selectRuntime} from './runtime_source.mjs';
+const source=process.argv[2]?resolve(process.argv[2]):undefined;
 const geometry=JSON.parse(await readFile(new URL('./hide_seek_geometry.json',import.meta.url),'utf8'));
-const {WebSocket}=createRequire(join(source,'package.json'))('ws');
+const {WebSocket}=(await selectRuntime(source)).webSockets();
 const users=['qa_seek_it','qa_seek_hider','qa_seek_visitor','qa_seek_late'].map(username=>({username,password:'disposable Hide and Seek test '+username}));
 const accountsDir=await mkdtemp(join(tmpdir(),'willowbrook-hideseek-ws-fixture-'));
 const opt={source,port:0,accountsDir,seedAccounts:users};
@@ -67,6 +67,11 @@ try{
  const frozen=truth.players.find(v=>v.alias===users[0].username);
  assert.equal(frozen.x,0);assert.equal(frozen.z,3);assert.equal(frozen.moving,false);
  const aFrozen=await a.get(m=>m.type==='world'&&m.zone==='town',a.mark());assert.equal(aFrozen.hideSeek.phase,'hide');
+ const vet=geometry.vet;
+ assert.equal((await enter(b,'vet')).hideSeek.memberCount,2);
+ await b.move('vet',vet.exit.x,vet.exit.z);
+ // Godot lands 2.0 outside; the server's reference remains 2.2.
+ assert.equal((await b.move('town',vet.return.x,vet.door.z+2.0)).hideSeek.memberCount,2);
  await enter(b,'library');
  assert.equal((await b.act('state')).state.memberCount,2);
  assert.equal((await a.act('state')).state.phase,'hide');
@@ -86,5 +91,5 @@ try{
  assert.equal((await a.act('tag')).state.result,'seeker');
  assert((await b.act('state')).state.found);
  assert((await a.act('leave')).ok);assert((await b.act('leave')).ok);
- console.log('PASS actual local WebSockets: opt-in, account gate, no Beach/private entry, cross-zone invitation/decline, frozen countdown pose and privacy, separate public room identity, legal library exit and bank entrance, baked bank counter occlusion, clear authoritative tag, results.');
+ console.log('PASS actual local WebSockets: opt-in, account gate, no Beach/private entry, cross-zone invitation/decline, frozen countdown pose and privacy, separate public room identity, legal Vet and library exit and bank entrance, baked bank counter occlusion, clear authoritative tag, results.');
 }finally{await stop();}
