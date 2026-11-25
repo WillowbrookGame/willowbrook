@@ -85,10 +85,10 @@ func _publishes_sitting() -> bool:
 	return false
 
 func spawn_position() -> Vector3:
-	return Vector3(0,.04,3.5 if id=="home" else 5.5)
+	return Vector3(0,.04,5.5)
 
 func bounds() -> Vector2:
-	return Vector2(30,5.12) if id=="home" else Vector2(9,7.12)
+	return Vector2(9,7.12)
 
 func close_modal() -> void:
 	if is_modal_open():
@@ -170,7 +170,6 @@ func _near(at: Vector3, radius := 1.75) -> bool:
 	return absf(player.position.y-at.y)<1.35 and Vector2(player.position.x-at.x,player.position.z-at.z).length() <= radius
 
 func _near_exit() -> bool:
-	if id=="home": return absf(player.position.x)<1.25 and player.position.z>=4.0
 	return _near(Vector3(0,0,6.57),.96)
 
 func _desk() -> Vector3:
