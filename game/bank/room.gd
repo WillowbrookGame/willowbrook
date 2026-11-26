@@ -1,6 +1,6 @@
 extends "res://game/interiors/room.gd"
 
-const BANK_ART := preload("res://game/bank/room_art.gd")
+const BANK_LAYOUT := preload("res://game/bank/room_layout.tscn")
 const CLERK_PROMPT := "Talk to the teller"
 var _bank_request_until := 0
 
@@ -14,7 +14,7 @@ func _room_title(key: String) -> String:
 	return "Willow Bank" if key == "bank" else ""
 
 func _new_room_art() -> ART:
-	return BANK_ART.new()
+	return BANK_LAYOUT.instantiate() as ART
 
 func _welcomes_visitors() -> bool:
 	return true
