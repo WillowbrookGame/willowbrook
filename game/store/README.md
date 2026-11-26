@@ -2,7 +2,7 @@
 
 Open `game/store/room_layout.tscn`. The game uses this same layout.
 
-- Move a fixture root such as `WaitingChair`, not its Model or SolidBody child. Save, reopen the scene, and verify the fixture and collider move together in play.
+- Move a fixture root such as `WaitingChair`, not its Model or SolidBody child. Save, reopen the scene, and verify the fixture and collider move together in play. For the chair, press **E** when **Sit down** appears and confirm the avatar sits on the cushion, facing the same way as the chair.
 - Keep the checkout, shopkeeper, job-station roots and exit in their default positions for art-only changes. Changing those positions can also require changes to fixed checkout or progression coordinates. Do not bake runtime starter hints, job highlights, or the furniture order UI into the scene.
 
 After importing the project, verify with:

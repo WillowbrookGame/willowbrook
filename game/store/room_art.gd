@@ -3,6 +3,7 @@ extends "res://game/interiors/room_art.gd"
 # The authored scene owns the fixed layout and collisions. Job state and
 # highlights remain runtime behavior, as do the shopkeeper's animations.
 func build(_id: String, _profile: Dictionary) -> void:
+	_register_public_seat($WaitingChair, 1.15)
 	conversation_actor = $Shopkeeper
 	var animations := conversation_actor.find_children("*", "AnimationPlayer", true, false)
 	if not animations.is_empty():

@@ -9,6 +9,9 @@ func _room_title(key: String) -> String:
 func _new_room_art() -> ART:
 	return STORE_LAYOUT.instantiate() as ART
 
+func _publishes_sitting() -> bool:
+	return true
+
 func _uses_furniture_account() -> bool:
 	return true
 

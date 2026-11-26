@@ -47,6 +47,7 @@ func _run() -> void:
 		await physics_frame
 		await physics_frame
 		if not _check_layout(room): return
+		if not (await _check_seating(map,room)): return
 		map.player.position = Vector3(0,.04,-1.55)
 		interact(map)
 		if not expect(room.active_panel == "store" and room.is_modal_open(),"Default checkout approach did not open the store menu"): return
@@ -64,7 +65,7 @@ func _run() -> void:
 		if not expect(map.changing,"Could not exit Store through Town door"): return
 		await scene_changed
 		if not expect(current_scene.player.position.is_equal_approx(door+Vector3(0,.04,-2.0)),"Store return point moved"): return
-	print("PASS: editable Store layout, fixture and station collision, real doors and checkout, and one persistent furniture order.")
+	print("PASS: editable Store layout, fixture and station collision, chair seating, real doors and checkout, and one persistent furniture order.")
 	quit(0)
 
 func _check_layout(room: Node3D) -> bool:
@@ -73,7 +74,7 @@ func _check_layout(room: Node3D) -> bool:
 	var edited := "--relocated" in OS.get_cmdline_user_args()
 	var chair: Node3D = art.get_node("WaitingChair")
 	var target := Vector3(-4,0,-3.6) if edited else Vector3(-5,0,-2.7)
-	if not expect(chair.position.is_equal_approx(target),"Saved chair placement did not reach gameplay"): return false
+	if not "--saved-edit" in OS.get_cmdline_user_args() and not expect(chair.position.is_equal_approx(target),"Saved chair placement did not reach gameplay"): return false
 	var space := art.get_world_3d().direct_space_state
 	for name_: String in FIXTURES:
 		var prop: Node3D = art.get_node(name_)
@@ -87,6 +88,21 @@ func _check_layout(room: Node3D) -> bool:
 	for prop: Dictionary in room.job_art.props.values():
 		if not expect(prop.ring.get_parent().get_parent() == group and not prop.ring.visible,"Station highlight is not attached or appears while idle"): return false
 	return expect(room.job_art.starter_markers.size() == 2,"Store starter hints missing")
+
+func _check_seating(map: Node3D, room: Node3D) -> bool:
+	var chair: Node3D = room.art.get_node("WaitingChair")
+	map.player.global_position = chair.to_global(Vector3(0,.04,1.15))
+	for frame in range(5):
+		await physics_frame
+	var origin: Vector3 = map.player.position
+	if not expect(room.interaction_prompt() == "Sit down","No sit action near the Store chair"): return false
+	interact(map)
+	# The cushion top of the authored chair is .24m * 2.5 = .60m.
+	var contact := chair.to_global(Vector3(0,.6,-.02))
+	if not expect(room.seated and map.player.global_position.distance_to(contact) < .003,"Store avatar did not sit on the cushion"): return false
+	if not expect(room.network_rest_pose() == "sit" and absf(angle_difference(room.network_rest_yaw(),chair.global_rotation.y)) < .001,"Store sit pose or facing is incorrect"): return false
+	interact(map)
+	return expect(not room.seated and map.player.position.is_equal_approx(origin),"Standing did not return the player to the approach point")
 
 func _hit(space: PhysicsDirectSpaceState3D, point: Vector3) -> Object:
 	var ray := PhysicsRayQueryParameters3D.create(point+Vector3.UP*3.5,point+Vector3.UP*.1,1)
