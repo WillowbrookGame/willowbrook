@@ -124,22 +124,17 @@ func _ready() -> void:
 	sky.environment.background_color = Color("#bedef2")
 	sky.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	sky.environment.ambient_light_color = Color("#eaf5ff")
-	sky.environment.ambient_light_energy = 0.35 if arena else 0.45
-	if not beach:
-		add_child(sky)
-	else:
-		sky.free()
+	sky.environment.ambient_light_energy = 0.35 if arena else (0.38 if indoor else 0.45)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-62, -35, 0)
-	sun.light_energy = 0.52 if arena else 0.62
+	sun.light_energy = 0.52 if arena else (0.40 if indoor else 0.62)
 	if arena:
 		sun.light_color = Color("#fff2db")
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 30.0
-	if not beach:
+	if not beach and not indoor:
+		add_child(sky)
 		add_child(sun)
-	else:
-		sun.free()
 	if arena:
 		_build_zone_geometry()
 	elif beach:
@@ -162,6 +157,14 @@ func _ready() -> void:
 	if first_person:
 		look_pitch = 0.0
 	_build_ui()
+	# Room setup instances its lighting rig. Do not stack town sunlight or a
+	# second WorldEnvironment on top of rooms that provide their own lighting.
+	if indoor and (room == null or room.find_children("*", "WorldEnvironment", true, false).is_empty()):
+		add_child(sky)
+		add_child(sun)
+	elif indoor or beach:
+		sky.free()
+		sun.free()
 	if indoor and room != null:
 		player.position = room.spawn_position()
 		if room.has_method("spawn_yaw"):
