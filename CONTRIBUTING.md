@@ -11,7 +11,7 @@
 
 For world changes, start with the scene that owns the area:
 
-- **Town:** [Town scene](game/town.tscn), [layout and scenery](game/town_layout.gd), and [Town route coordinates](game/town_routes.gd). The Town scene wires up Town-only progression, home exteriors, and vehicles.
+- **Town:** [Town scene](game/town.tscn), [editable scenery](game/town_scenery.tscn), [Town editing guide](game/TOWN_EDITING.md), and [Town route coordinates](game/town_routes.gd). The Town scene wires up Town-only progression, home exteriors, and vehicles.
 - **Island and scuba:** [Island scene](game/beach.tscn) owns the beach layout and activities. [Ferry crossing](game/ferry_crossing.gd) is shared by the Town and Island docks. The [Dive Shop](game/scuba/shop.tscn) and [reef](game/scuba/reef.tscn) are separate scenes.
 - **Interiors:** Each business has a room module; all six starter houses use [one Home scene](game/home/room.tscn) with per-home identity and décor. [Arcade room](game/arcade/room.tscn) and browser cabinets are separate.
 - **Paintball:** The [arena scene](game/arena.tscn) and optional worker share the [Warehouse Yard](game/warehouse_yard.tscn). Keep its collision and spawn contract compatible in both modes.

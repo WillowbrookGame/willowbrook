@@ -25,7 +25,7 @@ func _run() -> void:
 	await physics_frame
 	var town := current_scene
 	_check(town.has_node("TownLayout/FerryLanding/WillowbrookShuttle"),"Town ferry is missing its boat")
-	_check(town.has_node("TownLayout/TownBayWater") and not town.has_node("TownLayout/OpenBeachGate"),"Old gate is still present or no water was added")
+	_check(town.has_node("TownLayout/TownScenery/Waterfront/TownBayWater") and not town.has_node("TownLayout/OpenBeachGate"),"Old gate is still present or no water was added")
 	_check(_terrain(town,Vector3(-24,0,65)).is_empty(),"Town floor stretches over the bay")
 	_check(not _terrain(town,Vector3(-5,0,61)).is_empty(),"Town ferry pier is not solid")
 	_check(town._interaction_text() != "Ferry to the island","Ferry prompt visible from Town spawn")

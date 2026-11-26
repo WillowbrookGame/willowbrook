@@ -10,6 +10,7 @@ func _test() -> void:
 	root.add_child(layout)
 	await physics_frame
 	await physics_frame
+	var scenery: Node3D = layout.scenery
 	var space := layout.get_world_3d().direct_space_state
 	var failures: PackedStringArray = []
 	for at: Vector3 in [TOWN.SPAWN,TOWN.BEACH_RETURN,TOWN.ARCADE_DOOR,
@@ -26,10 +27,12 @@ func _test() -> void:
 		if not space.intersect_ray(direct).is_empty():
 			failures.append("Blocked walk-up: %s" % [route])
 	for structure in ["PaintballWarehouseExterior","WillowLibrary","SunnyCafe","TownStore","WillowBank","PetVet","BeautySalon"]:
-		var model := layout.get_node_or_null(structure) as Node3D
+		var model := scenery.find_child(structure,true,false) as Node3D
 		if model == null:
 			failures.append("Missing structure: %s" % structure)
 			continue
+		if model.has_node("Art"):
+			model = model.get_node("Art") as Node3D
 		var size: Vector3 = model.get_meta("layout_size")
 		var scale := model.basis.get_scale()
 		if absf(scale.x-scale.y) > 0.001 or absf(scale.y-scale.z) > 0.001:
@@ -52,21 +55,21 @@ func _test() -> void:
 			failures.append("Blocked original progression position at %s" % at)
 	for landmark in ["VillageGreenFountain","WillowArcade","Playground","PlaygroundSlide",
 			"PlaygroundSwing","PlaygroundSeesaw","SkateCorner","StarlightStage","LittleNursery",
-			"CommunityGarden","HiringNoticeBoard","WillowWheels","ScooterRack","DistantBeachSnapshot","FerryLanding","TownBayWater"]:
-		if layout.get_node_or_null(landmark) == null:
+			"CommunityGarden","HiringNoticeBoard","WillowWheels","ScooterRack","DistantBeachSnapshot","FerryPier","TownBayWater"]:
+		if scenery.find_child(landmark,true,false) == null:
 			failures.append("Missing exterior landmark %s" % landmark)
 	for item in [["PlaygroundSwing","swing_A_small_seat"],["PlaygroundSeesaw","seesaw_small_seat"]]:
-		var ride := layout.get_node_or_null(item[0]) as Node3D
+		var ride := scenery.find_child(item[0],true,false) as Node3D
 		if ride == null or ride.find_child(item[1],true,false) == null:
 			failures.append("Missing original animated playground mesh %s" % item[1])
 	var roads := 0
-	for child in layout.get_children():
+	for child in scenery.get_node("Roads").get_children():
 		if child.name.begins_with("Road_"):
 			roads += 1
 	if roads != 67:
 		failures.append("Expected 67 original road tiles; found %d" % roads)
 	for cell in ["Road_-6_-3","Road_6_3","Road_0_1","Road_3_-1","Road_0_-3"]:
-		if layout.get_node_or_null(cell) == null:
+		if scenery.get_node_or_null("Roads/"+cell) == null:
 			failures.append("Missing original junction %s" % cell)
 	if failures.is_empty():
 		print("Town layout passed: original road grid, scale and portal walk-ups.")
