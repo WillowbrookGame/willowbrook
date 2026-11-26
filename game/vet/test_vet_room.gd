@@ -92,8 +92,8 @@ func _check_job_stations(room: Node3D) -> bool:
 	var authored := (load("res://game/vet/room_layout.tscn") as PackedScene).instantiate()
 	var authored_group := authored.get_node_or_null("JobStations")
 	var expected := {
-		"work-start-vet": ["StationWorkStartVet", 11, Vector3(-3,.02,3.35)],
-		"brush-kit": ["StationBrushKit", 11, Vector3(-3,.02,1.35)],
+		"work-start-vet": ["StationWorkStartVet", 12, Vector3(-3,.02,3.35)],
+		"brush-kit": ["StationBrushKit", 12, Vector3(-3,.02,1.35)],
 		"comfort-pet": ["StationComfortPet", 2, Vector3(3,.02,1.1)],
 		"fresh-water": ["StationFreshWater", 2, Vector3(5,.02,3.85)],
 	}
@@ -107,6 +107,15 @@ func _check_job_stations(room: Node3D) -> bool:
 	if not expect(editor_ok, "The four fixed Vet stations are not all visible in the saved editor layout"): return false
 	var props: Dictionary = room.job_art.props
 	if not expect(props.size() == expected.size(), "Vet job stations were duplicated or lost at runtime"): return false
+	var group: Node3D = room.art.get_node("JobStations")
+	for station: Node3D in group.get_children():
+		var solid := station.get_node_or_null("TableBody") as StaticBody3D
+		var is_table := station.name in [&"StationWorkStartVet", &"StationBrushKit"]
+		if not expect((solid != null) == is_table, "Only the two Vet job tables should block movement"): return false
+		if is_table:
+			var ray := PhysicsRayQueryParameters3D.create(station.global_position+Vector3.UP, station.global_position+Vector3.UP*.1, 1)
+			var hit := station.get_world_3d().direct_space_state.intersect_ray(ray)
+			if not expect(hit.get("collider") == solid, "Vet table is missing collision at its visible position"): return false
 	for prop: Dictionary in props.values():
 		var id: String = prop.ids[0]
 		if not expect(expected.has(id) and prop.ring.get_parent() == room.art.get_node("JobStations/"+expected[id][0]), "Job indicator is not attached to the authored Vet station"): return false
