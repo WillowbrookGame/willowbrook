@@ -22,9 +22,7 @@ func _sync_town_home_exteriors() -> void:
 
 func _build_town() -> void:
 	door_position = TOWN_LAYOUT.ARENA_DOOR
-	var town := TOWN_LAYOUT.new()
-	town.name = "TownLayout"
-	add_child(town)
+	var town := $TownLayout
 	playground.bind_layout(town)
 	_sync_town_home_exteriors()
 

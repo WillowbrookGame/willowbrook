@@ -38,7 +38,8 @@ func _run() -> void:
 	await physics_frame
 	_check(module.parked.size()==3,"Three shared scooters are staged in town")
 	_check(VEHICLES.is_vehicle_ground(Vector3(-20,0,8.6)) and not VEHICLES.is_vehicle_ground(Vector3(-28,0,8)),"Scooter bay can connect to the road, not the lawn")
-	_check(VEHICLES.is_vehicle_ground(Vector3(42.8,0,6)) and not VEHICLES.is_vehicle_ground(Vector3(43.2,0,6)),"Paved driveway allowed, neighboring lawn blocked")
+	_check(VEHICLES.is_vehicle_ground(Vector3(44.5,0,6)) and not VEHICLES.is_vehicle_ground(Vector3(44.9,0,6)),"East paved driveway allowed, neighboring lawn blocked")
+	_check(VEHICLES.is_vehicle_ground(Vector3(-61.8,0,6)) and not VEHICLES.is_vehicle_ground(Vector3(-62.4,0,6)),"West paved driveway allowed, neighboring lawn blocked")
 	_check((body.collision_mask & VEHICLES.VEHICLE_LAYER) != 0,"Town pedestrians include the parked vehicle collision layer")
 	body.position = Vector3(-20,0.1,4.7)
 	_check(module.interaction_prompt()=="Ride Scooter" and module.interact() and module.is_driving(),"Scooter boards through the interaction")
