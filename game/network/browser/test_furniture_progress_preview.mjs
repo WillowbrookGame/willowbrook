@@ -65,6 +65,33 @@ try{
  assert.match(apply(p,'pack',{id:placed.id,expectedRevision:0,requestId:'real-trophy-pack'}).text,/packed/);
  assert.equal(service.snapshot(q.profile).stock.length,0);
  assert.match(apply(p,'pickup',{deliveryId:'111111111111111111111111',requestId:'trophy-delivery'}).error,/not waiting/);
- console.log('PASS own-home lease/pose and same-room trophy guards, layout and stale revision, atomic place/pack, restart, receipts, no extra inventory or stars.');
+ // Browser editor emits the same place/move commands for mouse and touch.
+ p.profile.furnitureInventory.table=1;
+ p.profile.furnitureInventory.books=2;
+ store.save();
+ const tableRequest={kind:'table',room:0,x:2,z:0,rotation:0,requestId:'drag-table-test'};
+ assert.match(apply(p,'place',tableRequest).text,/placed/);
+ const table=service.snapshot(p.profile).placed.find(item=>item.kind==='table');
+ const booksRequest={kind:'books',room:0,x:2,z:0,rotation:0,supportId:table.id,surfaceId:'top',requestId:'stack-books-test'};
+ assert.match(apply(p,'place',booksRequest).text,/placed/);
+ const books=service.snapshot(p.profile).placed.find(item=>item.kind==='books');
+ assert.equal(books.supportId,table.id);
+ assert.equal(books.surfaceId,'top');
+ assert.ok(books.y>.69);
+ assert.match(apply(p,'move',{id:table.id,expectedRevision:table.revision,room:0,x:3,z:0,rotation:0,requestId:'move-loaded-table-test'}).error,/decorations/);
+ assert.match(apply(p,'place',{...booksRequest,x:-2,supportId:null,surfaceId:null,requestId:'second-books-test'}).text,/placed/);
+ assert.equal(service.snapshot(p.profile).placed.filter(item=>item.kind==='books').length,2);
+ assert.match(apply(p,'move',{...booksRequest,id:books.id,expectedRevision:books.revision,x:2.5,requestId:'slide-books-test'}).text,/saved/);
+ const moved=service.snapshot(p.profile).placed.find(item=>item.id===books.id);
+ assert.equal(moved.x,2.5);
+ assert.equal(moved.supportId,table.id);
+ p.profile.furnitureInventory.lamp=1;
+ p.profile.furnitureInventory.sofa=1;
+ const lamp={kind:'lamp',room:0,x:4.5,z:-2.5,rotation:0,requestId:'wall-lamp-test'};
+ const sofa={kind:'sofa',room:0,x:0,z:-3.5,rotation:0,requestId:'wall-sofa-test'};
+ for(const item of [lamp,sofa])assert.match(apply(p,'place',item).error,/inside this room/);
+ assert.match(apply(p,'place',{...lamp,x:4,requestId:'legal-lamp-test'}).text,/placed/);
+ assert.match(apply(p,'place',{...sofa,z:-3,requestId:'legal-sofa-test'}).text,/placed/);
+ console.log('PASS own-home lease/pose and same-room trophy guards, layout and stale revision, repeat placement, stacked object move, atomic place/pack, restart, receipts, no extra inventory or stars.');
 }finally{await rm(dir,{recursive:true,force:true});}
 

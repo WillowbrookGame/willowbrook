@@ -57,7 +57,7 @@ static func transform_to_surface(item: Dictionary, supporter: Dictionary, surfac
 	return Rect2(offset-dims*.5,dims)
 
 
-static func placement_error(item: Dictionary, pieces: Array, rooms: int, player_at: Vector3, player_radius: float, supporter: Dictionary = {}, surface: Dictionary = {}) -> String:
+static func placement_error(item: Dictionary, pieces: Array, rooms: int, player_at: Vector3, player_radius: float, supporter: Dictionary = {}, surface: Dictionary = {}, online := false) -> String:
 	var kind := String(item.get("kind",""))
 	var room := int(item.get("room",-1))
 	var spec: Dictionary = DATA.data.furnitureCatalog.get(kind,{})
@@ -67,7 +67,21 @@ static func placement_error(item: Dictionary, pieces: Array, rooms: int, player_
 		return "Choose a valid placement inside your home."
 	var supported := not supporter.is_empty()
 	var rect := footprint(item,supported)
-	if not USABLE_FLOOR.encloses(rect):
+	if online:
+		# The browser server uses a smaller quarter-step center grid than the
+		# visible floor. Match its limits before showing the green preview.
+		if absf(at.x) > 4.0 or absf(at.y) > 3.0:
+			return "Choose a spot farther inside the room."
+		var floor_bounds := footprint(item)
+		if not Rect2(-5.5,-4.5,11.0,9.0).encloses(floor_bounds):
+			return "Leave more space by the walls."
+		if room == 0 and floor_bounds.position.x < 1.5 and floor_bounds.end.x > -1.5 and floor_bounds.end.y > 1.5:
+			return "Keep the doorway clear."
+		if not supported and player_at.is_finite():
+			var center := Vector2(player_at.x-room*ROOM_STRIDE,player_at.z)
+			if floor_bounds.grow(.32).has_point(center):
+				return "Step away from that spot before placing furniture."
+	elif not USABLE_FLOOR.encloses(rect):
 		return "Leave more space by the walls."
 	if supported:
 		if not spec.get("surfacePlaceable",false) or supporter.has("supportId") or int(supporter.get("room",-1))!=room or surface.is_empty():
@@ -76,7 +90,7 @@ static func placement_error(item: Dictionary, pieces: Array, rooms: int, player_
 		var surface_bounds := Rect2(Vector2(float(surface.x),float(surface.z))-allowed*.5,allowed)
 		if not surface_bounds.grow(.001).encloses(transform_to_surface(item,supporter,surface)) or (surface.get("clearance")!=null and height(kind)>float(surface.clearance)):
 			return "That item does not fit on this surface."
-	elif kind!="rug":
+	elif not online and kind!="rug":
 		if (room==0 and rect.intersects(ENTRY)) or (room>0 and rect.intersects(WEST_PASSAGE)) or (room<rooms-1 and rect.intersects(EAST_PASSAGE)):
 			return "Keep the doorway clear."
 		if _player_conflict(rect,room,player_at,player_radius):
@@ -86,9 +100,14 @@ static func placement_error(item: Dictionary, pieces: Array, rooms: int, player_
 			continue
 		if other.get("supportId","") != item.get("supportId","") or other.get("surfaceId","") != item.get("surfaceId",""):
 			continue
-		if not supported and (kind=="rug") != (other.get("kind","")=="rug"):
-			continue # Rugs remain flat and can sit beneath furniture.
-		if footprint(other,supported).intersects(rect):
+		if not online and not supported and (kind=="rug") != (other.get("kind","")=="rug"):
+			continue # Local rugs remain flat and can sit beneath furniture.
+		if online:
+			var a := footprint(item)
+			var b := footprint(other)
+			if a.position.x < b.end.x-.01 and a.end.x > b.position.x+.01 and a.position.y < b.end.y-.01 and a.end.y > b.position.y+.01:
+				return "That spot already has furniture."
+		elif footprint(other,supported).intersects(rect):
 			return "That spot already has furniture."
 	return ""
 

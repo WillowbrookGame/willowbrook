@@ -38,6 +38,11 @@ var _hire_timeout := 0
 var state_message := ""
 var notice_timer := 0.0
 
+var _room_window: PanelContainer
+var _room_scroll: ScrollContainer
+var _edit_feedback: Label
+var _edit_commands: HFlowContainer
+
 func setup(room_id: String, room_host: Node3D, body_player: CharacterBody3D, room_hud: CanvasLayer) -> void:
 	id = room_id if not _room_title(room_id).is_empty() else "home"
 	host = room_host
@@ -94,6 +99,7 @@ func close_modal() -> void:
 	if is_modal_open():
 		if active_panel == "home":
 			art.clear_placement_ghost()
+			_close_home_editor()
 		_before_close_panel()
 		active_panel = ""
 		_pending_hire = ""
@@ -292,6 +298,7 @@ func feedback(message: String) -> void:
 	state_message = message
 	notice_timer = 6.0
 	if notice != null: notice.text = message
+	if is_instance_valid(_edit_feedback) and active_panel == "home": _edit_feedback.text = message
 
 func _work_menu(reset := true) -> void:
 	_open_panel("job",_room_title(id), "Pick up the kit at the start marker, then follow each highlighted station. Stay there until each task finishes.",reset)
@@ -415,106 +422,15 @@ func _home_menu(reset := true) -> void:
 	if _visiting(): return
 	var p := _snapshot()
 	var account := _account()
-	var intro := "Place, move, or pack saved furniture. The Town Store handles purchases and resale." if account != null and account.furniture_available() else "Place furniture, or pack it away without losing it. Orders arrive outside your front door."
+	var intro := "Choose furniture and drag its preview into place. Small decor can go on furniture. Confirm to save. Right-drag or use Drag to orbit to look around."
 	_open_panel("home","Decorate your home",intro,reset)
+	_setup_home_editor(p)
 	if account!=null and account.has_method("home_visits_available") and account.home_visits_available() and host.home_locked!=null:
 		_lock_button=_button("",func():
 			if not account.home_visit_command("lock",host.home_locked!=true): feedback("Could not change the door lock.")
 		)
 		refresh_home_lock()
 	_home_pets()
-	var room_count := HOUSING_PLACEMENT.room_count(p)
-	var pieces: Array = p.get("furniture",[])
-	var stock := OptionButton.new()
-	var stock_indices: Array[int] = []
-	var placed := OptionButton.new()
-	var placed_indices: Array[int] = []
-	for i in range(pieces.size()):
-		var item: Dictionary = pieces[i]
-		var spec: Dictionary = DATA.data.furnitureCatalog.get(item.get("kind",""),{})
-		if spec.is_empty(): continue
-		if item.has("x"):
-			placed_indices.append(i)
-			placed.add_item("%s · Room %d" % [spec.name,int(item.get("room",0))+1])
-		else:
-			stock_indices.append(i)
-			stock.add_item("%s × %d" % [spec.name,int(item.get("quantity",1))])
-	if not stock_indices.is_empty():
-		fields.add_child(stock)
-		var room_choice := _spinner("Room",1,room_count,clampf(floorf((player.position.x+HOUSING_PLACEMENT.ROOM_STRIDE*.5)/HOUSING_PLACEMENT.ROOM_STRIDE)+1,1,room_count))
-		var x := _spinner("Left / right",-5,5,1.75,.25)
-		var z := _spinner("Back / front",-4,4,-1.75,.25)
-		var rotation := _spinner("Turn",0,270,0,90)
-		var surfaces := OptionButton.new()
-		surfaces.fit_to_longest_item = false
-		surfaces.add_item("On the floor")
-		var supports: Array[Dictionary] = [{}]
-		for index in placed_indices:
-			var supporter: Dictionary = pieces[index]
-			if supporter.has("supportId"): continue
-			for surface: Dictionary in DATA.data.furnitureSurfaces.get(supporter.get("kind",""),[]):
-				supports.append({"index":index,"surface":surface})
-				var spec: Dictionary = DATA.data.furnitureCatalog[supporter.kind]
-				surfaces.add_item("%s / %s (Room %d)" % [spec.name,surface.label,int(supporter.room)+1])
-		fields.add_child(surfaces)
-		var preview_notice := _label("Adjust the furniture to preview its location.")
-		preview_notice.name = "PlacementPreviewStatus"
-		var redraw_preview := func() -> void:
-			var candidate := _prepare_furniture(p,stock_indices[stock.selected],int(room_choice.value)-1,x.value,z.value,int(rotation.value/90),supports[surfaces.selected])
-			var item: Dictionary = candidate.get("item",{})
-			var error: String = candidate.get("error","")
-			preview_notice.text = "Green preview: ready to place." if error.is_empty() else error
-			if item.is_empty(): art.clear_placement_ghost()
-			else: art.show_placement_ghost(item,error.is_empty())
-		stock.item_selected.connect(func(_selected): redraw_preview.call())
-		for field: SpinBox in [room_choice,x,z,rotation]:
-			field.value_changed.connect(func(_value): redraw_preview.call())
-		surfaces.item_selected.connect(func(option: int):
-			if option<1:
-				redraw_preview.call()
-				return
-			var selected: Dictionary = pieces[int(supports[option].index)]
-			var surface: Dictionary = supports[option].surface
-			var offset := Vector2(float(surface.x),float(surface.z)).rotated(-int(selected.rotation)*PI/2)
-			x.value = snappedf(float(selected.x)+offset.x,.25)
-			z.value = snappedf(float(selected.z)+offset.y,.25)
-			rotation.value = int(selected.rotation)*90
-			room_choice.value = int(selected.room)+1
-			redraw_preview.call()
-		)
-		var confirm := _button("Place selected furniture",func(): _place_furniture(stock_indices[stock.selected],int(room_choice.value)-1,x.value,z.value,int(rotation.value/90),supports[surfaces.selected]))
-		confirm.name = "ConfirmFurniturePlacement"
-		redraw_preview.call()
-	else:
-		stock.free()
-		if account != null and account.furniture_available():
-			_label("No packed furniture. Order from the Town Store, or earn the Town Explorer trophy.")
-		else:
-			_label("No packed furniture. The Town Store sells furnishings.")
-	if not placed_indices.is_empty():
-		fields.add_child(placed)
-		_button("Pack selected item",func(): _pack_furniture(placed_indices[placed.selected]))
-		if account != null and account.furniture_available():
-			var initial: Dictionary = pieces[placed_indices[placed.selected]]
-			var move_x := _spinner("Move left / right",-4,4,float(initial.x),.25)
-			var move_z := _spinner("Move back / front",-3,3,float(initial.z),.25)
-			var move_rotation := _spinner("Turn displayed item",0,270,int(initial.rotation)*90,90)
-			placed.item_selected.connect(func(index: int):
-				var current: Dictionary = pieces[placed_indices[index]]
-				move_x.value = float(current.x)
-				move_z.value = float(current.z)
-				move_rotation.value = int(current.rotation)*90
-			)
-			_button("Move selected furniture",func():
-				var current: Dictionary = pieces[placed_indices[placed.selected]]
-				var request := {"id":str(current.id),"expectedRevision":int(current.get("revision",0)),"room":int(current.room),"x":move_x.value,"z":move_z.value,"rotation":int(move_rotation.value/90)}
-				if current.has("supportId"):
-					request.supportId = current.supportId
-					request.surfaceId = current.surfaceId
-				_send_furniture("move",request)
-			)
-	else:
-		placed.free()
 
 	if account != null and account.yard_eligible():
 		_label("Improve your yard - saved stars: %d" % account.saved_stars())
@@ -531,6 +447,24 @@ func _home_menu(reset := true) -> void:
 					feedback("Could not reach the server. Nothing changed here.")
 			)
 			button.disabled = installed or cost > account.saved_stars()
+
+func _layout_room_panel() -> void:
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.offset_top = 0.0
+	panel.offset_right = 0.0
+	_room_scroll.custom_minimum_size = Vector2(320,210)
+	if active_panel == "home":
+		_layout_home_editor(get_viewport().get_visible_rect().size)
+
+func _layout_home_editor(_viewport_size: Vector2) -> void:
+	pass
+
+func _setup_home_editor(_profile: Dictionary) -> void:
+	pass
+
+func _close_home_editor() -> void:
+	pass
+
 
 func _add_stock(pieces: Array, kind: String, qty: int) -> void:
 	if qty<=0 or not DATA.data.furnitureCatalog.has(kind): return
@@ -576,7 +510,7 @@ func _prepare_furniture(p: Dictionary,index: int,room_index: int,x: float,z: flo
 		item.supportId = supporter.id
 		item.surfaceId = surface.id
 		item.y = float(surface.y)
-	var error := HOUSING_PLACEMENT.placement_error(item,pieces,HOUSING_PLACEMENT.room_count(p),art.to_local(player.global_position),_placement_player_radius(),supporter,surface)
+	var error := HOUSING_PLACEMENT.placement_error(item,pieces,HOUSING_PLACEMENT.room_count(p),art.to_local(player.global_position),_placement_player_radius(),supporter,surface,_account()!=null)
 	return {"item":item,"error":error}
 
 
@@ -743,6 +677,8 @@ func _create_hud() -> void:
 	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	panel.mouse_filter=Control.MOUSE_FILTER_STOP
 	var window := PanelContainer.new()
+	_room_window = window
+	window.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.add_child(window)
 	var margin := MarginContainer.new()
 	for edge in ["left","right","top","bottom"]: margin.add_theme_constant_override("margin_"+edge,16)
@@ -758,6 +694,7 @@ func _create_hud() -> void:
 	body.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(body)
 	var scroll := ScrollContainer.new()
+	_room_scroll = scroll
 	scroll.custom_minimum_size=Vector2(320,210)
 	scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus=true
@@ -766,20 +703,32 @@ func _create_hud() -> void:
 	fields.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	fields.add_theme_constant_override("separation",6)
 	scroll.add_child(fields)
+	_edit_feedback = Label.new()
+	_edit_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_edit_feedback.hide()
+	column.add_child(_edit_feedback)
+	_edit_commands = HFlowContainer.new()
+	_edit_commands.hide()
+	column.add_child(_edit_commands)
 	var done := Button.new()
 	done.text="Done"
 	done.custom_minimum_size.y=44
 	done.pressed.connect(close_modal)
 	column.add_child(done)
 	panel.hide()
+	get_viewport().size_changed.connect(_layout_room_panel)
 
 func _open_panel(name_: String,title: String,message: String,reset := true) -> void:
 	active_panel=name_
 	if art != null:
 		art.clear_placement_ghost()
-	var logical_width := get_viewport().get_visible_rect().size.x
-	var physical_width := float(get_viewport().get_window().size.x)
-	panel.offset_right = -logical_width*.52 if name_=="home" and physical_width>=800.0 else 0.0
+	_edit_feedback.visible = name_=="home"
+	_edit_commands.visible = name_=="home"
+	for child in _edit_commands.get_children():
+		_edit_commands.remove_child(child)
+		child.queue_free()
+	_edit_feedback.text = state_message if not reset else ""
+	_layout_room_panel()
 	_room_memberships = _memberships(_snapshot())
 	heading.text=title
 	body.text=message
@@ -788,7 +737,7 @@ func _open_panel(name_: String,title: String,message: String,reset := true) -> v
 		child.queue_free()
 	panel.show()
 	host.set_zone_modal(true)
-	if not reset and not state_message.is_empty(): _label(state_message)
+	if name_!="home" and not reset and not state_message.is_empty(): _label(state_message)
 
 func _label(value: String) -> Label:
 	var label := Label.new()
