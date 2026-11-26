@@ -139,10 +139,41 @@ func _build_prop(spot: Dictionary) -> void:
 	if props.has(key):
 		props[key].ids.append(spot.id)
 		return
-	var contents := Node3D.new()
-	contents.name = "Station"+str(spot.id).to_pascal_case()
-	art.add_child(contents)
-	contents.position=at+Vector3(-1.1 if kind=="customer" else 0.0,.02,-.9 if kind=="dog" else -.65)
+	var station_name := "Station"+str(spot.id).to_pascal_case()
+	var contents: Node3D
+	if zone == "vet":
+		contents = art.get_node_or_null(NodePath("JobStations/"+station_name)) as Node3D
+	if contents == null:
+		contents = Node3D.new()
+		contents.name = station_name
+		art.add_child(contents)
+		contents.position = at+Vector3(-1.1 if kind=="customer" else 0.0,.02,-.9 if kind=="dog" else -.65)
+		_build_station_art(contents,kind)
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius=.45
+	torus.outer_radius=.52
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color=Color("#ffdc70")
+	ring.mesh=torus
+	ring.material_override=mat
+	ring.position=Vector3(0,.034,0)
+	contents.add_child(ring)
+	ring.hide()
+	var spark: Node3D
+	if kind=="dog":
+		spark=Node3D.new()
+		contents.add_child(spark)
+		spark.position.y=1
+		for i in range(3):
+			var point := Vector3((i-1)*.27,sin(i)*.18,.08)
+			_box(spark,point,Vector3(.045,.21,.045),"fff1a6")
+			_box(spark,point,Vector3(.18,.047,.047),"fff1a6")
+		spark.hide()
+	props[key]={"ids":[spot.id],"ring":ring,"spark":spark}
+
+func _build_station_art(contents: Node3D, kind: String) -> void:
 	match kind:
 		"brush", "care-kit":
 			_table(contents)
@@ -195,29 +226,6 @@ func _build_prop(spot: Dictionary) -> void:
 			_box(contents,Vector3(0,.64,0),Vector3(.54,.035,.39),"ad906c" if kind=="clipboard" else "ba8aa9")
 			for i in range(3):
 				_box(contents,Vector3(0,.663,-.1+i*.09),Vector3(.32,.012,.02),"fff2d4")
-	var ring := MeshInstance3D.new()
-	var torus := TorusMesh.new()
-	torus.inner_radius=.45
-	torus.outer_radius=.52
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color=Color("#ffdc70")
-	ring.mesh=torus
-	ring.material_override=mat
-	ring.position=Vector3(0,.034,0)
-	contents.add_child(ring)
-	ring.hide()
-	var spark: Node3D
-	if kind=="dog":
-		spark=Node3D.new()
-		contents.add_child(spark)
-		spark.position.y=1
-		for i in range(3):
-			var point := Vector3((i-1)*.27,sin(i)*.18,.08)
-			_box(spark,point,Vector3(.045,.21,.045),"fff1a6")
-			_box(spark,point,Vector3(.18,.047,.047),"fff1a6")
-		spark.hide()
-	props[key]={"ids":[spot.id],"ring":ring,"spark":spark}
 
 func _table(parent: Node3D) -> void:
 	_box(parent,Vector3(0,.56,0),Vector3(.83,.09,.61),"cfae87")

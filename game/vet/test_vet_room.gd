@@ -41,6 +41,7 @@ func _run() -> void:
 		await physics_frame
 		await physics_frame
 		if not _check_layout(map, room): return
+		if not _check_job_stations(room): return
 		map.player.position = Vector3(0,.04,1.2)
 		interact(map)
 		if not expect(room.is_modal_open() and room.active_panel == "vet", "Vet interaction did not open adoption"): return
@@ -85,4 +86,32 @@ func _check_layout(map: Node3D, room: Node3D) -> bool:
 	if edited:
 		var old_hit := chair.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(-6,2,1),Vector3(-6,.1,1),1))
 		if not expect(old_hit.is_empty(), "A second collider was left at the old chair position"): return false
+	return true
+
+func _check_job_stations(room: Node3D) -> bool:
+	var authored := (load("res://game/vet/room_layout.tscn") as PackedScene).instantiate()
+	var authored_group := authored.get_node_or_null("JobStations")
+	var expected := {
+		"work-start-vet": ["StationWorkStartVet", 11, Vector3(-3,.02,3.35)],
+		"brush-kit": ["StationBrushKit", 11, Vector3(-3,.02,1.35)],
+		"comfort-pet": ["StationComfortPet", 2, Vector3(3,.02,1.1)],
+		"fresh-water": ["StationFreshWater", 2, Vector3(5,.02,3.85)],
+	}
+	var editor_ok := authored_group != null and authored_group.get_child_count() == expected.size()
+	for id: String in expected:
+		var row: Array = expected[id]
+		var station: Node3D = authored_group.get_node_or_null(NodePath(row[0])) if authored_group != null else null
+		editor_ok = editor_ok and station != null and station.visible and station.get_child_count() == row[1] and station.position.is_equal_approx(row[2])
+	editor_ok = editor_ok and authored.get_node_or_null("JobStations/StationComfortPet/Puppy/Model") != null and authored.get_node_or_null("JobStations/StationComfortPet/Rug/Model") != null
+	authored.free()
+	if not expect(editor_ok, "The four fixed Vet stations are not all visible in the saved editor layout"): return false
+	var props: Dictionary = room.job_art.props
+	if not expect(props.size() == expected.size(), "Vet job stations were duplicated or lost at runtime"): return false
+	for prop: Dictionary in props.values():
+		var id: String = prop.ids[0]
+		if not expect(expected.has(id) and prop.ring.get_parent() == room.art.get_node("JobStations/"+expected[id][0]), "Job indicator is not attached to the authored Vet station"): return false
+		if not expect(not prop.ring.visible, "Inactive Vet station indicator became visible"): return false
+		room.job_art.update_status({}, {"id":id, "position":prop.ring.get_parent().position}, false)
+		if not expect(prop.ring.visible, "Active Vet station indicator did not appear"): return false
+		room.job_art.update_status({}, {}, false)
 	return true

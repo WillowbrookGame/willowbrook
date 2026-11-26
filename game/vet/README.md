@@ -6,6 +6,8 @@ Open `game/vet/room_layout.tscn` in the Godot editor. This is the layout the gam
 2. Save the scene (**Ctrl+S**), then run the project (**F5**). Enter the Vet from Town with **E**. The model and its collider move together, and the chair's sit prompt follows the chair. Press **E** to talk to the Vet at reception and to leave via the Town exit.
 3. Check your diff. A placement-only edit should only touch `game/vet/room_layout.tscn`. Keep the exit and the arrival area clear, don't rename the chair or Vet nodes, and leave the walls, doors, and trigger logic alone in a placement change.
 
+Expand `JobStations` to see the pet-care kit, brush table, puppy and rug, and water bowl. Shift highlights and menus only appear during play. The job interaction positions are still defined by progression data; keep station roots in place for visual-only edits.
+
 To run the automated default-layout and gameplay regression after a code change, import the project and then run:
 
 ```sh
