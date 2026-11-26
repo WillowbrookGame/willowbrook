@@ -1,7 +1,11 @@
 extends "res://game/map.gd"
 ## Town owns its layout, home exteriors, progression and vehicle mounts.
 
+const ARENA := "res://game/arena.tscn"
 const TOWN_LAYOUT = preload("res://game/town_layout.gd")
+
+
+var paintball_lobby_view: Node
 
 
 func _sync_town_home_exteriors() -> void:
@@ -48,3 +52,37 @@ func _build_town_features(hud: CanvasLayer) -> void:
 		vehicles.setup(self,player,arena_avatar,hud)
 		vehicles.dialog_opened.connect(_on_beach_dialog_opened)
 		vehicles.dialog_closed.connect(_on_beach_dialog_closed)
+
+
+func _setup_zone_player() -> void:
+	if get_tree().has_meta("paintball_town_return"):
+		get_tree().remove_meta("paintball_town_return")
+		player.position = TOWN_ROUTES.ARENA_DOOR + Vector3(0,0.04,1.6)
+		look_yaw = PI
+		player.rotation.y = look_yaw
+
+
+func _try_door() -> void:
+	if changing or not _near_door():
+		return
+	var account := get_node_or_null("/root/WillowbrookBrowserSession") if OS.has_feature("web") else null
+	if account != null and account.has_method("can_show_paintball_lobby") and account.admitted and account.zone=="town":
+		if paintball_lobby_view == null:
+			var panel_script := load("res://game/network/paintball/online_paintball_view.gd") as Script
+			paintball_lobby_view = panel_script.new()
+			add_child(paintball_lobby_view)
+			paintball_lobby_view.setup(self,get_node("WorldHUD"),account,false)
+		paintball_lobby_view.open_lobby()
+		return
+	_enter_solo_paintball()
+
+func _enter_solo_paintball() -> void:
+	if changing or not _near_door(): return
+	changing = true
+	var tree := get_tree()
+	var result := tree.change_scene_to_file(ARENA)
+	if result == OK and not tree.has_meta("paintball_practice_test"):
+		tree.set_meta("paintball_single_player",true)
+	if result != OK:
+		changing = false
+		push_error("Couldn't load the destination map: %s" % error_string(result))
