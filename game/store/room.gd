@@ -1,13 +1,16 @@
 extends "res://game/interiors/room.gd"
 
-const STORE_ART := preload("res://game/store/room_art.gd")
+const STORE_LAYOUT := preload("res://game/store/room_layout.tscn")
 const CLERK_PROMPT := "Talk to the shopkeeper"
 
 func _room_title(key: String) -> String:
 	return "Town Store" if key == "store" else ""
 
 func _new_room_art() -> ART:
-	return STORE_ART.new()
+	return STORE_LAYOUT.instantiate() as ART
+
+func _publishes_sitting() -> bool:
+	return true
 
 func _uses_furniture_account() -> bool:
 	return true
