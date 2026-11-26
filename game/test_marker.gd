@@ -14,8 +14,8 @@ func _run() -> void:
 		return
 	var yard_body := map.yard.get_node("YardCollision") as StaticBody3D
 	yard_body.collision_layer = 0
-	map._box("TestPaintFloor", Vector3(0,-0.1,7), Vector3(40,0.2,40), Color.WHITE, true)
-	map._box("TestPaintWall", Vector3(-1.6,2.5,4.5), Vector3(5,5,0.25), Color.WHITE, true)
+	map.ZONE_GEOMETRY.box(map, "TestPaintFloor", Vector3(0,-0.1,7), Vector3(40,0.2,40), Color.WHITE, true)
+	map.ZONE_GEOMETRY.box(map, "TestPaintWall", Vector3(-1.6,2.5,4.5), Vector3(5,5,0.25), Color.WHITE, true)
 	for i in range(5):
 		await physics_frame
 	preview.trigger()

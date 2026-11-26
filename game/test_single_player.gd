@@ -30,7 +30,7 @@ func _run() -> void:
 	# Controlled lane for a real player hit and bot hit, separate from the
 	# normal arena's patrol and obstruction checks.
 	(map.yard.get_node("YardCollision") as StaticBody3D).collision_layer = 0
-	map._box("MatchTestFloor", Vector3(0,-0.15,5), Vector3(46,0.3,38), Color.WHITE, true)
+	map.ZONE_GEOMETRY.box(map, "MatchTestFloor", Vector3(0,-0.15,5), Vector3(46,0.3,38), Color.WHITE, true)
 	map.player.position = Vector3(0,0.03,10)
 	map.look_pitch = -0.12
 	bot.position = Vector3(0.70,0.03,4)
@@ -40,7 +40,7 @@ func _run() -> void:
 		await physics_frame
 	for opponent in game.bots:
 		opponent.reload = 30.0
-	map.marker_preview.trigger()
+	map._world_primary_action()
 	for i in range(2):
 		await physics_frame
 	if not require(game.rules.points["You"]==0 and game.notice.is_empty(),"Human tag was announced before the projectile arrived"):

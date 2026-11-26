@@ -18,7 +18,7 @@ func _run() -> void:
 	await physics_frame
 	var shift: float = map.camera.position.x - first.x
 	var free_distance: float = map.camera_distance
-	map._box("TestCameraWall", Vector3(6,2.0,10.45), Vector3(3,4,0.2), Color.WHITE, true)
+	map.ZONE_GEOMETRY.box(map, "TestCameraWall", Vector3(6,2.0,10.45), Vector3(3,4,0.2), Color.WHITE, true)
 	for n in range(4):
 		await physics_frame
 	var shortened: float = map.camera_distance
@@ -40,7 +40,7 @@ func _run() -> void:
 		quit(1)
 		return
 	map._turn_arena_view(Vector2(PI / 2.0 / 0.003,0), 0.003)
-	map._box("TestMovementFloor", Vector3(0,-0.1,9), Vector3(40,0.2,40), Color.WHITE, true)
+	map.ZONE_GEOMETRY.box(map, "TestMovementFloor", Vector3(0,-0.1,9), Vector3(40,0.2,40), Color.WHITE, true)
 	var body_start := player.position
 	player.held["up"] = true
 	player.set_physics_process(true)
