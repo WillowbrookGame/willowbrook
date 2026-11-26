@@ -46,7 +46,9 @@ func _run() -> void:
 	await process_frame
 	_check(room.interaction_prompt() == "Back to Town", "exit prompt at spawn")
 	_check(room.interact() and host.exited,"exit invokes host")
-	_check(room.targets.size() == 8 and room.bounds.size() == 4,"original 8 cabinets with original models")
+	await physics_frame
+	await physics_frame
+	_check_layout(room)
 	for cabinet: Dictionary in room.targets:
 		player.position = cabinet.at
 		_check(room.interaction_prompt() == "Play " + cabinet.label,"target for " + cabinet.id)
@@ -183,6 +185,35 @@ func _run() -> void:
 	_check(current_scene.player.position.is_equal_approx(door + Vector3(0,.04,2)),"Arcade exit returns to the same Town doorstep")
 	print("ARCADE: all 8 cabinets, help/play/close, original models/art, representative mechanics tested")
 	quit(1 if failed else 0)
+
+func _check_layout(room: Node3D) -> void:
+	var layout: Node3D = room.layout
+	var cabinets: Node3D = layout.get_node("Cabinets")
+	_check(layout.scene_file_path == "res://game/arcade/room_layout.tscn","the game uses the same editable layout")
+	_check(room.targets.size() == 8 and cabinets.get_child_count() == 8,"original eight cabinets")
+	var ids := ["basketball","memory","road-hop","maze-chase","claw","air-hockey","brick-breaker","survivors"]
+	var models := ["basketball-game","arcade-machine","arcade-machine","arcade-machine","claw-machine","air-hockey","arcade-machine","arcade-machine"]
+	var spots := [Vector3(-6,.03,-3.45),Vector3(-2,.03,-4),Vector3(2,.03,-4),Vector3(6,.03,-4),Vector3(-6,.03,0),Vector3(0,.03,2.3),Vector3(6,.03,1),Vector3(-6,.03,3.6)]
+	var moved := "--relocated" in OS.get_cmdline_user_args()
+	var space := layout.get_world_3d().direct_space_state
+	for i in range(cabinets.get_child_count()):
+		var cabinet := cabinets.get_child(i) as Node3D
+		var spot: Dictionary = room.targets[i]
+		var model := cabinet.get_node("Model") as Node3D
+		var marker := cabinet.get_node("InteractHere") as Marker3D
+		_check(spot.id == ids[i] and model.scene_file_path.ends_with("/"+models[i]+".glb"),"cabinet ID and original model: "+str(i))
+		_check(spot.at.is_equal_approx(marker.global_position),"prompt marker moves with cabinet: "+str(spot.id))
+		if not moved or spot.id != "memory":
+			_check(spot.at.is_equal_approx(spots[i]),"default prompt position: "+str(spot.id))
+		else:
+			_check(cabinet.position.is_equal_approx(Vector3(-2,.03,-3.75)) and absf(angle_difference(cabinet.rotation.y,PI/2.0)) < .001,"saved cabinet move and rotation reached runtime")
+			_check(spot.at.is_equal_approx(Vector3(-.2,.03,-3.75)),"moved and rotated cabinet prompt")
+		var p := cabinet.global_position
+		var ray := PhysicsRayQueryParameters3D.create(p+Vector3.UP*3,p+Vector3.UP*.1,1)
+		_check(space.intersect_ray(ray).get("collider") == cabinet.get_node("SolidBody"),"collision attached to "+str(spot.id))
+	if moved:
+		var old := PhysicsRayQueryParameters3D.create(Vector3(-2,3,-5.8),Vector3(-2,.1,-5.8),1)
+		_check(space.intersect_ray(old).is_empty(),"no collider left at Memory's old placement")
 
 func _check(condition: bool, detail: String) -> void:
 	if not condition:

@@ -1,0 +1,419 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/arcade/kenney-mini-arcade/basketball-game.glb" id="1_21f0i"]
+[ext_resource type="PackedScene" path="res://game/arcade/kenney-mini-arcade/arcade-machine.glb" id="2_oh1ap"]
+[ext_resource type="PackedScene" path="res://game/arcade/kenney-mini-arcade/claw-machine.glb" id="3_00ikx"]
+[ext_resource type="PackedScene" path="res://game/arcade/kenney-mini-arcade/air-hockey.glb" id="4_d0ev7"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tfhtn"]
+albedo_color = Color(0.88235295, 0.7882353, 0.6431373, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_q8dhm"]
+size = Vector3(18.4, 0.24, 14.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_3ombu"]
+size = Vector3(18.4, 0.24, 14.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o5fee"]
+albedo_color = Color(0.87058824, 0.8627451, 0.9607843, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kvi6w"]
+size = Vector3(18.4, 5, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lv67j"]
+size = Vector3(18.4, 5, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6oh57"]
+albedo_color = Color(0.87058824, 0.8627451, 0.9607843, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vt2gf"]
+size = Vector3(0.2, 5, 14.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7bsxl"]
+size = Vector3(0.2, 5, 14.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kjr7o"]
+albedo_color = Color(0.87058824, 0.8627451, 0.9607843, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mligu"]
+size = Vector3(7.7, 5, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5aqlt"]
+size = Vector3(7.7, 5, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c7bqg"]
+albedo_color = Color(0.87058824, 0.8627451, 0.9607843, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rml0b"]
+size = Vector3(0.2, 5, 14.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ppda4"]
+size = Vector3(0.2, 5, 14.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nyd8y"]
+albedo_color = Color(0.87058824, 0.8627451, 0.9607843, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qbqv1"]
+size = Vector3(7.7, 5, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gyeen"]
+size = Vector3(7.7, 5, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oqrpj"]
+albedo_color = Color(0.87058824, 0.8627451, 0.9607843, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frgkx"]
+size = Vector3(3, 1.4, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_rvrao"]
+size = Vector3(3, 1.4, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hk08p"]
+albedo_color = Color(0.6666667, 0.72156864, 0.8666667, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0c7cu"]
+size = Vector3(3, 2.5, 0.12)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cxhbo"]
+size = Vector3(3, 2.5, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e4isj"]
+albedo_color = Color(0.5529412, 0.73333335, 0.6901961, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_adalq"]
+size = Vector3(2.4, 0.05, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xy4cb"]
+albedo_color = Color(0.6627451, 0.827451, 0.87058824, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w7s56"]
+size = Vector3(3, 1.8, 0.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cobk8"]
+albedo_color = Color(1, 0.98039216, 0.9411765, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_odbq6"]
+size = Vector3(0.08, 1.8, 0.04)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mlx5d"]
+size = Vector3(2.3, 1.3, 2.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gfb05"]
+size = Vector3(1.5, 1.3, 1.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2lmoa"]
+size = Vector3(1.5, 1.3, 1.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8qdky"]
+size = Vector3(1.5, 1.3, 1.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mdmqk"]
+size = Vector3(1.8, 1.3, 1.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tb1wx"]
+size = Vector3(4, 1.3, 2.8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_32waq"]
+size = Vector3(1.8, 1.3, 1.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_l1jfg"]
+size = Vector3(1.8, 1.3, 1.5)
+
+[node name="ArcadeLayout" type="Node3D" unique_id=831348240]
+
+[node name="Floor" type="MeshInstance3D" parent="." unique_id=665186391]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12, 0)
+material_override = SubResource("StandardMaterial3D_tfhtn")
+mesh = SubResource("BoxMesh_q8dhm")
+
+[node name="FloorBody" type="StaticBody3D" parent="Floor" unique_id=1204284175]
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Floor/FloorBody" unique_id=364335890]
+shape = SubResource("BoxShape3D_3ombu")
+
+[node name="BackWall" type="MeshInstance3D" parent="." unique_id=1188341217]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -7.2)
+material_override = SubResource("StandardMaterial3D_o5fee")
+mesh = SubResource("BoxMesh_kvi6w")
+
+[node name="BackWallBody" type="StaticBody3D" parent="BackWall" unique_id=308712246]
+
+[node name="BoxCollision" type="CollisionShape3D" parent="BackWall/BackWallBody" unique_id=924423474]
+shape = SubResource("BoxShape3D_lv67j")
+
+[node name="LeftWall" type="MeshInstance3D" parent="." unique_id=1631363228]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.2, 2.5, 0)
+material_override = SubResource("StandardMaterial3D_6oh57")
+mesh = SubResource("BoxMesh_vt2gf")
+
+[node name="LeftWallBody" type="StaticBody3D" parent="LeftWall" unique_id=1788380996]
+
+[node name="BoxCollision" type="CollisionShape3D" parent="LeftWall/LeftWallBody" unique_id=1070732759]
+shape = SubResource("BoxShape3D_7bsxl")
+
+[node name="LeftFrontWall" type="MeshInstance3D" parent="." unique_id=1175958840]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.35, 2.5, 7.2)
+material_override = SubResource("StandardMaterial3D_kjr7o")
+mesh = SubResource("BoxMesh_mligu")
+
+[node name="LeftFrontWallBody" type="StaticBody3D" parent="LeftFrontWall" unique_id=1818346084]
+
+[node name="BoxCollision" type="CollisionShape3D" parent="LeftFrontWall/LeftFrontWallBody" unique_id=1232870169]
+shape = SubResource("BoxShape3D_5aqlt")
+
+[node name="RightWall" type="MeshInstance3D" parent="." unique_id=124130540]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.2, 2.5, 0)
+material_override = SubResource("StandardMaterial3D_c7bqg")
+mesh = SubResource("BoxMesh_rml0b")
+
+[node name="RightWallBody" type="StaticBody3D" parent="RightWall" unique_id=1090244850]
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RightWall/RightWallBody" unique_id=502286464]
+shape = SubResource("BoxShape3D_ppda4")
+
+[node name="RightFrontWall" type="MeshInstance3D" parent="." unique_id=623540284]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.35, 2.5, 7.2)
+material_override = SubResource("StandardMaterial3D_nyd8y")
+mesh = SubResource("BoxMesh_qbqv1")
+
+[node name="RightFrontWallBody" type="StaticBody3D" parent="RightFrontWall" unique_id=1155219239]
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RightFrontWall/RightFrontWallBody" unique_id=887739689]
+shape = SubResource("BoxShape3D_gyeen")
+
+[node name="DoorHeader" type="MeshInstance3D" parent="." unique_id=455687620]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.3, 7.2)
+material_override = SubResource("StandardMaterial3D_oqrpj")
+mesh = SubResource("BoxMesh_frgkx")
+
+[node name="DoorHeaderBody" type="StaticBody3D" parent="DoorHeader" unique_id=2060326237]
+
+[node name="BoxCollision" type="CollisionShape3D" parent="DoorHeader/DoorHeaderBody" unique_id=1690998226]
+shape = SubResource("BoxShape3D_rvrao")
+
+[node name="ExitLimit" type="MeshInstance3D" parent="." unique_id=1520911293]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 7.35)
+material_override = SubResource("StandardMaterial3D_hk08p")
+mesh = SubResource("BoxMesh_0c7cu")
+
+[node name="ExitLimitBody" type="StaticBody3D" parent="ExitLimit" unique_id=2138902478]
+
+[node name="BoxCollision" type="CollisionShape3D" parent="ExitLimit/ExitLimitBody" unique_id=1420645945]
+shape = SubResource("BoxShape3D_cxhbo")
+
+[node name="ExitMarker" type="MeshInstance3D" parent="." unique_id=1332058307]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 6.5)
+material_override = SubResource("StandardMaterial3D_e4isj")
+mesh = SubResource("BoxMesh_adalq")
+
+[node name="ExitSign" type="Label3D" parent="ExitMarker" unique_id=1481218516]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.675, 0.7399998)
+pixel_size = 0.011111111
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "EXIT"
+font_size = 68
+
+[node name="Window" type="MeshInstance3D" parent="." unique_id=1320937735]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, -7.08)
+material_override = SubResource("StandardMaterial3D_xy4cb")
+mesh = SubResource("BoxMesh_w7s56")
+
+[node name="WindowFrame" type="MeshInstance3D" parent="Window" unique_id=2066109018]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.03999996)
+material_override = SubResource("StandardMaterial3D_cobk8")
+mesh = SubResource("BoxMesh_odbq6")
+
+[node name="Cabinets" type="Node3D" parent="." unique_id=295330993]
+
+[node name="HoopsCabinet" type="Node3D" parent="Cabinets" unique_id=1676573628]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0.03, -5.5)
+metadata/cabinet_id = "basketball"
+
+[node name="Model" type="Node3D" parent="Cabinets/HoopsCabinet" unique_id=1874279713 instance=ExtResource("1_21f0i")]
+transform = Transform3D(2.2716048, 0, 0, 0, 2.2716048, 0, 0, 0, 2.2716048, 0, 0, -0.014197584)
+
+[node name="Caption" type="Label3D" parent="Cabinets/HoopsCabinet" unique_id=115614605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7445924, -0.68659264)
+pixel_size = 0.0022435603
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "HOOPS '88"
+font_size = 68
+
+[node name="SolidBody" type="StaticBody3D" parent="Cabinets/HoopsCabinet" unique_id=1507262721]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Cabinets/HoopsCabinet/SolidBody" unique_id=1728018369]
+shape = SubResource("BoxShape3D_mlx5d")
+
+[node name="InteractHere" type="Marker3D" parent="Cabinets/HoopsCabinet" unique_id=179856543]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.05)
+
+[node name="MemoryCabinet" type="Node3D" parent="Cabinets" unique_id=827121664]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.03, -5.8)
+metadata/cabinet_id = "memory"
+
+[node name="Model" type="Node3D" parent="Cabinets/MemoryCabinet" unique_id=1224301905 instance=ExtResource("2_oh1ap")]
+transform = Transform3D(3.3488371, 0, 0, 0, 3.3488371, 0, 0, 0, 3.3488371, 0, 0, -0.083720945)
+
+[node name="Caption" type="Label3D" parent="Cabinets/MemoryCabinet" unique_id=167446935]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.176744, 0.53665113)
+pixel_size = 0.002232558
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "Memory Match"
+font_size = 68
+
+[node name="SolidBody" type="StaticBody3D" parent="Cabinets/MemoryCabinet" unique_id=794812038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Cabinets/MemoryCabinet/SolidBody" unique_id=372149259]
+shape = SubResource("BoxShape3D_gfb05")
+
+[node name="InteractHere" type="Marker3D" parent="Cabinets/MemoryCabinet" unique_id=1216057171]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.8000002)
+
+[node name="RoadCrossingCabinet" type="Node3D" parent="Cabinets" unique_id=2055220370]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.03, -5.8)
+metadata/cabinet_id = "road-hop"
+
+[node name="Model" type="Node3D" parent="Cabinets/RoadCrossingCabinet" unique_id=334726006 instance=ExtResource("2_oh1ap")]
+transform = Transform3D(3.3488371, 0, 0, 0, 3.3488371, 0, 0, 0, 3.3488371, 0, 0, -0.083720945)
+
+[node name="Caption" type="Label3D" parent="Cabinets/RoadCrossingCabinet" unique_id=1865120308]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.176744, 0.53665113)
+pixel_size = 0.002060823
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "Road Crossing"
+font_size = 68
+
+[node name="SolidBody" type="StaticBody3D" parent="Cabinets/RoadCrossingCabinet" unique_id=597953632]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Cabinets/RoadCrossingCabinet/SolidBody" unique_id=250367041]
+shape = SubResource("BoxShape3D_2lmoa")
+
+[node name="InteractHere" type="Marker3D" parent="Cabinets/RoadCrossingCabinet" unique_id=2079781553]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.8000002)
+
+[node name="BlastemoidsCabinet" type="Node3D" parent="Cabinets" unique_id=1891481323]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.03, -5.8)
+metadata/cabinet_id = "maze-chase"
+
+[node name="Model" type="Node3D" parent="Cabinets/BlastemoidsCabinet" unique_id=524798007 instance=ExtResource("2_oh1ap")]
+transform = Transform3D(3.3488371, 0, 0, 0, 3.3488371, 0, 0, 0, 3.3488371, 0, 0, -0.083720945)
+
+[node name="Caption" type="Label3D" parent="Cabinets/BlastemoidsCabinet" unique_id=748278379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.176744, 0.53665113)
+pixel_size = 0.002435518
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "Blastemoids"
+font_size = 68
+
+[node name="SolidBody" type="StaticBody3D" parent="Cabinets/BlastemoidsCabinet" unique_id=1933450993]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Cabinets/BlastemoidsCabinet/SolidBody" unique_id=1625513357]
+shape = SubResource("BoxShape3D_8qdky")
+
+[node name="InteractHere" type="Marker3D" parent="Cabinets/BlastemoidsCabinet" unique_id=402470312]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.8000002)
+
+[node name="ClawCabinet" type="Node3D" parent="Cabinets" unique_id=1535751855]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.8, 0.03, 0)
+metadata/cabinet_id = "claw"
+
+[node name="Model" type="Node3D" parent="Cabinets/ClawCabinet" unique_id=742777907 instance=ExtResource("3_00ikx")]
+transform = Transform3D(2.5967085, 0, 0, 0, 2.5967085, 0, 0, 0, 2.5967085, 0, 0, 0)
+
+[node name="Caption" type="Label3D" parent="Cabinets/ClawCabinet" unique_id=312128141]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5580252, 0.8582122)
+pixel_size = 0.0024043599
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "Claw Machine"
+font_size = 68
+
+[node name="SolidBody" type="StaticBody3D" parent="Cabinets/ClawCabinet" unique_id=1939517349]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0.62, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Cabinets/ClawCabinet/SolidBody" unique_id=1483937976]
+shape = SubResource("BoxShape3D_mdmqk")
+
+[node name="InteractHere" type="Marker3D" parent="Cabinets/ClawCabinet" unique_id=1242797101]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.868053e-08, 0, 1.8000002)
+
+[node name="AirHockeyTable" type="Node3D" parent="Cabinets" unique_id=224864402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+metadata/cabinet_id = "air-hockey"
+
+[node name="Model" type="Node3D" parent="Cabinets/AirHockeyTable" unique_id=1138064497 instance=ExtResource("4_d0ev7")]
+transform = Transform3D(4, 0, 0, 0, 2.2, 0, 0, 0, 4, 0, 0, 0)
+
+[node name="Caption" type="Label3D" parent="Cabinets/AirHockeyTable" unique_id=1736258391]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28160003, 1.216)
+pixel_size = 0.0049777776
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "Air Hockey"
+font_size = 68
+
+[node name="SolidBody" type="StaticBody3D" parent="Cabinets/AirHockeyTable" unique_id=1694279014]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Cabinets/AirHockeyTable/SolidBody" unique_id=636680733]
+shape = SubResource("BoxShape3D_tb1wx")
+
+[node name="InteractHere" type="Marker3D" parent="Cabinets/AirHockeyTable" unique_id=133524217]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.3)
+
+[node name="CosmicBreakoutCabinet" type="Node3D" parent="Cabinets" unique_id=1198077625]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 7.8, 0.03, 1)
+metadata/cabinet_id = "brick-breaker"
+
+[node name="Model" type="Node3D" parent="Cabinets/CosmicBreakoutCabinet" unique_id=1582033721 instance=ExtResource("2_oh1ap")]
+transform = Transform3D(3.3488371, 0, 0, 0, 3.3488371, 0, 0, 0, 3.3488371, 0, 0, -0.083720945)
+
+[node name="Caption" type="Label3D" parent="Cabinets/CosmicBreakoutCabinet" unique_id=582863889]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.176744, 0.53665113)
+pixel_size = 0.0017860464
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "Cosmic Breakout"
+font_size = 68
+
+[node name="SolidBody" type="StaticBody3D" parent="Cabinets/CosmicBreakoutCabinet" unique_id=73622949]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0.62, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Cabinets/CosmicBreakoutCabinet/SolidBody" unique_id=138012949]
+shape = SubResource("BoxShape3D_32waq")
+
+[node name="InteractHere" type="Marker3D" parent="Cabinets/CosmicBreakoutCabinet" unique_id=504491540]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1920929e-07, 0, 1.8000002)
+
+[node name="BasicSurvivorsCabinet" type="Node3D" parent="Cabinets" unique_id=1358769911]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.8, 0.03, 3.6)
+metadata/cabinet_id = "survivors"
+
+[node name="Model" type="Node3D" parent="Cabinets/BasicSurvivorsCabinet" unique_id=2064015002 instance=ExtResource("2_oh1ap")]
+transform = Transform3D(3.3488371, 0, 0, 0, 3.3488371, 0, 0, 0, 3.3488371, 0, 0, -0.083720945)
+
+[node name="Caption" type="Label3D" parent="Cabinets/BasicSurvivorsCabinet" unique_id=2064524322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.176744, 0.53665113)
+pixel_size = 0.0017860464
+modulate = Color(1, 0.8745098, 0.48235294, 1)
+outline_modulate = Color(0.14117648, 0.23137255, 0.3882353, 1)
+text = "Basic Survivors"
+font_size = 68
+
+[node name="SolidBody" type="StaticBody3D" parent="Cabinets/BasicSurvivorsCabinet" unique_id=1221682396]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0.62, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Cabinets/BasicSurvivorsCabinet/SolidBody" unique_id=457393270]
+shape = SubResource("BoxShape3D_l1jfg")
+
+[node name="InteractHere" type="Marker3D" parent="Cabinets/BasicSurvivorsCabinet" unique_id=295532004]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.8000002)
