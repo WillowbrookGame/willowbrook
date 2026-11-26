@@ -499,6 +499,9 @@ bottom_radius = 0.073
 height = 0.045
 radial_segments = 10
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_BankJobTable"]
+size = Vector3(0.83, 0.605, 0.61)
+
 [node name="BankLayout" type="Node3D" unique_id=902818549]
 script = ExtResource("1_y38kf")
 
@@ -785,6 +788,14 @@ outline_size = 5
 [node name="StationWorkStartBank" type="Node3D" parent="JobStations" unique_id=299630523]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.02, 3.35)
 
+[node name="TableBody" type="StaticBody3D" parent="JobStations/StationWorkStartBank"]
+position = Vector3(0, 0.3025, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="TableCollision" type="CollisionShape3D" parent="JobStations/StationWorkStartBank/TableBody"]
+shape = SubResource("BoxShape3D_BankJobTable")
+
 [node name="TableTop" type="MeshInstance3D" parent="JobStations/StationWorkStartBank" unique_id=1069578323]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0)
 material_override = SubResource("StandardMaterial3D_1g32d")
@@ -847,6 +858,14 @@ mesh = SubResource("CylinderMesh_gtuop")
 
 [node name="StationSortCopper" type="Node3D" parent="JobStations" unique_id=1678682775]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.02, 0.9499985)
+
+[node name="TableBody" type="StaticBody3D" parent="JobStations/StationSortCopper"]
+position = Vector3(0, 0.3025, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="TableCollision" type="CollisionShape3D" parent="JobStations/StationSortCopper/TableBody"]
+shape = SubResource("BoxShape3D_BankJobTable")
 
 [node name="TableTop" type="MeshInstance3D" parent="JobStations/StationSortCopper" unique_id=2124261555]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0)
@@ -911,6 +930,14 @@ mesh = SubResource("CylinderMesh_wu6k0")
 [node name="StationSortSilver" type="Node3D" parent="JobStations" unique_id=29803443]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.02, -2.65)
 
+[node name="TableBody" type="StaticBody3D" parent="JobStations/StationSortSilver"]
+position = Vector3(0, 0.3025, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="TableCollision" type="CollisionShape3D" parent="JobStations/StationSortSilver/TableBody"]
+shape = SubResource("BoxShape3D_BankJobTable")
+
 [node name="TableTop" type="MeshInstance3D" parent="JobStations/StationSortSilver" unique_id=569934466]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0)
 material_override = SubResource("StandardMaterial3D_1g32d")
@@ -974,6 +1001,14 @@ mesh = SubResource("CylinderMesh_5y5u7")
 [node name="StationCountStars" type="Node3D" parent="JobStations" unique_id=1909057519]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.02, -2.65)
 
+[node name="TableBody" type="StaticBody3D" parent="JobStations/StationCountStars"]
+position = Vector3(0, 0.3025, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="TableCollision" type="CollisionShape3D" parent="JobStations/StationCountStars/TableBody"]
+shape = SubResource("BoxShape3D_BankJobTable")
+
 [node name="TableTop" type="MeshInstance3D" parent="JobStations/StationCountStars" unique_id=1759273859]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0)
 material_override = SubResource("StandardMaterial3D_1g32d")
@@ -1036,6 +1071,14 @@ mesh = SubResource("CylinderMesh_vkdqr")
 
 [node name="StationPackCoins" type="Node3D" parent="JobStations" unique_id=1438834040]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.02, 2.35)
+
+[node name="TableBody" type="StaticBody3D" parent="JobStations/StationPackCoins"]
+position = Vector3(0, 0.3025, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="TableCollision" type="CollisionShape3D" parent="JobStations/StationPackCoins/TableBody"]
+shape = SubResource("BoxShape3D_BankJobTable")
 
 [node name="TableTop" type="MeshInstance3D" parent="JobStations/StationPackCoins" unique_id=1213814511]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0)

@@ -87,4 +87,9 @@ func _check_layout(map: Node3D, room: Node3D) -> bool:
 	for prop: Dictionary in props.values():
 		var station: Node3D = prop.ring.get_parent()
 		if not expect(station.get_parent() == group and station.get_node("TableTop").visible and not prop.ring.visible, "Job art or live highlight was not bound to the authored station"): return false
+		var body := station.get_node_or_null("TableBody") as StaticBody3D
+		if not expect(body != null, "Missing Bank table collider"): return false
+		var origin := station.global_position
+		var table_ray := PhysicsRayQueryParameters3D.create(origin+Vector3.UP,origin+Vector3.UP*.1,1)
+		if not expect(space.intersect_ray(table_ray).get("collider") == body, "Bank table collision does not match the visible table"): return false
 	return true
