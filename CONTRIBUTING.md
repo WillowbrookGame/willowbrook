@@ -30,11 +30,12 @@ manual testing; a different clone alone does not isolate Godot's local saves.
 
 Run these from the repository root. Use the Godot 4.7.2 executable in place of
 `godot` if it is not on your PATH (the console executable on Windows).
-Open/import the project once before running the two Godot checks.
+Open/import the project once before running the Godot checks.
 
 ```sh
 godot --headless --path . --script res://game/test_town_editor.gd
 godot --headless --path . --script res://game/test_town_layout.gd
+godot --headless --path . --script res://game/test_fishing_port.gd
 node game/network/browser/test-standalone-runtime.mjs
 ```
 

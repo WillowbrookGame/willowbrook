@@ -32,7 +32,7 @@
 **No PowerShell, Godot, or Node.js installation is needed on the host.**
 Use a 64-bit Intel or AMD Linux machine with Docker Engine and Docker Compose.
 
-1. Download the [Linux Docker bundle from Early Alpha 1](https://github.com/WillowbrookGame/willowbrook/releases/tag/v0.1.0-alpha.1). Choose `willowbrook-linux-x86_64-preview-docs-r2.tar.gz` under **Assets**, not the automatically generated Source code archives.
+1. Download the [recommended Linux Docker bundle](https://github.com/WillowbrookGame/willowbrook/releases/download/v0.1.0-alpha.1/willowbrook-linux-x86_64-preview-docs-r2.tar.gz) from [Early Alpha 1](https://github.com/WillowbrookGame/willowbrook/releases/tag/v0.1.0-alpha.1). Use this updated bundle, not the older preview tarball or the automatically generated source archives.
 2. Extract it to a fresh directory and open a terminal in the extracted `willowbrook/` folder. Run `sha256sum -c SHA256SUMS` before starting.
 3. Follow the [first-start instructions](deploy/DOCKER.md#first-start) to create your owner account, start Willowbrook, and invite players from Parent Desk.
 
@@ -106,6 +106,14 @@ downloaded arcade packs. It excludes two arcade templates whose public-source
 terms are unresolved. Willowbrook's original code is [MIT licensed](LICENSE).
 Bundled art, audio, the engine, and other third-party software keep their own
 terms. See [Licensing](LICENSING.md) before changing what ships.
+
+## Get help or report a problem
+
+- [Get help with Willowbrook](https://github.com/WillowbrookGame/willowbrook/issues/new?template=00-help.yml) for setup, tablets, controls, and hosting questions.
+- [Report a bug](https://github.com/WillowbrookGame/willowbrook/issues/new?template=bug.yml) if something in the game isn't working. Both issue forms are public and require a GitHub account. Leave out children's names, invite codes, logs with private information, save files, and private server addresses.
+- For a security or privacy concern, follow the [Security Policy](SECURITY.md) to report privately. It includes an email option if you cannot use GitHub.
+
+[Discussions](https://github.com/WillowbrookGame/willowbrook/discussions) is for community conversation and sharing what you're building, not for support requests or private reports.
 
 ## Ideas and contributions
 
