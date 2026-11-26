@@ -1,6 +1,6 @@
 extends "res://game/interiors/room.gd"
 
-const VET_ART := preload("res://game/vet/room_art.gd")
+const VET_LAYOUT := preload("res://game/vet/room_layout.tscn")
 const CLERK_PROMPT := "Talk to the vet"
 var _pet_species_index := 0
 
@@ -8,13 +8,10 @@ func _room_title(key: String) -> String:
 	return "Willowbrook Vet" if key == "vet" else ""
 
 func _new_room_art() -> ART:
-	return VET_ART.new()
+	return VET_LAYOUT.instantiate() as ART
 
 func _welcomes_visitors() -> bool:
 	return true
-
-func _fallback_seats() -> Array:
-	return [Vector3(-6,0,1), Vector3(-6,0,3.5)]
 
 func _publishes_sitting() -> bool:
 	return true
