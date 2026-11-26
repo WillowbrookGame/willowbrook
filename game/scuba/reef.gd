@@ -45,7 +45,6 @@ var _bubbles: AudioStreamPlayer
 var _vertical_touches: Dictionary={}
 
 func _ready() -> void:
-	_build_lighting()
 	art=REEF_ART.new()
 	art.name="ReefArt"
 	add_child(art)
@@ -115,26 +114,6 @@ func _fit_dive_gear() -> void:
 	var right:=FIN_RIGHT.instantiate() as Node3D
 	right.name="RightDiveFin"
 	SWIM.attach_wearable(avatar,right,"leg-right",Transform3D(Basis.IDENTITY.scaled(Vector3(.81,.85,.76)),Vector3(-.107,-.02,.112)))
-
-func _build_lighting() -> void:
-	var world:=WorldEnvironment.new()
-	var tone:=Environment.new()
-	tone.background_mode=Environment.BG_COLOR
-	tone.background_color=Color("#126678")
-	tone.ambient_light_source=Environment.AMBIENT_SOURCE_COLOR
-	tone.ambient_light_color=Color("#a6e7ed")
-	tone.ambient_light_energy=.72
-	tone.fog_enabled=true
-	tone.fog_light_color=Color("#23798e")
-	tone.fog_density=.038
-	tone.fog_sky_affect=0.0
-	world.environment=tone
-	add_child(world)
-	var light:=DirectionalLight3D.new()
-	light.rotation_degrees=Vector3(-57,-27,0)
-	light.light_color=Color("#b8ffed")
-	light.light_energy=1.15
-	add_child(light)
 
 func _button(title: String) -> Button:
 	var b:=Button.new()
