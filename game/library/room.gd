@@ -20,9 +20,6 @@ func _new_room_art() -> ART:
 func _welcomes_visitors() -> bool:
 	return true
 
-func _fallback_seats() -> Array:
-	return [art.get_node("LeftReadingChair").position,art.get_node("RightReadingChair").position]
-
 func _publishes_sitting() -> bool:
 	return true
 
