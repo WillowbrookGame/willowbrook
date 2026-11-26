@@ -4,6 +4,11 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createPreviewJobs} from './job_progress_preview.mjs';
+if (process.argv.length !== 4 || resolve(process.argv[2]) === resolve(process.argv[3])) {
+ console.error('Usage: node game/network/browser/test-missing-starters.mjs <old-runtime-dir> <fixed-runtime-dir>');
+ console.error('Use two different runtime snapshots: one known to reproduce the starter-checklist bug, and one with the fix.');
+ process.exit(2);
+}
 const to=dir=>file=>import(pathToFileURL(join(resolve(dir),file)).href);
 const old=to(process.argv[2]), fixed=to(process.argv[3]);
 const [{makeStore:oldStore},{makeStore:newStore},{businessDefinitions},{employerFor},jobTaskRules,starterRules]=await Promise.all([old('world-store.mjs'),fixed('world-store.mjs'),fixed('public/business-interiors.js'),fixed('public/employers.js'),fixed('public/job-tasks.js'),fixed('public/starter-quests.js')]);

@@ -9,8 +9,12 @@ import {once} from 'node:events';
 import {startLocalServer} from './server.mjs';
 import {createHoopsScores} from './hoops_scores_preview.mjs';
 
+if (process.argv.length !== 3) {
+ console.error('Usage: node game/network/browser/test_b2_combined_restore.mjs <standalone-runtime-dir>');
+ process.exit(2);
+}
 const source=resolve(process.argv[2]);
-const {WebSocket}=createRequire(join(source,'package.json'))('ws');
+const {WebSocket}=createRequire(join(source,'package.json'))('./vendor/ws');
 const accountsDir=await mkdtemp(join(tmpdir(),'willowbrook-hoops-qa-'));
 const seedAccounts=[{username:'qa_hoops_1',password:'fixture-a-only'},{username:'qa_hoops_2',password:'fixture-b-only'}];
 const realNow=Date.now;
