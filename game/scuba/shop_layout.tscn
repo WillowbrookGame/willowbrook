@@ -1,0 +1,360 @@
+[gd_scene format=4]
+
+[ext_resource type="PackedScene" path="res://game/beach_art/beach-shops/dive-shop.glb" id="1_aysnh"]
+[ext_resource type="PackedScene" path="res://game/interiors/art/kenney-furniture/rugRectangle.glb" id="2_ped87"]
+[ext_resource type="PackedScene" path="res://game/interiors/art/kenney-furniture/desk.glb" id="3_8uig0"]
+[ext_resource type="PackedScene" path="res://game/interiors/art/kenney-furniture/books.glb" id="4_ab4vh"]
+[ext_resource type="PackedScene" path="res://game/interiors/art/kenney-furniture/pottedPlant.glb" id="5_pdcet"]
+[ext_resource type="PackedScene" path="res://game/interiors/art/kenney-furniture/chairCushion.glb" id="6_kfw7g"]
+[ext_resource type="PackedScene" path="res://game/interiors/art/kenney-mini/character-male-a.glb" id="7_olhwn"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/diver-equipment-bench.glb" id="8_45had"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/dive-mask.glb" id="9_5p3lf"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/dive-fin-left.glb" id="10_j2t01"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/dive-fin-right.glb" id="11_col7o"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/underwater-camera-housing.glb" id="12_rqys5"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/twin-scuba-tank-rig.glb" id="13_iqh3m"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xk5x5"]
+size = Vector3(10.1, 0.3, 8.15)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_i2sjd"]
+size = Vector3(0.22, 3.4, 7.86)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cuuga"]
+size = Vector3(0.22, 3.4, 7.86)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_alskp"]
+size = Vector3(10.1, 3.4, 0.22)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_w4ukk"]
+size = Vector3(5.18, 3.4, 0.18)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8hxgx"]
+size = Vector3(0.74, 3.4, 0.18)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vemql"]
+size = Vector3(10.1, 3.4, 0.18)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k5v57"]
+size = Vector3(10.1, 3.4, 0.12)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_sb65i"]
+size = Vector3(0.65, 2.2, 1.84)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_i52nx"]
+size = Vector3(2.35, 1.03, 0.83)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_jlkim"]
+size = Vector3(0.77, 0.96, 0.78)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_x4dik"]
+size = Vector3(0.77, 0.96, 0.78)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ipwws"]
+size = Vector3(0.56, 1.44, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_r8unu"]
+size = Vector3(2.5, 1.4, 1.13)
+
+[node name="DiveShopLayout" type="Node3D" unique_id=1613725881]
+
+[node name="RoomStructure" type="Node3D" parent="." unique_id=1642565346]
+
+[node name="ShopModel" parent="RoomStructure" unique_id=82104760 instance=ExtResource("1_aysnh")]
+transform = Transform3D(0.49, 0, 0, 0, 0.39, 0, 0, 0, 0.56, 0, -0.77, -0.33)
+
+[node name="Door" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="0" unique_id=1663165846]
+visible = false
+
+[node name="Hangers" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="1" unique_id=652259704]
+visible = false
+
+[node name="Roof" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="2" unique_id=1769634547]
+visible = false
+
+[node name="Shutter" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="4" unique_id=1095159560]
+visible = false
+
+[node name="Surfboard_1" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="5" unique_id=1567188434]
+visible = false
+
+[node name="Surfboard_2" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="6" unique_id=325831818]
+visible = false
+
+[node name="Surfboard_3" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="7" unique_id=667924506]
+visible = false
+
+[node name="Surfboard_4" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="8" unique_id=1295582119]
+visible = false
+
+[node name="Surfboard_5" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="9" unique_id=1911353921]
+visible = false
+
+[node name="SurfRack" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="10" unique_id=1645663191]
+visible = false
+
+[node name="Wetsuit_1" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="11" unique_id=1369340848]
+visible = false
+
+[node name="Wetsuit_2" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="12" unique_id=713525210]
+visible = false
+
+[node name="Wetsuit_3" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="13" unique_id=604717615]
+visible = false
+
+[node name="WetsuitRack" parent="RoomStructure/ShopModel/SurfShop" parent_id_path=PackedInt32Array(82104760, 1341795123) index="14" unique_id=830695304]
+visible = false
+
+[node name="FloorBody" type="StaticBody3D" parent="RoomStructure" unique_id=670407065]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, -0.27)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RoomStructure/FloorBody" unique_id=392227362]
+shape = SubResource("BoxShape3D_xk5x5")
+
+[node name="LeftWallBody" type="StaticBody3D" parent="RoomStructure" unique_id=1639850194]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.9, 1.7, -0.53)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RoomStructure/LeftWallBody" unique_id=1859586675]
+shape = SubResource("BoxShape3D_i2sjd")
+
+[node name="RightWallBody" type="StaticBody3D" parent="RoomStructure" unique_id=233022280]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9, 1.7, -0.53)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RoomStructure/RightWallBody" unique_id=991587870]
+shape = SubResource("BoxShape3D_cuuga")
+
+[node name="BackWallBody" type="StaticBody3D" parent="RoomStructure" unique_id=278737641]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, -3.33)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RoomStructure/BackWallBody" unique_id=1803338525]
+shape = SubResource("BoxShape3D_alskp")
+
+[node name="FrontLeftWallBody" type="StaticBody3D" parent="RoomStructure" unique_id=1069636139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.34, 1.7, 1.93)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RoomStructure/FrontLeftWallBody" unique_id=565036160]
+shape = SubResource("BoxShape3D_w4ukk")
+
+[node name="FrontRightWallBody" type="StaticBody3D" parent="RoomStructure" unique_id=505938752]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.53, 1.7, 1.93)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RoomStructure/FrontRightWallBody" unique_id=398798359]
+shape = SubResource("BoxShape3D_8hxgx")
+
+[node name="RearLimitBody" type="StaticBody3D" parent="RoomStructure" unique_id=1715315714]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 3.65)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RoomStructure/RearLimitBody" unique_id=921589539]
+shape = SubResource("BoxShape3D_vemql")
+
+[node name="CameraBarrier" type="StaticBody3D" parent="RoomStructure" unique_id=1352697943]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 1.46)
+collision_layer = 4
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="RoomStructure/CameraBarrier" unique_id=1730271080]
+shape = SubResource("BoxShape3D_k5v57")
+
+[node name="WetsuitDisplay" type="Node3D" parent="." unique_id=242490839]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.49, 0, 0.02)
+
+[node name="RackModel" parent="WetsuitDisplay" unique_id=960235325 instance=ExtResource("1_aysnh")]
+transform = Transform3D(-1.57361e-08, 0, -0.36, 0, 0.36, 0, 0.36, 0, -1.57361e-08, 0, 0, 0)
+
+[node name="Door" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="0" unique_id=1663165846]
+visible = false
+
+[node name="Hangers" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="1" unique_id=652259704]
+visible = false
+
+[node name="Roof" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="2" unique_id=1769634547]
+visible = false
+
+[node name="Shack" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="3" unique_id=272984491]
+visible = false
+
+[node name="Shutter" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="4" unique_id=1095159560]
+visible = false
+
+[node name="Surfboard_1" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="5" unique_id=1567188434]
+visible = false
+
+[node name="Surfboard_2" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="6" unique_id=325831818]
+visible = false
+
+[node name="Surfboard_3" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="7" unique_id=667924506]
+visible = false
+
+[node name="Surfboard_4" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="8" unique_id=1295582119]
+visible = false
+
+[node name="Surfboard_5" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="9" unique_id=1911353921]
+visible = false
+
+[node name="SurfRack" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="10" unique_id=1645663191]
+visible = false
+
+[node name="Wetsuit_1" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="11" unique_id=1369340848]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1499996, 1.0999999, 0.25)
+
+[node name="Wetsuit_2" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="12" unique_id=713525210]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1500006, 1.0999999, 0.25)
+
+[node name="Wetsuit_3" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="13" unique_id=604717615]
+visible = false
+
+[node name="WetsuitRack" parent="WetsuitDisplay/RackModel/SurfShop" parent_id_path=PackedInt32Array(960235325, 1341795123) index="14" unique_id=830695304]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.2, -0.7, -7)
+
+[node name="SolidBody" type="StaticBody3D" parent="WetsuitDisplay" unique_id=1308315904]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03999996, 1.1, 0.01)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="WetsuitDisplay/SolidBody" unique_id=1223844496]
+shape = SubResource("BoxShape3D_sb65i")
+
+[node name="Rug" type="Node3D" parent="." unique_id=2021492605]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.48, 0.055, 0.19)
+
+[node name="rugRectangle" type="Node3D" parent="Rug" unique_id=2102278538 instance=ExtResource("2_ped87")]
+transform = Transform3D(1.3694268, 0, 0, 0, 2.4975028, 0, 0, 0, 1.5978261, -1.075, 0, 0.735)
+
+[node name="ReceptionDesk" type="Node3D" parent="." unique_id=96568975]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.83, 0, -1.63)
+
+[node name="desk" type="Node3D" parent="ReceptionDesk" unique_id=1788833262 instance=ExtResource("3_8uig0")]
+transform = Transform3D(3.1995623, 0, 0, 0, 2.679448, 0, 0, 0, 2.115728, -1.1430044, 0, 0.3889766)
+
+[node name="SolidBody" type="StaticBody3D" parent="ReceptionDesk" unique_id=2062427542]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.515, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="ReceptionDesk/SolidBody" unique_id=143018678]
+shape = SubResource("BoxShape3D_i52nx")
+
+[node name="DeskBooks" type="Node3D" parent="ReceptionDesk" unique_id=862983338]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.59000003, 1.04, 0.049999952)
+
+[node name="books" type="Node3D" parent="ReceptionDesk/DeskBooks" unique_id=1776119075 instance=ExtResource("4_ab4vh")]
+transform = Transform3D(2.2599232, 0, 0, 0, 1.1549315, 0, 0, 0, 3.2804234, -0.17, 0, 0.155)
+
+[node name="Plant" type="Node3D" parent="." unique_id=1186863375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.44, 0, -2.88)
+
+[node name="pottedPlant" type="Node3D" parent="Plant" unique_id=1214857216 instance=ExtResource("5_pdcet")]
+transform = Transform3D(2.7350843, 0, 0, 0, 2.018297, 0, 0, 0, 2.4020348, 3.056695e-07, 0, 2.326552e-07)
+
+[node name="NearChair" type="Node3D" parent="." unique_id=1581464236]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.43, 0, 0.28)
+
+[node name="chairCushion" type="Node3D" parent="NearChair" unique_id=398091261 instance=ExtResource("6_kfw7g")]
+transform = Transform3D(3.85, 0, 0, 0, 2.0869565, 0, 0, 0, 3.8999999, -0.385, 0, 0.39)
+
+[node name="SolidBody" type="StaticBody3D" parent="NearChair" unique_id=1863416036]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.48, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="NearChair/SolidBody" unique_id=550530954]
+shape = SubResource("BoxShape3D_jlkim")
+
+[node name="FarChair" type="Node3D" parent="." unique_id=748305225]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.43, 0, -0.77)
+
+[node name="chairCushion" type="Node3D" parent="FarChair" unique_id=499852473 instance=ExtResource("6_kfw7g")]
+transform = Transform3D(3.85, 0, 0, 0, 2.0869565, 0, 0, 0, 3.8999999, -0.385, 0, 0.39)
+
+[node name="SolidBody" type="StaticBody3D" parent="FarChair" unique_id=2034833871]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.48, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="FarChair/SolidBody" unique_id=619288582]
+shape = SubResource("BoxShape3D_x4dik")
+
+[node name="DiveTripsSign" type="Label3D" parent="." unique_id=2055498667]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.83, 2.68, -3.23)
+text = "DIVE TRIPS"
+font_size = 28
+outline_size = 5
+
+[node name="GearCheckSign" type="Label3D" parent="." unique_id=1012094185]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3, 2.27, -3.23)
+text = "GEAR CHECK"
+font_size = 26
+outline_size = 5
+
+[node name="DiveMaster" type="Node3D" parent="." unique_id=108135153]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.84, 0, -2.46)
+
+[node name="character-male-a2" type="Node3D" parent="DiveMaster" unique_id=312270891 instance=ExtResource("7_olhwn")]
+transform = Transform3D(2.4280345, 0, 0, 0, 2.4280345, 0, 0, 0, 2.4280345, 0, -2.5326375e-07, 0.0057333484)
+
+[node name="DiveMasterNameplate" type="Label3D" parent="DiveMaster" unique_id=1734602375]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.92, 0)
+billboard = 1
+text = "Dive Master"
+font_size = 34
+outline_size = 5
+
+[node name="SolidBody" type="StaticBody3D" parent="DiveMaster" unique_id=471709063]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="DiveMaster/SolidBody" unique_id=1353042196]
+shape = SubResource("BoxShape3D_ipwws")
+
+[node name="EquipmentBench" type="Node3D" parent="." unique_id=1579487263]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.3, 0, -2.68)
+
+[node name="diver-equipment-bench2" type="Node3D" parent="EquipmentBench" unique_id=803806460 instance=ExtResource("8_45had")]
+transform = Transform3D(1.4285715, 0, 0, 0, 1.4285715, 0, 0, 0, 1.4285715, 0, 3.8221056e-05, 0)
+
+[node name="SolidBody" type="StaticBody3D" parent="EquipmentBench" unique_id=21861172]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+collision_layer = 3
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="EquipmentBench/SolidBody" unique_id=1822115504]
+shape = SubResource("BoxShape3D_r8unu")
+
+[node name="DiveMask" type="Node3D" parent="EquipmentBench" unique_id=2147106493 instance=ExtResource("9_5p3lf")]
+transform = Transform3D(0.837856, 0, 0, 0, 0.837856, 0, 0, 0, 0.837856, 0.09000015, 1.3639957, 0.28979564)
+
+[node name="LeftFin" type="Node3D" parent="EquipmentBench" unique_id=292298190 instance=ExtResource("10_j2t01")]
+transform = Transform3D(0.6407736, 0, 0, 0, 0.6407736, 0, 0, 0, 0.6407736, -0.8007772, 1.363996, 0.18767118)
+
+[node name="RightFin" type="Node3D" parent="EquipmentBench" unique_id=2025824800 instance=ExtResource("11_col7o")]
+transform = Transform3D(0.6407736, 0, 0, 0, 0.6407736, 0, 0, 0, 0.6407736, -0.58922267, 1.363996, 0.18767118)
+
+[node name="UnderwaterCamera" type="Node3D" parent="EquipmentBench" unique_id=172814428 instance=ExtResource("12_rqys5")]
+transform = Transform3D(0.8391608, 0, 0, 0, 0.8391608, 0, 0, 0, 0.8391608, 0.76, 1.3639882, 0.15916657)
+
+[node name="ScubaTanks" type="Node3D" parent="." unique_id=1038836925 instance=ExtResource("13_iqh3m")]
+transform = Transform3D(0.9211508, 0, 0, 0, 0.9211508, 0, 0, 0, 0.9211508, 3.3924053, 0, -1.8444164)
+
+[node name="RoomFill" type="OmniLight3D" parent="." unique_id=2106420943]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38, 3.2, -0.55)
+light_color = Color(0.8509804, 0.9372549, 1, 1)
+light_energy = 0.52
+omni_range = 7.4
+
+[editable path="RoomStructure/ShopModel"]
+[editable path="WetsuitDisplay/RackModel"]

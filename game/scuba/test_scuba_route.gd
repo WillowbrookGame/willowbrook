@@ -24,7 +24,8 @@ func _button(parent: Node, text: String) -> Button:
 
 
 func _run() -> void:
-	set_meta("willowbrook_save_override", "user://scuba-route-disposable.cfg")
+	set_meta("willowbrook_save_override", "")
+	set_meta("fishing_save_override", "")
 	if change_scene_to_file(BEACH) != OK:
 		quit(1)
 		return
@@ -42,6 +43,9 @@ func _run() -> void:
 	_check(shop._camera_collision_mask == 5 and is_equal_approx(shop._camera_tight_enter, 2.25) and is_equal_approx(shop._camera_tight_leave, 2.68), "Dive Shop camera tuning changed")
 	_check(shop.player.position.distance_to(Vector3(2.11, .04, .54)) < .15, "Dive Shop spawn changed")
 	_check(is_equal_approx(shop.look_yaw, .65), "Dive Shop arrival heading changed")
+	await physics_frame
+	await physics_frame
+	_check_layout(shop.room)
 	shop.player.position = Vector3(-1.5, .04, 0)
 	shop._interact()
 	if not shop.room.is_modal_open():
@@ -81,3 +85,21 @@ func _run() -> void:
 	if failures == 0:
 		print("PASS: Island entry, Dive Master dialogue, departure audio and five-second floor, Reef and return")
 	quit(1 if failures else 0)
+
+func _check_layout(room: Node3D) -> void:
+	var layout := room.get_node("DiveShopLayout") as Node3D
+	_check(layout.scene_file_path == "res://game/scuba/shop_layout.tscn", "Dive Shop did not use editable layout")
+	_check(room._actor == layout.get_node("DiveMaster"), "Dialogue not attached to the authored Dive Master")
+	var shell := layout.get_node("RoomStructure/ShopModel/SurfShop")
+	_check(shell.get_node("Shack").visible and not shell.get_node("Roof").visible and not shell.get_node("WetsuitRack").visible, "Shop shell did not retain the interior visibility rules")
+	var display := layout.get_node("WetsuitDisplay/RackModel/SurfShop")
+	_check(display.get_node("WetsuitRack").visible and display.get_node("Wetsuit_1").visible and display.get_node("Wetsuit_2").visible and not display.get_node("Shack").visible, "Wetsuit shop display did not retain the original pieces")
+	var bench := layout.get_node("EquipmentBench") as Node3D
+	_check(bench.has_node("DiveMask") and bench.has_node("LeftFin") and bench.has_node("RightFin") and bench.has_node("UnderwaterCamera"), "Dive gear does not move with the bench")
+	var moved := "--relocated" in OS.get_cmdline_user_args()
+	_check(is_equal_approx(bench.position.z, -2.93 if moved else -2.68), "The saved bench position did not reach gameplay")
+	var ray := PhysicsRayQueryParameters3D.create(Vector3(2.3,.7,-1.8),Vector3(2.3,.7,-3.4),1)
+	var hit := bench.get_world_3d().direct_space_state.intersect_ray(ray)
+	_check(hit.get("collider") == bench.get_node("SolidBody"), "Dive bench collider missing")
+	if hit.get("collider") == bench.get_node("SolidBody"):
+		_check(absf(hit.position.z - (-2.365 if moved else -2.115)) < .008, "Dive bench collision did not move with its authored model")
