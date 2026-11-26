@@ -140,9 +140,7 @@ func _build_prop(spot: Dictionary) -> void:
 		props[key].ids.append(spot.id)
 		return
 	var station_name := "Station"+str(spot.id).to_pascal_case()
-	var contents: Node3D
-	if zone == "vet":
-		contents = art.get_node_or_null(NodePath("JobStations/"+station_name)) as Node3D
+	var contents := art.get_node_or_null(NodePath("JobStations/"+station_name)) as Node3D
 	if contents == null:
 		contents = Node3D.new()
 		contents.name = station_name
