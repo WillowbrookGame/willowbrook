@@ -4,6 +4,10 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createPreviewPets} from './pet_progress_preview.mjs';
+if (process.argv.length !== 3) {
+ console.error('Usage: node game/network/browser/test_bank_progress_preview.mjs <standalone-runtime-dir>');
+ process.exit(2);
+}
 const {makeStore}=await import(pathToFileURL(resolve(process.argv[2],'world-store.mjs')).href);
 const dir=await mkdtemp(join(tmpdir(),'willowbrook-bank-test-'));
 try{
