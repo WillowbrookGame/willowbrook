@@ -1,0 +1,339 @@
+[gd_scene format=4]
+
+[ext_resource type="PackedScene" path="res://game/arcade/kenney-mini-arcade/floor.glb" id="1_vmboy"]
+[ext_resource type="Texture2D" path="res://game/beach_art/beach-nature/sand-color.png" id="2_tawut"]
+[ext_resource type="Texture2D" path="res://game/arcade/kenney-mini-arcade/Textures/colormap.png" id="3_124dh"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/reef-spur.glb" id="4_iynux"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/sea-fan.glb" id="5_djxpg"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/barrel-sponge.glb" id="6_kyemn"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/swim-through-arch.glb" id="7_lrrsb"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/reef-wall-straight.glb" id="8_cws0g"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/reef-wall-corner.glb" id="9_g7c11"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/reef-wall-overhang.glb" id="10_nax52"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/wreck-cockpit-section.glb" id="11_wqa8a"]
+[ext_resource type="PackedScene" path="res://game/town_assets/scuba-starter/torn-wing-section.glb" id="12_mwojc"]
+[ext_resource type="PackedScene" path="res://game/town_assets/kenney-nature/rock_smallA.glb" id="13_fdyyd"]
+
+[sub_resource type="Environment" id="Environment_frq3c"]
+background_mode = 1
+background_color = Color(0.07058824, 0.4, 0.47058824, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6509804, 0.90588236, 0.92941177, 1)
+ambient_light_energy = 0.72
+fog_enabled = true
+fog_light_color = Color(0.13725491, 0.4745098, 0.5568628, 1)
+fog_density = 0.038
+fog_sky_affect = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3m32j"]
+albedo_color = Color(0.81960785, 0.7294118, 0.6313726, 1)
+albedo_texture = ExtResource("2_tawut")
+uv1_scale = Vector3(12, 7, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8qv00"]
+resource_name = "colormap"
+cull_mode = 2
+albedo_texture = ExtResource("3_124dh")
+texture_filter = 2
+metadata/_gltf_primary_texture_coord = 0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ku7e3"]
+size = Vector3(1.15, 3.7, 1.7)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_2qtyx"]
+size = Vector3(1.15, 3.7, 1.7)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_oul1s"]
+size = Vector3(4.4, 1.05, 1.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_noxg7"]
+size = Vector3(5.0750003, 2.4650002, 1.595)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fn06r"]
+size = Vector3(5.9500003, 2.89, 1.8700001)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_y2ik3"]
+size = Vector3(5.4249997, 2.635, 1.705)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yyxm7"]
+size = Vector3(3.5, 2.35, 4.1)
+
+[node name="ReefLayout" type="Node3D" unique_id=2111915983]
+
+[node name="UnderwaterEnvironment" type="WorldEnvironment" parent="." unique_id=1487874116]
+environment = SubResource("Environment_frq3c")
+
+[node name="Sunlight" type="DirectionalLight3D" parent="." unique_id=906357003]
+transform = Transform3D(0.8910065, 0.38074845, -0.24726094, 0, 0.54463905, 0.83867055, 0.4539905, -0.7472609, 0.48527694, 0, 0, 0)
+light_color = Color(0.72156864, 1, 0.92941177, 1)
+light_energy = 1.15
+
+[node name="Seabed" type="Node3D" parent="." unique_id=310814111]
+
+[node name="Shallows" type="Node3D" parent="Seabed" unique_id=458038196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -6.4, 18)
+
+[node name="Model" parent="Seabed/Shallows" unique_id=1261674275 instance=ExtResource("1_vmboy")]
+transform = Transform3D(62, 0, 0, 0, 0.1, 0, 0, 0, 20, 0, 0, 0)
+
+[node name="floor" parent="Seabed/Shallows/Model" index="0" unique_id=1309205706]
+material_override = SubResource("StandardMaterial3D_3m32j")
+cast_shadow = 0
+
+[node name="Slope" type="Node3D" parent="Seabed" unique_id=809319825]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -11.9, -3)
+
+[node name="Model" parent="Seabed/Slope" unique_id=423896491 instance=ExtResource("1_vmboy")]
+transform = Transform3D(62, 0, 0, 0, 0.08944272, 11, 0, -0.04472136, 22, 0, 0, 0)
+
+[node name="floor" parent="Seabed/Slope/Model" index="0" unique_id=1309205706]
+material_override = SubResource("StandardMaterial3D_3m32j")
+cast_shadow = 0
+
+[node name="DeepSand" type="Node3D" parent="Seabed" unique_id=970712344]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -17.4, -21)
+
+[node name="Model" parent="Seabed/DeepSand" unique_id=830326412 instance=ExtResource("1_vmboy")]
+transform = Transform3D(62, 0, 0, 0, 0.1, 0, 0, 0, 14, 0, 0, 0)
+
+[node name="floor" parent="Seabed/DeepSand/Model" index="0" unique_id=1309205706]
+material_override = SubResource("StandardMaterial3D_3m32j")
+cast_shadow = 0
+
+[node name="Coral" type="Node3D" parent="." unique_id=1756821991]
+
+[node name="SpurWestShallows" type="Node3D" parent="Coral" unique_id=1958993597]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, -6.4, 13)
+
+[node name="Model" type="Node3D" parent="Coral/SpurWestShallows" unique_id=2022498670 instance=ExtResource("4_iynux")]
+transform = Transform3D(1.0592201, 0, 0.44783106, 0, 1.15, 0, -0.44783106, 0, 1.0592201, 0, 0, 0)
+metadata/art_source = "reef-spur.glb"
+
+[node name="SpurEastShallows" type="Node3D" parent="Coral" unique_id=1249611262]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, -6.4, 12)
+
+[node name="Model" type="Node3D" parent="Coral/SpurEastShallows" unique_id=1572120321 instance=ExtResource("4_iynux")]
+transform = Transform3D(0.9951048, 0, -0.756483, 0, 1.25, 0, 0.756483, 0, 0.9951048, 0, 0, 0)
+metadata/art_source = "reef-spur.glb"
+
+[node name="SpurWest" type="Node3D" parent="Coral" unique_id=15589775]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, -8.4, 4)
+
+[node name="Model" type="Node3D" parent="Coral/SpurWest" unique_id=925226266 instance=ExtResource("4_iynux")]
+transform = Transform3D(1.0564296, 0, -0.7227424, 0, 1.28, 0, 0.7227424, 0, 1.0564296, 0, 0, 0)
+metadata/art_source = "reef-spur.glb"
+
+[node name="SpurEast" type="Node3D" parent="Coral" unique_id=885507388]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, -11.4, -2)
+
+[node name="Model" type="Node3D" parent="Coral/SpurEast" unique_id=2064778759 instance=ExtResource("4_iynux")]
+transform = Transform3D(0.8708834, 0, -0.89669514, 0, 1.25, 0, 0.89669514, 0, 0.8708834, 0, 0, 0)
+metadata/art_source = "reef-spur.glb"
+
+[node name="FanWestShallows" type="Node3D" parent="Coral" unique_id=52288535]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -7.9, 5)
+
+[node name="Model" type="Node3D" parent="Coral/FanWestShallows" unique_id=2056729412 instance=ExtResource("5_djxpg")]
+transform = Transform3D(0.50752246, 0, 0.88477165, 0, 1.02, 0, -0.88477165, 0, 0.50752246, 0, 0, 0)
+metadata/art_source = "sea-fan.glb"
+
+[node name="FanEastShallows" type="Node3D" parent="Coral" unique_id=253348848]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, -7.4, 6)
+
+[node name="Model" type="Node3D" parent="Coral/FanEastShallows" unique_id=789698421 instance=ExtResource("5_djxpg")]
+transform = Transform3D(0.97713184, 0, -0.46001464, 0, 1.08, 0, 0.46001464, 0, 0.97713184, 0, 0, 0)
+metadata/art_source = "sea-fan.glb"
+
+[node name="FanWest" type="Node3D" parent="Coral" unique_id=63381713]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -11.4, -2)
+
+[node name="Model" type="Node3D" parent="Coral/FanWest" unique_id=2127181836 instance=ExtResource("5_djxpg")]
+transform = Transform3D(0.8234003, 0, 0.49357057, 0, 0.96, 0, -0.49357057, 0, 0.8234003, 0, 0, 0)
+metadata/art_source = "sea-fan.glb"
+
+[node name="FanEast" type="Node3D" parent="Coral" unique_id=1463306478]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -13.4, -6)
+
+[node name="Model" type="Node3D" parent="Coral/FanEast" unique_id=1384073825 instance=ExtResource("5_djxpg")]
+transform = Transform3D(0.5999849, 0, -0.5589438, 0, 0.82, 0, 0.5589438, 0, 0.5999849, 0, 0, 0)
+metadata/art_source = "sea-fan.glb"
+
+[node name="SpongeWestShallows" type="Node3D" parent="Coral" unique_id=879332958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -6.4, 17)
+
+[node name="Model" type="Node3D" parent="Coral/SpongeWestShallows" unique_id=905731265 instance=ExtResource("6_kyemn")]
+transform = Transform3D(0.81053364, 0, 0.34268814, 0, 0.88, 0, -0.34268814, 0, 0.81053364, 0, 0, 0)
+metadata/art_source = "barrel-sponge.glb"
+
+[node name="SpongeEastShallows" type="Node3D" parent="Coral" unique_id=936515729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -6.4, 17)
+
+[node name="Model" type="Node3D" parent="Coral/SpongeEastShallows" unique_id=840637291 instance=ExtResource("6_kyemn")]
+transform = Transform3D(0.7803115, 0, 0.80343884, 0, 1.12, 0, -0.80343884, 0, 0.7803115, 0, 0, 0)
+metadata/art_source = "barrel-sponge.glb"
+
+[node name="SpongeWest" type="Node3D" parent="Coral" unique_id=47080695]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -10.4, 0)
+
+[node name="Model" type="Node3D" parent="Coral/SpongeWest" unique_id=1409208251 instance=ExtResource("6_kyemn")]
+transform = Transform3D(0.8789096, 0, -0.2718786, 0, 0.92, 0, 0.2718786, 0, 0.8789096, 0, 0, 0)
+metadata/art_source = "barrel-sponge.glb"
+
+[node name="SpongeEast" type="Node3D" parent="Coral" unique_id=1815450796]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, -12.4, -4)
+
+[node name="Model" type="Node3D" parent="Coral/SpongeEast" unique_id=1271092797 instance=ExtResource("6_kyemn")]
+transform = Transform3D(1.086852, 0, 0.4595136, 0, 1.18, 0, -0.4595136, 0, 1.086852, 0, 0, 0)
+metadata/art_source = "barrel-sponge.glb"
+
+[node name="SpongeDeep" type="Node3D" parent="Coral" unique_id=1711534822]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, -17.4, -21)
+
+[node name="Model" type="Node3D" parent="Coral/SpongeDeep" unique_id=2337505 instance=ExtResource("6_kyemn")]
+transform = Transform3D(1.1973792, 0, 0.5062438, 0, 1.3, 0, -0.5062438, 0, 1.1973792, 0, 0, 0)
+metadata/art_source = "barrel-sponge.glb"
+
+[node name="Gate" type="Node3D" parent="." unique_id=1846426544]
+
+[node name="CoralArch" type="Node3D" parent="Gate" unique_id=514148982]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -11, -5.7)
+
+[node name="Model" type="Node3D" parent="Gate/CoralArch" unique_id=8706050 instance=ExtResource("7_lrrsb")]
+transform = Transform3D(2.05, 0, 0, 0, 2.05, 0, 0, 0, 2.05, 0, 0, 0)
+metadata/art_source = "swim-through-arch.glb"
+
+[node name="LeftSupport" type="StaticBody3D" parent="Gate/CoralArch" unique_id=1145669761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.36, 2, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Gate/CoralArch/LeftSupport" unique_id=1752327072]
+shape = SubResource("BoxShape3D_ku7e3")
+
+[node name="RightSupport" type="StaticBody3D" parent="Gate/CoralArch" unique_id=513102875]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.36, 2, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Gate/CoralArch/RightSupport" unique_id=937624508]
+shape = SubResource("BoxShape3D_2qtyx")
+
+[node name="Lintel" type="StaticBody3D" parent="Gate/CoralArch" unique_id=1085022051]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.5, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Gate/CoralArch/Lintel" unique_id=1594255672]
+shape = SubResource("BoxShape3D_oul1s")
+
+[node name="Walls" type="Node3D" parent="." unique_id=79464573]
+
+[node name="WestReefWall" type="Node3D" parent="Walls" unique_id=1629290649]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, -14.9, -9)
+
+[node name="Model" type="Node3D" parent="Walls/WestReefWall" unique_id=364740591 instance=ExtResource("8_cws0g")]
+transform = Transform3D(0.59230685, 0, 1.3235078, 0, 1.45, 0, -1.3235078, 0, 0.59230685, 0, 0, 0)
+metadata/art_source = "reef-wall-straight.glb"
+
+[node name="SolidBody" type="StaticBody3D" parent="Walls/WestReefWall" unique_id=1507365932]
+transform = Transform3D(0.40848747, 0, 0.91276395, 0, 1, 0, -0.91276395, 0, 0.40848747, 0, 1.4499998, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Walls/WestReefWall/SolidBody" unique_id=143120187]
+shape = SubResource("BoxShape3D_noxg7")
+
+[node name="EastReefWall" type="Node3D" parent="Walls" unique_id=612165883]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, -15.9, -11)
+
+[node name="Model" type="Node3D" parent="Walls/EastReefWall" unique_id=1411339080 instance=ExtResource("8_cws0g")]
+transform = Transform3D(0.9469383, 0, -1.4118456, 0, 1.7, 0, 1.4118456, 0, 0.9469383, 0, 0, 0)
+metadata/art_source = "reef-wall-straight.glb"
+
+[node name="SolidBody" type="StaticBody3D" parent="Walls/EastReefWall" unique_id=328869100]
+transform = Transform3D(0.5570225, 0, -0.8304974, 0, 1, 0, 0.8304974, 0, 0.5570225, 0, 1.6999998, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Walls/EastReefWall/SolidBody" unique_id=1183332836]
+shape = SubResource("BoxShape3D_fn06r")
+
+[node name="DeepReefWall" type="Node3D" parent="Walls" unique_id=73223958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, -17.4, -23)
+
+[node name="Model" type="Node3D" parent="Walls/DeepReefWall" unique_id=713175557 instance=ExtResource("8_cws0g")]
+transform = Transform3D(1.2244879, 0, -0.9503311, 0, 1.55, 0, 0.9503311, 0, 1.2244879, 0, 0, 0)
+metadata/art_source = "reef-wall-straight.glb"
+
+[node name="SolidBody" type="StaticBody3D" parent="Walls/DeepReefWall" unique_id=698136795]
+transform = Transform3D(0.7899922, 0, -0.61311686, 0, 1, 0, 0.61311686, 0, 0.7899922, 0, 1.5499992, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Walls/DeepReefWall/SolidBody" unique_id=746410750]
+shape = SubResource("BoxShape3D_y2ik3")
+
+[node name="WestCorner" type="Node3D" parent="Walls" unique_id=11462025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, -17.4, -22)
+
+[node name="Model" type="Node3D" parent="Walls/WestCorner" unique_id=28656435 instance=ExtResource("9_g7c11")]
+transform = Transform3D(1.3956931, 0, 0.67419654, 0, 1.55, 0, -0.67419654, 0, 1.3956931, 0, 0, 0)
+metadata/art_source = "reef-wall-corner.glb"
+
+[node name="WestOverhang" type="Node3D" parent="Walls" unique_id=969144108]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, -17.4, -22)
+
+[node name="Model" type="Node3D" parent="Walls/WestOverhang" unique_id=671256097 instance=ExtResource("10_nax52")]
+transform = Transform3D(1.1974431, 0, -0.6234019, 0, 1.35, 0, 0.6234019, 0, 1.1974431, 0, 0, 0)
+metadata/art_source = "reef-wall-overhang.glb"
+
+[node name="EastOverhang" type="Node3D" parent="Walls" unique_id=359842855]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, -17.4, -24)
+
+[node name="Model" type="Node3D" parent="Walls/EastOverhang" unique_id=126731898 instance=ExtResource("10_nax52")]
+transform = Transform3D(0.80809295, 0, 1.018325, 0, 1.3, 0, -1.018325, 0, 0.80809295, 0, 0, 0)
+metadata/art_source = "reef-wall-overhang.glb"
+
+[node name="Wreck" type="Node3D" parent="." unique_id=848641080]
+
+[node name="Cockpit" type="Node3D" parent="Wreck" unique_id=1598092494]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -17.35, -20)
+
+[node name="Model" type="Node3D" parent="Wreck/Cockpit" unique_id=1210316123 instance=ExtResource("11_wqa8a")]
+transform = Transform3D(1.2963003, 0, 0.81271493, 0, 1.53, 0, -0.81271493, 0, 1.2963003, 0, 0, 0)
+metadata/art_source = "wreck-cockpit-section.glb"
+
+[node name="SolidBody" type="StaticBody3D" parent="Wreck/Cockpit" unique_id=1582535638]
+transform = Transform3D(0.8472551, 0, 0.5311862, 0, 1, 0, -0.5311862, 0, 0.8472551, 0, 1.2000008, 0)
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Wreck/Cockpit/SolidBody" unique_id=702397780]
+shape = SubResource("BoxShape3D_yyxm7")
+
+[node name="TornWing" type="Node3D" parent="Wreck" unique_id=898415891]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -17.25, -24)
+
+[node name="Model" type="Node3D" parent="Wreck/TornWing" unique_id=1615685824 instance=ExtResource("12_mwojc")]
+transform = Transform3D(1.0308247, 0, -1.0197551, 0, 1.45, 0, 1.0197551, 0, 1.0308247, 0, 0, 0)
+metadata/art_source = "torn-wing-section.glb"
+
+[node name="Rocks" type="Node3D" parent="." unique_id=312653726]
+
+[node name="WestShallowsRock" type="Node3D" parent="Rocks" unique_id=190172490]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, -6.4, 16)
+
+[node name="Model" type="Node3D" parent="Rocks/WestShallowsRock" unique_id=298634965 instance=ExtResource("13_fdyyd")]
+transform = Transform3D(0.9998624, 0, 0.4585579, 0, 1.1, 0, -0.4585579, 0, 0.9998624, 0, 0, 0)
+metadata/art_source = "rock_smallA.glb"
+
+[node name="EastShallowsRock" type="Node3D" parent="Rocks" unique_id=907934522]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21, -6.4, 8)
+
+[node name="Model" type="Node3D" parent="Rocks/EastShallowsRock" unique_id=1088053522 instance=ExtResource("13_fdyyd")]
+transform = Transform3D(0.7142154, 0, 0.62641543, 0, 0.95, 0, -0.62641543, 0, 0.7142154, 0, 0, 0)
+metadata/art_source = "rock_smallA.glb"
+
+[node name="WestDeepRock" type="Node3D" parent="Rocks" unique_id=668279432]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -16.4, -12)
+
+[node name="Model" type="Node3D" parent="Rocks/WestDeepRock" unique_id=1257797510 instance=ExtResource("13_fdyyd")]
+transform = Transform3D(1.1710477, 0, -0.7672335, 0, 1.4, 0, 0.7672335, 0, 1.1710477, 0, 0, 0)
+metadata/art_source = "rock_smallA.glb"
+
+[node name="EastDeepRock" type="Node3D" parent="Rocks" unique_id=1880391761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -17.4, -15)
+
+[node name="Model" type="Node3D" parent="Rocks/EastDeepRock" unique_id=1718843869 instance=ExtResource("13_fdyyd")]
+transform = Transform3D(0.8708834, 0, 0.89669514, 0, 1.25, 0, -0.89669514, 0, 0.8708834, 0, 0, 0)
+metadata/art_source = "rock_smallA.glb"
+
+[editable path="Seabed/Shallows/Model"]
+[editable path="Seabed/Slope/Model"]
+[editable path="Seabed/DeepSand/Model"]

@@ -71,7 +71,8 @@ func _run() -> void:
 	var reef := current_scene
 	_check(reef.scene_file_path == REEF and reef.has_node("Diver"), "Destination should still be the Reef")
 	_check(Time.get_ticks_msec() - boarded >= 4900, "Departure loaded too early")
-	reef.return_to_shop()
+	await _check_reef(reef)
+	reef.back.pressed.emit()
 	await scene_changed
 	shop = current_scene
 	_check(shop.current_zone_id() == "dive_shop", "Reef should return to the same Dive Shop zone")
@@ -103,3 +104,36 @@ func _check_layout(room: Node3D) -> void:
 	_check(hit.get("collider") == bench.get_node("SolidBody"), "Dive bench collider missing")
 	if hit.get("collider") == bench.get_node("SolidBody"):
 		_check(absf(hit.position.z - (-2.365 if moved else -2.115)) < .008, "Dive bench collision did not move with its authored model")
+
+func _check_reef(reef: Node3D) -> void:
+	var layout := reef.art.get_node("ReefLayout") as Node3D
+	_check(layout.scene_file_path == "res://game/scuba/reef_layout.tscn", "Reef did not load its editable layout")
+	_check(layout.has_node("Seabed/Slope/Model") and layout.has_node("Wreck/Cockpit/SolidBody") and layout.has_node("Coral/FanWest/Model"), "Named Reef scenery is missing")
+	var school: Array = reef.art._fish
+	_check(school.size() == 24, "Fish school inventory changed")
+	if school.size() != 24: return
+	var fish: Node3D = school[0].node
+	var start := fish.position
+	var arch := layout.get_node("Gate/CoralArch") as Node3D
+	var moved := "--reef-relocated" in OS.get_cmdline_user_args()
+	_check(arch.position.is_equal_approx(Vector3(.8 if moved else 0.0,-11.0,-5.7)), "Reef did not load the saved arch placement")
+	for frame in range(10):
+		await physics_frame
+	_check(fish.get_parent() == reef.art and fish.position.distance_to(start) > .01, "Fish movement was baked or stopped")
+	var space := arch.get_world_3d().direct_space_state
+	var p := arch.global_position+Vector3(0,3,0)
+	var opening := PhysicsRayQueryParameters3D.create(p+Vector3.BACK*2,p+Vector3.FORWARD*2,1)
+	_check(space.intersect_ray(opening).is_empty(), "Coral Gate passage is blocked")
+	for part in ["LeftSupport","RightSupport","Lintel"]:
+		var body := arch.get_node(part) as StaticBody3D
+		var at := body.global_position
+		var ray := PhysicsRayQueryParameters3D.create(at+Vector3.BACK*2,at+Vector3.FORWARD*2,1)
+		_check(space.intersect_ray(ray).get("collider") == body, "Missing or detached Coral Gate collision: "+part)
+	reef.diver.position = p+Vector3.BACK*1.85
+	reef.diver.velocity = Vector3.ZERO
+	Input.action_press("ui_up")
+	for frame in range(64):
+		await physics_frame
+	Input.action_release("ui_up")
+	_check(reef.diver.position.z < p.z - 1.0, "Player input could not swim through the Coral Gate")
+	_check(reef.get_node("ScubaBubbles").playing, "Diving audio did not start")
