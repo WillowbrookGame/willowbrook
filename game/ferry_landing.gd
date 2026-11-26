@@ -19,7 +19,30 @@ const DECK := Vector3(-.95,.56,-5.0)
 var _materials := {}
 
 
-func build(dock_name: String, destination: String) -> void:
+func build(dock_name: String, destination: String, include_pier := true) -> void:
+	if include_pier:
+		_build_pier(dock_name,destination)
+	_boat = Node3D.new()
+	_boat.name = "WillowbrookShuttle"
+	add_child(_boat)
+	_at = Vector3(4.65,.02,9.969)
+	_boat.position = _at
+	_boat.rotation.y = 0.0
+	# The source models +X as the bow; gameplay sails along +Z. Set the
+	# measured main-deck top (2.93 m on source) at deck feet, .56 m local.
+	var ferry := preload("res://game/ferry_art/innerscene-passenger-ferry.glb").instantiate() as Node3D
+	ferry.name = "InnerscenePassengerFerry"
+	ferry.rotation.y = -PI/2.0
+	ferry.scale = Vector3.ONE * .52
+	ferry.position.y = .56 - 2.93*.52
+	_boat.add_child(ferry)
+	_boat_gate = ferry.find_child("PortGate",true,false) as Node3D
+	if _boat_gate != null:
+		_boat_gate.rotation.x = PI/2.0
+	_build_gangway()
+
+
+func _build_pier(dock_name: String, destination: String) -> void:
 	_block(self, Vector3(0,-.14,2.65), Vector3(5.7,.24,7.5), DARK)
 	for row in range(12):
 		_block(self, Vector3(0,.008,-.78+float(row)*.62), Vector3(5.6,.145,.60),
@@ -47,25 +70,6 @@ func build(dock_name: String, destination: String) -> void:
 	_label(sign_x,1.64,.80,destination,30,Color("#ceeff3"))
 	_block(self, Vector3(0,.104,.63), Vector3(1.65,.03,.13), CREAM)
 	_block(self, Vector3(0,.104,.31), Vector3(1.25,.03,.13), CREAM)
-	_boat = Node3D.new()
-	_boat.name = "WillowbrookShuttle"
-	add_child(_boat)
-	_at = Vector3(4.65,.02,9.969)
-	_boat.position = _at
-	_boat.rotation.y = 0.0
-	# The source models +X as the bow; gameplay sails along +Z. Set the
-	# measured main-deck top (2.93 m on source) at deck feet, .56 m local.
-	var ferry := preload("res://game/ferry_art/innerscene-passenger-ferry.glb").instantiate() as Node3D
-	ferry.name = "InnerscenePassengerFerry"
-	ferry.rotation.y = -PI/2.0
-	ferry.scale = Vector3.ONE * .52
-	ferry.position.y = .56 - 2.93*.52
-	_boat.add_child(ferry)
-	_boat_gate = ferry.find_child("PortGate",true,false) as Node3D
-	if _boat_gate != null:
-		_boat_gate.rotation.x = PI/2.0
-	_build_gangway()
-
 
 func _build_gangway() -> void:
 	_gangway = Node3D.new()
