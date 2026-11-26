@@ -25,7 +25,7 @@ This is the maintainers' shortlist, not a release schedule. Open a GitHub issue 
 - [x] Add screenshots and a playable-activities overview above the [README quick start](README.md).
 - [x] Document and run the standalone Node smoke test on PRs without secrets, write access, or deployments. [PR #12](https://github.com/WillowbrookGame/willowbrook/pull/12)
 - [x] Add [private vulnerability reporting](SECURITY.md), a [public-safe bug report form](.github/ISSUE_TEMPLATE/bug.yml), and a [Code of Conduct](CODE_OF_CONDUCT.md).
-- [ ] Document one runnable headless Godot test for contributors. [Issue #14](https://github.com/WillowbrookGame/willowbrook/issues/14) Automate headless checks separately after the command is proven.
+- [x] Document one runnable headless Godot test for contributors. [Issue #14](https://github.com/WillowbrookGame/willowbrook/issues/14) Automate headless checks separately after the command is proven.
 - [ ] Publish one clearly named Docker bundle per new alpha with a standalone checksum. Keep existing Alpha 1 links valid.
 - [x] Add a Linux browser source build ([issue #15](https://github.com/WillowbrookGame/willowbrook/issues/15)).
 - [ ] Validate the source build on macOS. Fix temporary staging cleanup and avoid duplicate splash settings in the Windows build.
