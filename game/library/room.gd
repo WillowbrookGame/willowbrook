@@ -1,6 +1,6 @@
 extends "res://game/interiors/room.gd"
 
-const LIBRARY_ART := preload("res://game/library/room_art.gd")
+const LIBRARY_LAYOUT := preload("res://game/library/room_layout.tscn")
 const CLERK_PROMPT := "Talk to the librarian"
 var _class_request_until := 0
 var course_index := 0
@@ -15,13 +15,13 @@ func _room_title(key: String) -> String:
 	return "Willowbrook Library" if key == "library" else ""
 
 func _new_room_art() -> ART:
-	return LIBRARY_ART.new()
+	return LIBRARY_LAYOUT.instantiate() as ART
 
 func _welcomes_visitors() -> bool:
 	return true
 
 func _fallback_seats() -> Array:
-	return [Vector3(-5,0,3),Vector3(5,0,3)]
+	return [art.get_node("LeftReadingChair").position,art.get_node("RightReadingChair").position]
 
 func _publishes_sitting() -> bool:
 	return true
