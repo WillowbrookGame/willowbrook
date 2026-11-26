@@ -1,0 +1,141 @@
+[gd_scene format=4]
+
+[ext_resource type="Texture2D" path="res://game/beach_art/beach-nature/sand-color.png" id="1_jjyms"]
+[ext_resource type="Texture2D" path="res://game/beach_art/beach-nature/sand-normal.png" id="2_1742l"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_n2bul"]
+sky_top_color = Color(0.34117648, 0.654902, 0.8509804, 1)
+sky_horizon_color = Color(0.68235296, 0.8666667, 0.91764706, 1)
+ground_bottom_color = Color(0.4392157, 0.65882355, 0.654902, 1)
+ground_horizon_color = Color(0.68235296, 0.8666667, 0.91764706, 1)
+
+[sub_resource type="Sky" id="Sky_6mhca"]
+sky_material = SubResource("ProceduralSkyMaterial_n2bul")
+
+[sub_resource type="Environment" id="Environment_wmnkj"]
+background_mode = 2
+sky = SubResource("Sky_6mhca")
+ambient_light_source = 2
+ambient_light_color = Color(1, 0.9490196, 0.8, 1)
+ambient_light_energy = 0.72
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yv3n8"]
+albedo_color = Color(0.9098039, 0.78431374, 0.5921569, 1)
+albedo_texture = ExtResource("1_jjyms")
+normal_enabled = true
+normal_scale = 0.22
+normal_texture = ExtResource("2_1742l")
+uv1_scale = Vector3(12, 4.5, 1)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_4y4cb"]
+_surfaces = [{
+"aabb": AABB(-59.6, 0, 0, 119, 1e-05, 42.4),
+"attribute_data": PackedByteArray("iYgIPAz6Aj5mA508AAAAAOUXez8AAAAA5Rd7PwAAAADe3X0/uSPuPVK4fj884g4/Urh+PzziDj/e3X0/cUdcP4JOez+WTnI/gk57P5ZOcj9OG3g/K5h7P5qZWT/uiHs/mplZP+6Iez9VVRU/jG18PzMzsz7uiHs/MzOzPu6Iez+amRk+ViF8P4nC9TwrmHs/icL1PCuYez+JiIg8+WlxP6vC9TurEF4/q8L1O6sQXj9EdFo7POIOP4mICDwM+gI+iYgIPAz6Aj7lF3s/AAAAAFK4fj884g4/Urh+PzziDj+CTns/lk5yP5qZWT/uiHs/MzOzPu6Iez+JwvU8K5h7P6vC9TurEF4/q8L1O6sQXj+JiAg8DPoCPlK4fj884g4/Urh+PzziDj+amVk/7oh7PzMzsz7uiHs/MzOzPu6Iez+rwvU7qxBeP1K4fj884g4/"),
+"format": 34359738391,
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 42,
+"vertex_data": PackedByteArray("AABswgAAAAAAALBAzcxmwgAAAAAAAAAAzcxmQgAAAAAAAAAAzcxmQgAAAAAAAAAAAABsQgAAAAAAAKBAmpltQgAAAAAAAMBBmpltQgAAAAAAAMBBAABsQgAAAAAAABRCMzNnQgAAAADNzCJCMzNnQgAAAADNzCJCMzNhQgAAAAA9CilCAAAoQgAAAAAAAClCAAAoQgAAAAAAAClCAAAgQQAAAACamSlCAACQwQAAAAAAAClCAACQwQAAAAAAAClCAAAowgAAAABmZilCmplhwgAAAAA9CilCmplhwgAAAAA9CilCAABowgAAAAAzMyJCZmZswgAAAAAzMxVCZmZswgAAAAAzMxVCZmZuwgAAAAAAAMBBAABswgAAAAAAALBAAABswgAAAAAAALBAzcxmQgAAAAAAAAAAmpltQgAAAAAAAMBBmpltQgAAAAAAAMBBMzNnQgAAAADNzCJCAAAoQgAAAAAAAClCAACQwQAAAAAAAClCmplhwgAAAAA9CilCZmZswgAAAAAzMxVCZmZswgAAAAAzMxVCAABswgAAAAAAALBAmpltQgAAAAAAAMBBmpltQgAAAAAAAMBBAAAoQgAAAAAAAClCAACQwQAAAAAAAClCAACQwQAAAAAAAClCZmZswgAAAAAzMxVCmpltQgAAAAAAAMBB/3///////7//f///////v/9///////+//3///////7//f///////v/9///////+//3///////7//f///////v/9///////+//3///////7//f///////v/9///////+//3///////7//f///////v/9///////+//3///////7//f///////v/9////+//+//3////7//7//f////v//v/9////+//+//3////7//7//f////v//v/9///////+//3///////7//f///////v/9///////+//3///////7//f///////v/9///////+//3///////7//f////v//v/9////+//+//3////7//7//f///////v/9///////+//3///////7//f///////v/9///////+//3///////7//f////v//v/9///////+/")
+}]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ncmru"]
+size = Vector3(120, 0.6, 42)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_j5emb"]
+size = Vector3(54.7, 3.1, 1.05)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_prso8"]
+size = Vector3(27.6, 3.1, 1.05)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_36hl7"]
+size = Vector3(22.8, 3.1, 1.05)
+
+[sub_resource type="Shader" id="Shader_2uv21"]
+code = "
+shader_type spatial;
+render_mode unshaded;
+varying vec3 ground_pos;
+void vertex() {
+	ground_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+void fragment() {
+	vec2 shore = max(abs(ground_pos.xz - vec2(0.0,20.70)) - vec2(57.6,21.0),vec2(0.0));
+	float depth = smoothstep(0.0, 52.0, length(shore));
+	vec3 color = mix(vec3(0.33, 0.72, 0.68), vec3(0.08, 0.37, 0.54), depth);
+	vec2 grid = ground_pos.xz;
+	float drift = sin(grid.x * .34 + grid.y * .12 - TIME * .62);
+	float waves = sin(grid.y * 2.05 + drift * 1.05 - TIME * 2.0);
+	float cross_wave = sin(grid.x * .62 + grid.y * 1.36 + TIME * 1.07 + drift * .58);
+	float distance_fade = 1.0 - smoothstep(30.0, 105.0, distance(CAMERA_POSITION_WORLD, ground_pos));
+	// Wider traveling swells and broken highlight crests stay visible near the piers.
+	float swells = waves * .038 + cross_wave * .020;
+	float crest = smoothstep(.59, .97, waves) * smoothstep(-.77, .43, cross_wave);
+	color += (vec3(.31, .87, .92) * crest * .12 + vec3(.65, .92, .86) * swells) * distance_fade;
+	float lip = -1.43 + sin(grid.x * .37 - TIME * .75) * .34 + sin(TIME * 1.16) * .39;
+	float foam = (1.0 - smoothstep(.04, .34, abs(grid.y - lip))) * (1.0-smoothstep(56.0,60.0,abs(grid.x)));
+	float back = 1.0 - smoothstep(.06,.36,abs(grid.y-42.3+sin(grid.x*.32+TIME)*.18));
+	float edge = 1.0 - smoothstep(.07,.41,abs(abs(grid.x)-59.30+sin(grid.y*.21+TIME)*.31));
+	foam = max(foam,back*(1.0-smoothstep(49.0,57.0,abs(grid.x)))*.66);
+	foam = max(foam,edge*smoothstep(.0,3.8,grid.y)*(1.0-smoothstep(37.0,42.0,grid.y))*.64);
+	float foam_tail = (1.0 - smoothstep(.03, .43, abs(grid.y - lip + .58))) * (1.0-smoothstep(56.0,60.0,abs(grid.x)));
+	color = mix(color, vec3(0.88, 0.98, 0.93), foam * .81 + foam_tail * .14);
+	color = mix(color, vec3(0.67, 0.86, 0.91), smoothstep(76.0, 193.0, distance(CAMERA_POSITION_WORLD, ground_pos)));
+	ALBEDO = color;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1ocft"]
+render_priority = 0
+shader = SubResource("Shader_2uv21")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_jh52c"]
+size = Vector2(500, 500)
+
+[node name="BeachBase" type="Node3D" unique_id=1933697068]
+
+[node name="IslandEnvironment" type="WorldEnvironment" parent="." unique_id=408260997]
+environment = SubResource("Environment_wmnkj")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1199339054]
+transform = Transform3D(0.8829476, 0.37493667, -0.28253505, 0, 0.60181504, 0.79863554, 0.4694716, -0.7051533, 0.5313711, 0, 0, 0)
+light_color = Color(1, 0.94509804, 0.8392157, 1)
+
+[node name="Sand" type="MeshInstance3D" parent="." unique_id=1459309373]
+material_override = SubResource("StandardMaterial3D_yv3n8")
+mesh = SubResource("ArrayMesh_4y4cb")
+
+[node name="SandBody" type="StaticBody3D" parent="Sand" unique_id=398899352]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 22)
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="Sand/SandBody" unique_id=537409509]
+shape = SubResource("BoxShape3D_ncmru")
+
+[node name="WestShoreBoundary" type="StaticBody3D" parent="." unique_id=1176504693]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.65, 0.55, 0.5)
+collision_layer = 2
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="WestShoreBoundary" unique_id=2138927383]
+shape = SubResource("BoxShape3D_j5emb")
+
+[node name="MidShoreBoundary" type="StaticBody3D" parent="." unique_id=856324607]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0.55, 0.5)
+collision_layer = 2
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="MidShoreBoundary" unique_id=1678920030]
+shape = SubResource("BoxShape3D_prso8")
+
+[node name="EastShoreBoundary" type="StaticBody3D" parent="." unique_id=1648147304]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.6, 0.55, 0.5)
+collision_layer = 2
+collision_mask = 0
+
+[node name="BoxCollision" type="CollisionShape3D" parent="EastShoreBoundary" unique_id=301640889]
+shape = SubResource("BoxShape3D_36hl7")
+
+[node name="Water" type="MeshInstance3D" parent="." unique_id=1252466629]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.17, 0)
+material_override = SubResource("ShaderMaterial_1ocft")
+mesh = SubResource("PlaneMesh_jh52c")
