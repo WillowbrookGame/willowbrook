@@ -29,19 +29,7 @@ func _ready() -> void:
 	if warehouse_roof != null:
 		for roof_part in warehouse_roof.find_children("*","GeometryInstance3D",true,false):
 			roof_meshes.append(roof_part)
-	# Spread selected props, not the map boundary. Source units precede scale.
-	var offsets := {
-		"Container_SW2": Vector3(-3.0, 0, 0.5),
-		"Container_SE_Open": Vector3(3.0, 0, 0.5),
-		"Container_NE2": Vector3(1.6, 0, -1.3),
-		"Container_NW_Open": Vector3(-1.6, 0, -1.3),
-		"Forklift_B": Vector3(-2.6, 0, 0.5),
-		"Forklift_C": Vector3(2.2, 0, 1.0),
-	}
-	for prop in offsets:
-		var model := find_child(prop, true, false) as Node3D
-		if model != null:
-			model.position += offsets[prop]
+	# Use the authored model transforms in both the client and the authority.
 	var triangles := PackedVector3Array()
 	# Two smooth collision surfaces over the original visible stair treads.
 	for side in [-1.0, 1.0]:

@@ -9,3 +9,23 @@ script = ExtResource("1")
 [node name="WarehouseModel" parent="." instance=ExtResource("2")]
 position = Vector3(0, -0.45, 0)
 scale = Vector3(0.45, 0.45, 0.45)
+
+[node name="Container_NE2" parent="WarehouseModel/Yard_Containers/Containers" index="5"]
+transform = Transform3D(-1, 0, -1.509958e-07, 0, 1, 0, 1.509958e-07, 0, -1, 32.6, 1, -26.3)
+
+[node name="Container_NW_Open" parent="WarehouseModel/Yard_Containers/Containers" index="8"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.6, 1, -26.3)
+
+[node name="Container_SE_Open" parent="WarehouseModel/Yard_Containers/Containers" index="14"]
+transform = Transform3D(-1, 0, -1.509958e-07, 0, 1, 0, 1.509958e-07, 0, -1, 34, 1, 24.5)
+
+[node name="Container_SW2" parent="WarehouseModel/Yard_Containers/Containers" index="16"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33, 1, 24.5)
+
+[node name="Forklift_B" parent="WarehouseModel/Yard_Crane_Props/Props" index="4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.1, 1, 24.5)
+
+[node name="Forklift_C" parent="WarehouseModel/Yard_Crane_Props/Props" index="5"]
+transform = Transform3D(-0.9659257, 0, 0.2588191, 0, 1, 0, -0.2588191, 0, -0.9659257, 14.7, 1, 27.5)
+
+[editable path="WarehouseModel"]
