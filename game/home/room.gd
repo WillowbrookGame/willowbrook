@@ -66,8 +66,8 @@ func _build_furniture_editor(p: Dictionary) -> void:
 	fields.add_child(tools)
 	_editor_button(tools, "View left", func(): _decorator.turn(PI / 4.0))
 	_editor_button(tools, "View right", func(): _decorator.turn(-PI / 4.0))
-	_editor_button(tools, "Zoom +", func(): _decorator.zoom_by(.88))
-	_editor_button(tools, "Zoom −", func(): _decorator.zoom_by(1.0 / .88))
+	_editor_button(tools, "Zoom in", func(): _decorator.zoom_by(.88))
+	_editor_button(tools, "Zoom out", func(): _decorator.zoom_by(1.0 / .88))
 	var camera_mode := _editor_button(tools, "Drag to orbit", func(): pass)
 	camera_mode.toggle_mode = true
 	camera_mode.set_pressed_no_signal(_edit_orbit)
@@ -85,13 +85,7 @@ func _build_furniture_editor(p: Dictionary) -> void:
 	_edit_surfaces.get_popup().add_theme_constant_override("v_separation", 18)
 	_edit_surfaces.custom_minimum_size.y = 68
 	fields.add_child(_edit_surfaces)
-	var nudges := HFlowContainer.new()
-	fields.add_child(nudges)
-	_editor_button(nudges, "←", func(): _nudge_screen(Vector2.LEFT))
-	_editor_button(nudges, "→", func(): _nudge_screen(Vector2.RIGHT))
-	_editor_button(nudges, "↑", func(): _nudge_screen(Vector2.UP))
-	_editor_button(nudges, "↓", func(): _nudge_screen(Vector2.DOWN))
-	_editor_button(nudges, "Turn 90°", func():
+	_editor_button(tools, "Rotate item", func():
 		_edit_turn = posmod(_edit_turn + 1, 4)
 		_refresh_furniture_preview()
 	)
@@ -199,7 +193,7 @@ func _edit_candidate(at: Vector2) -> Dictionary:
 		item.supportId = base.id
 		item.surfaceId = surface.id
 		item.y = float(surface.y)
-	var err := HOUSING_PLACEMENT.placement_error(item,others,_edit_rooms,art.to_local(player.global_position),_placement_player_radius(),base,surface)
+	var err := HOUSING_PLACEMENT.placement_error(item,others,_edit_rooms,art.to_local(player.global_position),_placement_player_radius(),base,surface,_account()!=null)
 	return {"item":item,"error":err}
 
 
@@ -239,13 +233,6 @@ func _apply_furniture_edit() -> void:
 	if _commit(p,"Furniture position saved."):
 		art.redraw_decor(p)
 		_home_menu(false)
-
-
-func _nudge_screen(direction: Vector2) -> void:
-	var rotated := direction.rotated(-_decorator.yaw)
-	var step := Vector2(signf(rotated.x),0) if absf(rotated.x) >= absf(rotated.y) else Vector2(0,signf(rotated.y))
-	_edit_at = (_edit_at + step * .25).clamp(Vector2(-5.25,-4.5),Vector2(5.25,4.5))
-	_refresh_furniture_preview()
 
 
 func _setup_home_editor(profile: Dictionary) -> void:

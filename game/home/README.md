@@ -21,8 +21,7 @@ node game/network/browser/test_home_visits_preview.mjs
 
 Stand in the room you own and open **Decorate your home**. Choose an item
 from storage to place it, or select an existing item in the room to move it.
-Drag the preview with a mouse or finger, use the arrow buttons to nudge it,
-and use **Turn 90°** to rotate it. **Place furniture** or **Save move** saves
+Drag the preview with a mouse or finger, and use **Rotate item** to turn it. **Place furniture** or **Save move** saves
 the result; **Done** discards an unconfirmed preview.
 
 Small decorations can sit on a valid furniture surface. Drag onto a

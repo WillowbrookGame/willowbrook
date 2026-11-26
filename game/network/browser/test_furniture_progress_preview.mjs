@@ -85,6 +85,13 @@ try{
  const moved=service.snapshot(p.profile).placed.find(item=>item.id===books.id);
  assert.equal(moved.x,2.5);
  assert.equal(moved.supportId,table.id);
+ p.profile.furnitureInventory.lamp=1;
+ p.profile.furnitureInventory.sofa=1;
+ const lamp={kind:'lamp',room:0,x:4.5,z:-2.5,rotation:0,requestId:'wall-lamp-test'};
+ const sofa={kind:'sofa',room:0,x:0,z:-3.5,rotation:0,requestId:'wall-sofa-test'};
+ for(const item of [lamp,sofa])assert.match(apply(p,'place',item).error,/inside this room/);
+ assert.match(apply(p,'place',{...lamp,x:4,requestId:'legal-lamp-test'}).text,/placed/);
+ assert.match(apply(p,'place',{...sofa,z:-3,requestId:'legal-sofa-test'}).text,/placed/);
  console.log('PASS own-home lease/pose and same-room trophy guards, layout and stale revision, repeat placement, stacked object move, atomic place/pack, restart, receipts, no extra inventory or stars.');
 }finally{await rm(dir,{recursive:true,force:true});}
 

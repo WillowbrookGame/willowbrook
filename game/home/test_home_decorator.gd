@@ -2,6 +2,7 @@ extends SceneTree
 
 const PROFILE := preload("res://game/progression/profile.gd")
 const TOWN := preload("res://game/town_layout.gd")
+const PLACEMENT := preload("res://game/interiors/housing_placement.gd")
 
 func _initialize() -> void:
 	run.call_deferred()
@@ -52,6 +53,16 @@ func step_frame() -> void:
 	await process_frame
 
 func run() -> void:
+	# The same near-wall spots are checked by the Node furniture test.
+	var lamp := {"kind":"lamp","room":0,"x":4.5,"z":-2.5,"rotation":0}
+	var sofa := {"kind":"sofa","room":0,"x":0.0,"z":-3.5,"rotation":0}
+	for item in [lamp,sofa]:
+		if not expect(PLACEMENT.placement_error(item,[],1,Vector3.INF,.32).is_empty(),"local position should fit"): return
+		if not expect(not PLACEMENT.placement_error(item,[],1,Vector3.INF,.32,{},{},true).is_empty(),"server-invalid position was marked ready"): return
+	lamp.x=4.0
+	sofa.z=-3.0
+	for item in [lamp,sofa]:
+		if not expect(PLACEMENT.placement_error(item,[],1,Vector3.INF,.32,{},{},true).is_empty(),"legal online position rejected"): return
 	set_meta("willowbrook_save_override","")
 	set_meta("fishing_save_override","")
 	root.size = Vector2i(1366,768)

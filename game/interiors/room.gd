@@ -510,7 +510,7 @@ func _prepare_furniture(p: Dictionary,index: int,room_index: int,x: float,z: flo
 		item.supportId = supporter.id
 		item.surfaceId = surface.id
 		item.y = float(surface.y)
-	var error := HOUSING_PLACEMENT.placement_error(item,pieces,HOUSING_PLACEMENT.room_count(p),art.to_local(player.global_position),_placement_player_radius(),supporter,surface)
+	var error := HOUSING_PLACEMENT.placement_error(item,pieces,HOUSING_PLACEMENT.room_count(p),art.to_local(player.global_position),_placement_player_radius(),supporter,surface,_account()!=null)
 	return {"item":item,"error":error}
 
 
