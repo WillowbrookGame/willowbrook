@@ -1,5 +1,5 @@
 extends SceneTree
-## Run headlessly: godot --headless --path . --script test_fishing_port.gd
+## Run headlessly: godot --headless --path . --script res://game/test_fishing_port.gd
 const Fishing = preload("res://game/fishing_game.gd")
 var failures := 0
 
