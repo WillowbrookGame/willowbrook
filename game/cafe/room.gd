@@ -1,13 +1,13 @@
 extends "res://game/interiors/room.gd"
 
-const CAFE_ART := preload("res://game/cafe/room_art.gd")
+const CAFE_LAYOUT := preload("res://game/cafe/room_layout.tscn")
 const CLERK_PROMPT := "Talk to the barista"
 
 func _room_title(key: String) -> String:
 	return "Sunny Cafe" if key == "cafe" else ""
 
 func _new_room_art() -> ART:
-	return CAFE_ART.new()
+	return CAFE_LAYOUT.instantiate() as ART
 
 func _fallback_seats() -> Array:
 	return [Vector3(-3.65,0,3.6),Vector3(3.65,0,3.6)]
