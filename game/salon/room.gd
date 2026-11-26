@@ -1,16 +1,13 @@
 extends "res://game/interiors/room.gd"
 
-const SALON_ART := preload("res://game/salon/room_art.gd")
+const SALON_LAYOUT := preload("res://game/salon/room_layout.tscn")
 const CLERK_PROMPT := "Talk to the stylist"
 
 func _room_title(key: String) -> String:
 	return "Beauty Salon" if key == "salon" else ""
 
 func _new_room_art() -> ART:
-	return SALON_ART.new()
-
-func _fallback_seats() -> Array:
-	return [Vector3(-5,0,3.3),Vector3(5,0,3.3)]
+	return SALON_LAYOUT.instantiate() as ART
 
 func _publishes_sitting() -> bool:
 	return true
