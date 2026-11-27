@@ -31,6 +31,7 @@ export function environmentAt(now=Date.now()){
 import {startPaintballWorker} from './paintball_worker_preview.mjs';
 import {createPrivatePaintballMatches} from './paintball_matches_preview.mjs';
 import {createPaintballLobbies} from './paintball_lobby_preview.mjs';
+import {createPaintballRewards} from './paintball_rewards_preview.mjs';
 import {createPlayground} from './playground_preview.mjs';
 const publicZones=new Set(['town','beach','arcade','bank','vet','salon','store','cafe','library']);
 const place=z=>({town:'In town',beach:'At the beach',arcade:'At the arcade',private:'In another activity'})[z]||'Indoors';
@@ -133,13 +134,14 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
  }
 
  const playground=createPlayground({admitted});
+ const paintballRewards=accounts?createPaintballRewards(accounts):null;
  const homeVisits=accounts&&enableHomeVisits===true?createHomeVisits({store:accounts,admitted,send:(p,m)=>send(p.ws,m),furnitureCatalog:(await load('public/furniture-catalog.js')).furnitureCatalog,character}):null;
  // Explicit local-only opt-in. An absent or unhealthy worker keeps the arena on its solo route.
  let worker=null,matches=null;
  if(accounts&&enablePaintballLobbyTransport===true&&paintballWorker){
   try{
    worker=startPaintballWorker({...paintballWorker,onLost:()=>matches?.unavailable()});
-   matches=createPrivatePaintballMatches({worker,admitted,send:(p,m)=>send(p.ws,m),hideFromWorld:p=>{
+   matches=createPrivatePaintballMatches({worker,admitted,character,rewards:paintballRewards,onStarsUpdated:p=>send(p.ws,{type:'progress',action:'paintball',operation:'onlineReward',ok:true,...progress(p)}),send:(p,m)=>send(p.ws,m),hideFromWorld:p=>{
     homeVisits?.release(p);playground.release(p);clearArcade(p);clearVehicle(p);fishing?.close(p);
     Object.assign(p,{zone:'private',x:0,y:0,z:0,yaw:0,moving:false,grounded:true,rest:'',interiorBusiness:null});
     chat.update(p);

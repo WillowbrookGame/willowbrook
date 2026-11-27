@@ -261,18 +261,21 @@ func _tick_zone(delta: float) -> void:
 	if arena_match != null:
 		arena_match.tick(delta)
 	var local_active: bool = arena_online == null and (arena_match == null or bool(arena_match.is_playing()))
+	var online_active: bool = arena_online != null and bool(arena_online.is_playing())
+	if _mouse_holding_fire and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_mouse_holding_fire = false
 	if local_active:
-		if _mouse_holding_fire and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			_mouse_holding_fire = false
 		marker_preview.set_holding_fire(_mouse_holding_fire and not _world_input_blocked())
 		marker_preview.tick(delta, camera)
-	elif marker_preview != null:
-		_mouse_holding_fire = false
-		marker_preview.set_holding_fire(false)
-	_update_reticle_and_flash(delta, local_active)
+	else:
+		if marker_preview != null:
+			marker_preview.set_holding_fire(false)
+		if online_active and _mouse_holding_fire and not _world_input_blocked():
+			arena_online.paint()
+	_update_reticle_and_flash(delta, local_active, local_active or online_active)
 
 
-func _update_reticle_and_flash(delta: float, local_active: bool) -> void:
+func _update_reticle_and_flash(delta: float, local_active: bool, match_active: bool) -> void:
 	if reticle != null:
 		var aimed: bool = local_active and not _world_input_blocked() and marker_preview != null and bool(marker_preview.has_aim_target(camera))
 		reticle.add_theme_color_override("font_color", Color("#7dff9b") if aimed else Color.WHITE)
@@ -281,7 +284,7 @@ func _update_reticle_and_flash(delta: float, local_active: bool) -> void:
 		if hitmarker != null:
 			hitmarker.visible = _hitmarker_time > 0.0
 	if visor_splat != null:
-		if not local_active:
+		if not match_active:
 			visor_splat.clear()
 		else:
 			visor_splat.tick(delta)
@@ -336,7 +339,7 @@ func _consume_zone_input(event: InputEvent) -> bool:
 
 
 func _world_primary_action() -> bool:
-	if arena_online == null and not _world_input_blocked() and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+	if not _world_input_blocked() and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_mouse_holding_fire = true
 	_fire_marker()
 	return true

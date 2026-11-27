@@ -2,6 +2,7 @@ extends Node
 ## Detached online Paintball view. Reads only the private authority snapshots.
 const AVATARS = preload("res://game/avatars/catalog.gd")
 const FIT = preload("res://game/hud_fit.gd")
+const SFX = preload("res://game/paintball_audio.gd")
 const COLORS := [Color("#4ce9fc"),Color("#ff7886"),Color("#9cff6b"),Color("#ffbc52")]
 var host: Node3D
 var session: Node
@@ -12,6 +13,7 @@ var note: Label
 var _lobby_room: Dictionary = {}
 var _discard_on_resume := false
 var status: Label
+var popup: Label
 var paint_button: Button
 var leave_button: Button
 var action_button: Button
@@ -30,7 +32,12 @@ var _paint := false
 var _closed := false
 var _actor_root: Node3D
 var _actors: Dictionary = {}
+var _aliases: Dictionary = {}
 var _last_view: Dictionary = {}
+var _notice := ""
+var _notice_time := 0.0
+var _last_start_beat := 0
+var _last_end_sec := -1
 
 func setup(world: Node3D, canvas: CanvasLayer, account: Node, in_match: bool) -> void:
 	host=world;hud=canvas;session=account
@@ -61,6 +68,14 @@ func setup(world: Node3D, canvas: CanvasLayer, account: Node, in_match: bool) ->
 	status.position=Vector2(16,143)
 	status.add_theme_constant_override("outline_size",5)
 	hud.add_child(status)
+	popup=Label.new()
+	popup.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	popup.add_theme_font_size_override("font_size",26)
+	popup.add_theme_constant_override("outline_size",7)
+	popup.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	popup.hide()
+	hud.add_child(popup)
+	popup.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP,Control.PRESET_MODE_MINSIZE,64)
 	paint_button=_hud_button("Paint",126.0,paint)
 	leave_button=_hud_button("Leave match",190.0,leave)
 	paint_button.hide()
@@ -291,6 +306,10 @@ func tick(dt: float) -> void:
 		if is_playing():_send("input",_frame())
 		else:_send("view")
 	var blend:=1.-exp(-18.*maxf(0.,dt))
+	if _notice_time>0.0:
+		_notice_time=maxf(0.0,_notice_time-dt)
+		if _notice_time<=0.0 and is_instance_valid(popup) and int(_last_view.get("countdownMs",0))<=0:
+			popup.hide()
 	if not owner_pose.is_empty():
 		var p: CharacterBody3D=host.player
 		var target:=_vec(owner_pose.position)
@@ -299,6 +318,14 @@ func tick(dt: float) -> void:
 		var n: Node3D=actor.node
 		n.position=n.position.lerp(actor.target,blend)
 		n.rotation.y=lerp_angle(n.rotation.y,actor.yaw,blend)
+		var label: Label3D=actor.get("label")
+		if is_instance_valid(label):
+			if bool(actor.get("immune",false)):
+				label.text="%s (tagged!)" % actor.alias
+				label.modulate=Color.WHITE if int(Time.get_ticks_msec()/120)%2==0 else Color("#ffbc52")
+			else:
+				label.text=actor.alias
+				label.modulate=Color.WHITE
 
 func _vec(a: Array) -> Vector3:
 	return Vector3(float(a[0]),float(a[1]),float(a[2]))
@@ -310,15 +337,22 @@ func _apply_view(v: Dictionary) -> void:
 	_last_view=v
 	if v.round!=_round:
 		_round=v.round
+		_last_start_beat=0
+		_last_end_sec=-1
+		_notice=""
+		_notice_time=0.0
+		if is_instance_valid(popup):popup.hide()
 		if _round>0: host._reset_arena_round_view()
 	var seen:={}
+	_aliases.clear()
 	for row: Dictionary in v.players:
+		_aliases[row.slot]=String(row.get("alias",row.slot))
 		if row.slot==v.selfSlot:
 			owner_pose=row;continue
 		if not row.connected or row.slot.is_empty():continue
 		seen[row.slot]=true
 		if not _actors.has(row.slot):
-			var n:=AVATARS.instantiate(AVATARS.DEFAULT)
+			var n:=AVATARS.instantiate(row.get("avatar",AVATARS.DEFAULT))
 			_actor_root.add_child(n)
 			n.position=_vec(row.position)
 			n.rotation.y=float(row.yaw)+PI
@@ -329,10 +363,11 @@ func _apply_view(v: Dictionary) -> void:
 			label.pixel_size=.0021
 			label.billboard=BaseMaterial3D.BILLBOARD_ENABLED
 			n.add_child(label)
-			_actors[row.slot]={"node":n,"anim":AVATARS.animator(n)}
+			_actors[row.slot]={"node":n,"anim":AVATARS.animator(n),"label":label,"alias":String(row.alias),"immune":false}
 		var rec: Dictionary=_actors[row.slot]
 		rec.target=_vec(row.position)
 		rec.yaw=float(row.yaw)+PI
+		rec.immune=int(row.get("immuneMs",0))>0
 		var clip: String="walk" if row.moving else "idle"
 		if rec.anim.has_animation(clip) and rec.anim.current_animation!=clip:rec.anim.play(clip)
 	for key: String in _actors.keys():
@@ -344,28 +379,83 @@ func _apply_view(v: Dictionary) -> void:
 		if int(event.eid)<=_last_eid:continue
 		newest=maxi(newest,int(event.eid))
 		if event.kind=="paint" and match_phase=="playing":
-			host.marker_preview._animate_paint(_vec(event.from),_vec(event.to),{},COLORS[int(event.eid)%4])
+			var tint: Color=COLORS[int(event.eid)%4]
+			var to_pos:=_vec(event.to)
+			var tagged_slot: String=String(event.get("tagged",""))
+			var shooter_slot: String=String(event.get("slot",""))
+			var on_hit:=Callable()
+			if not tagged_slot.is_empty():
+				on_hit=host.marker_preview.burst_at.bind(to_pos,tint)
+			host.marker_preview._animate_paint(_vec(event.from),to_pos,{},tint,on_hit)
+			if shooter_slot==v.selfSlot:
+				SFX.play(self,"pop",-7.0,1.0)
+			if not tagged_slot.is_empty():
+				if shooter_slot==v.selfSlot:
+					SFX.play(self,"tag",-5.0,1.0)
+					if host.has_method("flash_hitmarker"):host.flash_hitmarker()
+					_show_popup("Tagged %s!  +1" % _aliases.get(tagged_slot,"Player"),Color("#4ce9fc"),1.4)
+				elif tagged_slot==v.selfSlot:
+					SFX.play(self,"tagged",-5.0,1.0)
+					var dur:=maxf(0.5,float(event.get("immuneMs",2200))/1000.0)
+					if host.has_method("flash_tagged"):host.flash_tagged(tint,dur)
+					_show_popup("%s tagged you!" % _aliases.get(shooter_slot,"Player"),Color("#ffbc52"),1.4)
 	_last_eid=newest
 	match match_phase:
 		"playing":
 			_panel(false)
+			var countdown_ms:=int(v.get("countdownMs",0))
+			if countdown_ms>0:
+				var beat:=ceili(float(countdown_ms)/650.0)
+				if beat!=_last_start_beat and beat>0:
+					_last_start_beat=beat
+					SFX.play(self,"tick",-7.0,0.92+(3-beat)*0.12)
+				if is_instance_valid(popup) and beat>0:
+					popup.text="%d" % beat
+					popup.add_theme_color_override("font_color",Color("#ffbc52"))
+					popup.show()
+			elif _last_start_beat>0:
+				_last_start_beat=0
+				SFX.play(self,"finish",-7.0,1.12)
+				_show_popup("PAINT!",Color("#4ce9fc"),0.7)
 			var seconds:=ceili(float(v.remainingMs)/1000.)
-			status.text="Round %d / 3    %d:%02d    You: %d" % [_round,floori(seconds/60.0),seconds%60,int(owner_pose.get("points",0))]
+			if countdown_ms<=0 and seconds<=5 and seconds>0 and seconds!=_last_end_sec:
+				_last_end_sec=seconds
+				SFX.play(self,"tick",-8.0,1.0+(5-seconds)*0.06)
+			var sorted_players: Array = v.players.duplicate()
+			sorted_players.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.get("points",0)) > int(b.get("points",0)))
+			var board := PackedStringArray()
+			for i in sorted_players.size():
+				var row: Dictionary = sorted_players[i]
+				board.append("%d. %s %d" % [i+1, String(row.get("alias","")), int(row.get("points",0))])
+			status.text="Round %d / 3   •   %d:%02d   •   You: %d\n%s" % [_round,floori(seconds/60.0),seconds%60,int(owner_pose.get("points",0)),"  ·  ".join(board)]
 			paint_button.visible = not host.camera_thumbstick.visible
 		"between","finished":
 			paint_button.hide()
+			if is_instance_valid(popup):popup.hide()
+			if old_phase=="playing":SFX.play(self,"finish",-6.0,1.0)
 			if old_phase!=match_phase or old_host!=v.hostSlot or not panel.visible:_results(v)
 		"loading":
 			paint_button.hide()
-			if old_phase!=match_phase:_show_wait("Waiting for everyone to load the arenaâ€¦")
+			if old_phase!=match_phase:_show_wait("Waiting for everyone to load the arena…")
 		"abandoned":
 			_finish("This private match ended. Back to Town.")
+
+func _show_popup(text: String, color: Color, seconds: float) -> void:
+	_notice=text
+	_notice_time=seconds
+	if is_instance_valid(popup):
+		popup.text=text
+		popup.add_theme_color_override("font_color",color)
+		popup.show()
 
 func _results(v: Dictionary) -> void:
 	_clear_card()
 	_label("Final rankings" if v.phase=="finished" else "Round %d rankings" % int(v.round),24)
 	for row: Dictionary in v.ranking:
-		_label("%d. %s  â€¢  %d%s" % [int(row.rank),row.alias,int(row.score)," (left)" if bool(row.left) else ""])
+		_label("%d. %s  •  %d%s" % [int(row.rank),row.alias,int(row.score)," (left)" if bool(row.left) else ""])
+	var reward:=int(v.get("rewardStars",0))
+	if v.phase=="finished" and reward>0:
+		_label("Match reward: +%d Stars!" % reward,18)
 	if v.phase=="between":
 		if v.hostSlot==v.selfSlot:
 			action_button=_button("Start Round %d" % (int(v.round)+1),_queue_advance)
