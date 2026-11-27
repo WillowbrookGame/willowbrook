@@ -5,11 +5,15 @@ const ROUND_COUNT := 3
 enum Phase { READY, PLAYING, BETWEEN, FINISHED }
 var phase := Phase.READY
 var round_number := 0
+var round_length := ROUND_LENGTH
+var target_points := 0
 var remaining := 0.0
 var totals: Dictionary = {}
 var points: Dictionary = {}
 
-func setup(nicknames: Array[String]) -> void:
+func setup(nicknames: Array[String], length := ROUND_LENGTH, point_goal := 0) -> void:
+	round_length = length
+	target_points = point_goal
 	for nick in nicknames:
 		totals[nick] = 0
 		points[nick] = 0
@@ -18,7 +22,7 @@ func start_round() -> bool:
 	if phase != Phase.READY and phase != Phase.BETWEEN:
 		return false
 	round_number += 1
-	remaining = ROUND_LENGTH
+	remaining = round_length
 	for nick in points:
 		points[nick] = 0
 	phase = Phase.PLAYING
@@ -38,6 +42,9 @@ func tag(shooter: String, target: String) -> bool:
 		return false
 	points[shooter] += 1
 	totals[shooter] += 1
+	if target_points > 0 and points[shooter] >= target_points:
+		remaining = 0.0
+		phase = Phase.FINISHED if round_number == ROUND_COUNT else Phase.BETWEEN
 	return true
 
 func rankings(cumulative: bool) -> Array:

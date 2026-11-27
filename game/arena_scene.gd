@@ -138,7 +138,7 @@ func _setup_zone(hud: CanvasLayer) -> void:
 		arena_match.round_started.connect(_reset_arena_round_view)
 		arena_match.player_scored_tag.connect(flash_hitmarker)
 		arena_match.player_was_tagged.connect(flash_tagged)
-		arena_match.setup(player, marker_preview, hud)
+		arena_match.setup(player, marker_preview, hud, profile)
 
 
 func _reset_arena_round_view() -> void:

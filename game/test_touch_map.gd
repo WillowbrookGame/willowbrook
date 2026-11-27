@@ -99,14 +99,16 @@ func _run() -> void:
 	var arena:=spawn("arena")
 	await process_frame
 	arena.arena_match._on_action()
+	arena.arena_match.tick(arena.arena_match.COUNTDOWN_STEP * 3.0 + 0.05)
 	await process_frame
 	assert(arena.arena_match.is_playing())
 	tap(arena,2,Vector2(639,234));drag(2,Vector2(21,0))
 	prior=arena.look_yaw
-	arena.arena_match.tick(181.0)
+	arena.arena_match.tick(arena.arena_match.SOLO_ROUND_LENGTH + 1.0)
 	assert(not arena.arena_match.is_playing())
 	await process_frame
 	arena.arena_match._on_action()
+	arena.arena_match.tick(arena.arena_match.COUNTDOWN_STEP * 3.0 + 0.05)
 	await process_frame
 	assert(arena.arena_match.is_playing())
 	drag(2,Vector2(30,0))
