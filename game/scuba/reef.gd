@@ -30,6 +30,7 @@ var rise: Button
 var sink: Button
 var back: Button
 var depth: Label
+var activity_counts: Label
 var treasure_banner: Label
 var art: Node3D
 var treasures: Node3D
@@ -160,6 +161,18 @@ func _build_hud() -> void:
 	depth.add_theme_font_size_override("font_size",20)
 	depth.add_theme_constant_override("outline_size",4)
 	hud.add_child(depth)
+	activity_counts=Label.new()
+	activity_counts.name="ActivityCounts"
+	activity_counts.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	activity_counts.add_theme_font_size_override("font_size",17)
+	activity_counts.add_theme_constant_override("outline_size",4)
+	activity_counts.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	activity_counts.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	activity_counts.offset_left=10.0
+	activity_counts.offset_right=-10.0
+	activity_counts.offset_top=36.0
+	activity_counts.hide()
+	hud.add_child(activity_counts)
 	treasure_banner=Label.new()
 	treasure_banner.name="TreasureBanner"
 	treasure_banner.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
@@ -196,8 +209,13 @@ func _layout() -> void:
 	FIT.right_button(back,Vector2(172,48),243.0,scale)
 	var hint:=hud.get_node("SwimHint") as Label
 	hint.visible=not touch_ui or screen_size.x>640
+	var counts_bottom:=36.0
+	if activity_counts!=null and activity_counts.visible:
+		counts_bottom=activity_counts.offset_top+maxf(24.0,activity_counts.get_combined_minimum_size().y)+4.0
+	hint.position=Vector2(10,maxf(42.0,counts_bottom))
 	if treasure_banner!=null:
-		treasure_banner.offset_top=maxf(96.0,hint.position.y+hint.get_combined_minimum_size().y+10.0) if hint.visible else 54.0
+		var top_below:=hint.position.y+hint.get_combined_minimum_size().y+10.0 if hint.visible else maxf(54.0,counts_bottom+8.0)
+		treasure_banner.offset_top=maxf(96.0,top_below) if hint.visible else top_below
 
 func _controller_changed(id: int, connected: bool) -> void:
 	if connected:_pad.follow_connected()
@@ -305,12 +323,20 @@ func _physics_process(delta: float) -> void:
 		_banner_time=maxf(0.0,_banner_time-delta)
 		if _banner_time<=0.0 and treasure_banner!=null:
 			treasure_banner.hide()
-	var readout:="%s  %dm" % [art.landmark(diver.position),roundi(-diver.position.y)]
-	if treasures!=null and treasures.found_count>0:
-		readout+="  ·  Treasures %d / %d" % [treasures.found_count,treasures.total_count()]
-	if rings!=null and rings.passed_count>0:
-		readout+="  ·  Rings %d / %d" % [rings.passed_count,rings.total_count()]
-	depth.text=readout
+	depth.text="%s  %dm" % [art.landmark(diver.position),roundi(-diver.position.y)]
+	if activity_counts!=null:
+		var parts:=PackedStringArray()
+		if treasures!=null and treasures.found_count>0:
+			parts.append("Treasures %d / %d" % [treasures.found_count,treasures.total_count()])
+		if rings!=null and rings.passed_count>0:
+			parts.append("Rings %d / %d" % [rings.passed_count,rings.total_count()])
+		var next_text:="  ·  ".join(parts)
+		var next_visible:=not parts.is_empty()
+		var changed:=activity_counts.text!=next_text or activity_counts.visible!=next_visible
+		activity_counts.text=next_text
+		activity_counts.visible=next_visible
+		if changed:
+			_layout()
 
 
 func _on_ring_passed(passed: int, total: int, completed: bool) -> void:

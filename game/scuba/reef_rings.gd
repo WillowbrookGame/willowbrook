@@ -4,7 +4,7 @@ extends Node3D
 
 signal ring_passed(passed: int, total: int, completed: bool)
 
-const PASS_RADIUS := 2.35
+const OPENING_RADIUS := 1.55
 const RESET_DELAY := 4.0
 const RATE := 22050
 # C5, D5, E5, F5, G5, A5, B5, C6
@@ -24,6 +24,8 @@ var rings: Array[Dictionary] = []
 var passed_count := 0
 var _elapsed := 0.0
 var _reset_timer := 0.0
+var _last_diver_pos := Vector3.ZERO
+var _has_last_pos := false
 
 static var _hoop_mesh: TorusMesh
 static var _bead_mesh: SphereMesh
@@ -53,14 +55,29 @@ func total_count() -> int:
 
 
 func check_diver(diver_pos: Vector3) -> void:
-	if _reset_timer > 0.0:
+	if not _has_last_pos:
+		_last_diver_pos = diver_pos
+		_has_last_pos = true
 		return
-	var radius_sq := PASS_RADIUS * PASS_RADIUS
+	var prev := _last_diver_pos
+	_last_diver_pos = diver_pos
+	if _reset_timer > 0.0 or prev.distance_squared_to(diver_pos) < 0.0001:
+		return
 	for entry: Dictionary in rings:
 		if bool(entry.passed):
 			continue
 		var node: Node3D = entry.node
-		if diver_pos.distance_squared_to(node.position) <= radius_sq:
+		var local_prev := node.to_local(prev)
+		var local_curr := node.to_local(diver_pos)
+		var crossed := (local_prev.z < 0.0 and local_curr.z >= 0.0) or (local_prev.z > 0.0 and local_curr.z <= 0.0)
+		if not crossed:
+			continue
+		var dz := local_curr.z - local_prev.z
+		if absf(dz) < 0.00001:
+			continue
+		var t := -local_prev.z / dz
+		var hit_xy := Vector2(lerpf(local_prev.x, local_curr.x, t), lerpf(local_prev.y, local_curr.y, t))
+		if hit_xy.length() <= OPENING_RADIUS:
 			entry.passed = true
 			passed_count += 1
 			var hoop: MeshInstance3D = entry.hoop
@@ -76,6 +93,7 @@ func check_diver(diver_pos: Vector3) -> void:
 func _reset_rings() -> void:
 	passed_count = 0
 	_reset_timer = 0.0
+	_has_last_pos = false
 	for entry: Dictionary in rings:
 		entry.passed = false
 		var hoop: MeshInstance3D = entry.hoop
