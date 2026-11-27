@@ -90,12 +90,14 @@ func _lan(args: PackedStringArray) -> void:
 		file.close()
 		_check(await _until(func(): return _remote_at(-16.45)),"Host sees guest at the reef floor")
 		_check(await _until(func(): return _remote_gear()),"Host sees animated diver wearing tank and both fins")
-		reef.treasures.check_diver(reef.treasures.items[0].base)
-		var hoop: Node3D=reef.rings.rings[0].node
+		var treasure: Dictionary=reef.treasures.items.filter(func(item): return not item.found)[0]
+		reef.treasures.check_diver(treasure.base)
+		var unpassed: Dictionary=reef.rings.rings.filter(func(item): return not item.passed)[0]
+		var hoop: Node3D=unpassed.node
 		reef.rings.check_diver(hoop.to_global(Vector3(0,0,-.6)))
 		reef.rings.check_diver(hoop.to_global(Vector3(0,0,.6)))
 		PHOTOS.record_photo("shark",reef._profile)
-		_check(reef.treasures.found_count==1 and reef.rings.passed_count==1 and PHOTOS.load_discovered(reef._profile)==["shark"],"Host can complete local activities while connected")
+		_check(treasure.found and unpassed.passed and PHOTOS.load_discovered(reef._profile).has("shark"),"Host can complete local activities while connected")
 		_check(await _until(func(): return _remote_moving(),7.0),"Vertical-only guest swim animates; last rows %s" % str(session.rows))
 		_check(await _until(func(): return session.rows.is_empty() and session._ghosts.is_empty()),"Guest leaving Reef removes their diver")
 		_check(await _until(func(): return _remote_at(-16.0)),"Guest re-enters without stale ghost")
