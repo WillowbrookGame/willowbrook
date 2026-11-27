@@ -33,7 +33,8 @@ func spawn_position() -> Vector3:
 	return Vector3(0,.04,3.5)
 
 func bounds() -> Vector2:
-	return Vector2(30,5.12)
+	# All home floors end at z = 5. Keep the player inside that edge, within exit range.
+	return Vector2(30,4.8)
 
 func _near_exit() -> bool:
 	return absf(player.position.x)<1.25 and player.position.z>=4.0

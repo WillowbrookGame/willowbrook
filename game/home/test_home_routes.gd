@@ -91,7 +91,23 @@ func check_layout(map: Node3D, variant: String) -> bool:
 	return expect(absf(at.z - (-5.31 if edited else -4.91)) < .005,"Wall collision not at the expected saved location")
 
 func leave_home(map: Node3D, door: Vector3) -> bool:
-	map.player.position = Vector3(0,.04,4.35)
+	var player: CharacterBody3D = map.player
+	if map.room._visiting():
+		# Hold movement through the opening before using the exit, including the jambs.
+		player.rotation.y = 0.0
+		for x: float in [-1.2, 0.0, 1.2]:
+			player.position = Vector3(x,.04,4.15)
+			player.velocity = Vector3.ZERO
+			player.held["down"] = true
+			for frame in range(75):
+				await physics_frame
+				if player.position.y < -.2:
+					player.held.clear()
+					return expect(false,"Guest fell at plot %d (%s), doorway x=%s" % [map.room_plot+1,map.guest_variant,x])
+			player.held.clear()
+			if not expect(player.is_on_floor() and map.room.interaction_prompt() == "Return to town","Guest could not safely reach the exit at plot %d" % (map.room_plot+1)): return false
+	else:
+		player.position = Vector3(0,.04,4.35)
 	map._interact()
 	if not expect(map.changing,"Home exit did not return to Town"): return false
 	await scene_changed
