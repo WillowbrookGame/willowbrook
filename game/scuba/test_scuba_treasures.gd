@@ -45,7 +45,7 @@ func _run() -> void:
 		return
 	# Free swimmers see no treasure clutter before collecting one.
 	await physics_frame
-	if not _require("Treasures" not in reef.depth.text and not reef.treasure_banner.visible, "Treasure HUD should stay hidden until first discovery"):
+	if not _require(not reef.activity_counts.visible and not reef.treasure_banner.visible, "Treasure HUD should stay hidden until first discovery"):
 		return
 	# Collect all 6 treasures, verifying no double-counting and readable banners.
 	for i in treasures.items.size():
@@ -58,7 +58,7 @@ func _run() -> void:
 		await physics_frame
 		if not _require(treasures.found_count == i + 1, "Treasure %s double-counted" % item.id):
 			return
-	if not _require("6 / 6" in reef.depth.text and "All 6" in reef.treasure_banner.text, "Final treasure completion banner/readout missing"):
+	if not _require("6 / 6" in reef.activity_counts.text and "All 6" in reef.treasure_banner.text, "Final treasure completion banner/readout missing"):
 		return
 	root.size = Vector2i(640, 360)
 	await process_frame
