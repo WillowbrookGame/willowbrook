@@ -68,8 +68,27 @@ func _run() -> void:
 	game.action.pressed.emit()
 	if not require(game.rules.round_number==2 and game.rules.points["Pip"]==0 and game.rules.totals["Pip"]==2,"Round 2 did not reset per-round scores while keeping totals"):
 		return
-	game._record_tag(map.player,bot)
-	game._record_tag(map.player,bot)
+	# Verify tag protection through the real hit handler: first hit scores,
+	# an immediate repeat is blocked, and a hit after TAG_COOLDOWN scores again.
+	game._on_player_tag(bot)
+	if not require(game.rules.points["You"]==1 and game.is_tagged(bot),"First real hit did not score and activate tag protection"):
+		return
+	game._on_player_tag(bot)
+	if not require(game.rules.points["You"]==1 and game.is_tagged(bot),"Immediate repeat hit bypassed tag protection"):
+		return
+	game.tick(game.TAG_COOLDOWN + 0.1)
+	if not require(not game.is_tagged(bot),"Tag protection did not expire after cooldown"):
+		return
+	game._on_player_tag(bot)
+	if not require(game.rules.points["You"]==2 and game.is_tagged(bot),"Hit after tag protection expired did not score"):
+		return
+	# Verify TouchFire stays onscreen in a compact 480x280 viewport at 2x scale.
+	map.camera_thumbstick.show()
+	root.size = Vector2i(960, 560)
+	map._fit_zone_hud(480.0, 2.0)
+	var fire_rect: Rect2 = map.touch_fire_button.get_global_rect()
+	if not require(fire_rect.position.x >= 0.0 and fire_rect.position.y >= 0.0 and fire_rect.end.x <= 960.0 and fire_rect.end.y <= 560.0,"TouchFire clipped outside compact 480x280@2x viewport: %s" % [fire_rect]):
+		return
 	game.tick(180.0)
 	game.action.pressed.emit()
 	if not require(game.rules.round_number==3 and is_equal_approx(game.rules.remaining,180.0),"Round 3 did not start"):

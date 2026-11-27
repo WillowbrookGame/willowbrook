@@ -96,10 +96,24 @@ func _build_zone_buttons(hud: CanvasLayer) -> void:
 	hud.add_child(touch_fire_button)
 
 
-func _fit_zone_hud(_physical_width: float, s: float) -> void:
-	# Place Fire on the right side above Jump so tablet players can move with
-	# their left thumb and aim/fire with their right thumb.
-	HUD_FIT.right_button(touch_fire_button, Vector2(88, 52), 116.0, s, true)
+func _fit_zone_hud(physical_width: float, s: float) -> void:
+	# Place Fire on the right side so tablet players can move with their left
+	# thumb and aim/fire with their right thumb. On compact viewports (<500 CSS px),
+	# sit Fire beside Jump instead of stacking vertically above the camera stick.
+	var view := get_viewport().get_visible_rect().size
+	if physical_width >= 500.0:
+		HUD_FIT.right_button(touch_fire_button, Vector2(88, 52), 116.0, s, true)
+	else:
+		HUD_FIT.right_button(touch_fire_button, Vector2(82, 46), 58.0, s, true)
+		var beside_shift := (82.0 + 10.0) * s
+		touch_fire_button.offset_left -= beside_shift
+		touch_fire_button.offset_right -= beside_shift
+	var top_y := view.y + touch_fire_button.offset_top
+	var min_top := 8.0 * s
+	if top_y < min_top:
+		var push_down := min_top - top_y
+		touch_fire_button.offset_top += push_down
+		touch_fire_button.offset_bottom += push_down
 	touch_fire_button.add_theme_font_size_override("font_size", roundi(18.0 * s))
 
 
