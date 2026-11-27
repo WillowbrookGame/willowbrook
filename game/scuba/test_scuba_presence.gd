@@ -47,6 +47,10 @@ func _layout_and_schema() -> void:
 	pose.y=-15.0
 	_check(SCHEMA.parse(JSON.stringify(packet).to_utf8_buffer()).is_empty(),"Town still rejects a deep pose")
 	await _check_hud(null)
+	reef.open_photo_book()
+	_check(reef.is_book_open() and not session._zone_menu_button.visible,"Book hides native Multiplayer launcher")
+	reef.close_photo_book()
+	_check(session._zone_menu_button.visible,"Closing Book restores native Multiplayer launcher")
 	# Replace only the test HUD session widgets; never start a second real game connection.
 	for n: Node in reef.hud.get_children():
 		if (n is Button and n.text=="Multiplayer (M)") or n==session._panel:
@@ -56,6 +60,10 @@ func _layout_and_schema() -> void:
 	account.bind_zone("reef",reef,reef.diver,reef.hud)
 	_check(account._hunt_view==null,"Reef does not mount Town scavenger HUD")
 	await _check_hud(account._star_badge)
+	account.set_zone_book_open(reef,true)
+	_check(not account._zone_menu_button.visible and not account._star_badge.visible,"Browser Book hides Account and Stars")
+	account.set_zone_book_open(reef,false)
+	_check(account._zone_menu_button.visible and account._star_badge.visible,"Closing Book restores Account and Stars")
 	account.suspend_zone_for(reef)
 	account.queue_free()
 

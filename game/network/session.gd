@@ -25,6 +25,7 @@ var _bound: Node3D
 var _player: CharacterBody3D
 var _ghost_root: Node3D
 var _ghosts := {}
+var _zone_menu_button: Button
 var _panel: PanelContainer
 var _summary: Label
 var _inputs: Dictionary
@@ -64,6 +65,11 @@ func bind_zone(zone_id: String, host: Node3D, player: CharacterBody3D, hud: Canv
 	_elapsed = PERIOD
 
 
+func set_zone_book_open(host: Node3D, open: bool) -> void:
+	if _bound == host and is_instance_valid(_zone_menu_button):
+		_zone_menu_button.visible = not open
+
+
 func suspend_zone_for(host: Node3D) -> void:
 	if _bound == host:
 		suspend_zone()
@@ -80,6 +86,7 @@ func suspend_zone() -> void:
 	_ghosts.clear()
 	_player = null
 	_bound = null
+	_zone_menu_button = null
 	_panel = null
 	_summary = null
 	_elapsed = PERIOD
@@ -489,6 +496,7 @@ func _set_status(message: String) -> void:
 
 func _build_menu(hud: CanvasLayer) -> void:
 	var open_button := Button.new()
+	_zone_menu_button = open_button
 	open_button.text = "Multiplayer (M)"
 	open_button.focus_mode = Control.FOCUS_NONE
 	hud.add_child(open_button)

@@ -942,6 +942,7 @@ func _build_menu(hud: CanvasLayer) -> void:
 		_neighbor_bind()
 	_neighbor_context()
 	var multiplayer_button := Button.new()
+	_zone_menu_button = multiplayer_button
 	multiplayer_button.text = "Multiplayer (M)"
 	multiplayer_button.focus_mode = Control.FOCUS_NONE
 	hud.add_child(multiplayer_button)
@@ -1048,6 +1049,22 @@ func _bind_family_chat(window: JavaScriptObject) -> void:
 	if not bool(_family_chat.bind(_chat_send_cb,_chat_toggle_cb)):
 		_family_chat = null
 	_sync_family_chat()
+
+
+func set_zone_book_open(host: Node3D, open: bool) -> void:
+	if _bound != host or zone != "reef":
+		return
+	super.set_zone_book_open(host, open)
+	if is_instance_valid(_star_badge):
+		_star_badge.visible = not open
+	if _family_chat != null:
+		_family_chat.setOccluded(open)
+
+
+func suspend_zone() -> void:
+	if zone == "reef" and _family_chat != null:
+		_family_chat.setOccluded(false)
+	super.suspend_zone()
 
 
 func _sync_family_chat() -> void:

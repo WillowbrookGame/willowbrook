@@ -23,7 +23,6 @@ var avatar: Node3D
 var swim_player: AnimationPlayer
 var _network_modal:=false
 var _presence: Node
-var _chat_host: Node
 var camera: Camera3D
 var hud: CanvasLayer
 var move_stick: Control
@@ -129,9 +128,6 @@ func _ready() -> void:
 	Input.joy_connection_changed.connect(_controller_changed)
 	_pad.follow_connected()
 	if OS.has_feature("web"):
-		_chat_host=get_node_or_null("/root/WillowbrookBrowserSession")
-		if _chat_host!=null and _chat_host.has_method("bind_arena_chat"):
-			_chat_host.bind_arena_chat(self)
 		_document=JavaScriptBridge.get_interface("document")
 		_visibility=JavaScriptBridge.create_callback(_visibility_changed)
 		if _document!=null:_document.addEventListener("visibilitychange",_visibility)
@@ -233,7 +229,6 @@ func _layout(force_touch := false) -> void:
 	look_stick.fit_hud(screen_size.x,scale)
 	FIT.right_button(rise,Vector2(120,48),183.0,scale)
 	FIT.right_button(sink,Vector2(120,48),126.0,scale)
-	FIT.right_button(back,Vector2(172,48),243.0,scale)
 	var compact_top:=screen_size.x<460.0
 	depth.add_theme_font_size_override("font_size",15 if compact_top else 20)
 	if photo_book!=null:
@@ -260,6 +255,16 @@ func _layout(force_touch := false) -> void:
 			button.offset_bottom=pos.y+size.y
 			button.add_theme_font_size_override("font_size",roundi(15.0*scale))
 		actions_end+=size.y
+	# The top-right column belongs to Account, Stars, and the browser Chat launcher.
+	# Keep Return in the left column so Chat cannot cover it in short landscape.
+	back.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	back.custom_minimum_size=Vector2(172,48)*scale
+	back.offset_left=12.0*scale
+	back.offset_right=184.0*scale
+	back.offset_top=actions_end+8.0*scale
+	back.offset_bottom=back.offset_top+48.0*scale
+	back.add_theme_font_size_override("font_size",roundi(15.0*scale))
+	actions_end=back.offset_bottom
 	if treasure_banner!=null:
 		treasure_banner.offset_top=actions_end+8.0*scale
 
@@ -341,12 +346,16 @@ func open_photo_book() -> void:
 	]
 	photo_book.configure_tabs(tabs)
 	photo_book.open("reef")
+	if is_instance_valid(_presence):
+		_presence.set_zone_book_open(self,true)
 	if photo_button!=null:photo_button.hide()
 	if book_button!=null:book_button.hide()
 
 func close_photo_book() -> void:
 	if photo_book!=null:
 		photo_book.hide()
+	if is_instance_valid(_presence):
+		_presence.set_zone_book_open(self,false)
 	if photo_button!=null:photo_button.show()
 	if book_button!=null:book_button.show()
 
@@ -400,8 +409,6 @@ func set_zone_modal(open: bool) -> void:
 func _exit_tree() -> void:
 	if is_instance_valid(_presence):
 		_presence.suspend_zone_for(self)
-	if is_instance_valid(_chat_host) and _chat_host.has_method("bind_arena_chat"):
-		_chat_host.bind_arena_chat(null)
 	if _document!=null and _visibility!=null:_document.removeEventListener("visibilitychange",_visibility)
 
 func _is_mouse_looking() -> bool:

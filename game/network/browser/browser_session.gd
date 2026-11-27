@@ -258,6 +258,7 @@ func _on_web_message(m: Dictionary) -> void:
 
 func _build_menu(hud: CanvasLayer) -> void:
 	var open_button := Button.new()
+	_zone_menu_button = open_button
 	open_button.text = "Multiplayer (M)"
 	open_button.focus_mode = Control.FOCUS_NONE
 	hud.add_child(open_button)
