@@ -37,10 +37,10 @@ try{
  let save=store.save;
  store.save=()=>{throw Error('synthetic pre-rename failure');};
  assert.equal(action(p,'reel',{castId:cast.id},'catch-request').ok,false);
- assert.equal(game.snapshot(p).inventory.length,0);assert.equal(game.visual(p).cast.id,cast.id);
+ assert.equal(game.snapshot(p).inventory.length,0);assert.deepEqual(game.snapshot(p).discovered,[]);assert.equal(game.visual(p).cast.id,cast.id);
  store.save=()=>{save();throw Error('synthetic post-rename backup fault');};
  const caught=action(p,'reel',{castId:cast.id},'catch-request');
- assert.equal(caught.ok,true);assert.equal(game.snapshot(p).inventory.length,1);
+ assert.equal(caught.ok,true);assert.equal(caught.newDiscovery,true);assert.equal(game.snapshot(p).inventory.length,1);assert.deepEqual(game.snapshot(p).discovered,[caught.caught.type]);
  assert.equal(action(p,'reel',{castId:cast.id},'catch-request').caught.id,caught.caught.id);
  assert.equal(action(q,'reel',{castId:cast.id},'catch-request').ok,false);
  store.save=save;
@@ -63,7 +63,10 @@ try{
  assert.equal(action(p,'sell',{quoteId:offer.quoteId}).ok,true);assert.equal(p.profile.stars,offer.total);
  store=get();game=make();save=store.save;
  p=peer(store.auth({type:'resume',session:a.session}).profile);
- assert.equal(p.profile.stars,offer.total);assert.equal(game.snapshot(p).inventory.length,0);
+ assert.equal(p.profile.stars,offer.total);assert.equal(game.snapshot(p).inventory.length,0);assert.deepEqual(game.snapshot(p).discovered,[caught.caught.type]);
+ // Legacy profile without discovered field loads cleanly and does NOT infer from bag or catches.
+ const legacyProfile={username:'legacy',stars:0,previewFishing:{inventory:[{id:'000000000000000000000099',type:'clownfish'}],sales:[],catches:[{id:'000000000000000000000099',type:'clownfish',castId:'000000000000000000000098',requestId:'req-legacy01'}]}};
+ assert.deepEqual(game.snapshot(peer(legacyProfile)).discovered,[]);
  assert.equal(action(p,'sell',{quoteId:offer.quoteId}).sold.total,offer.total);assert.equal(p.profile.stars,offer.total);
  assert.equal(action(p,'equip').ok,true);
  p.x=18.5;p.z=3;

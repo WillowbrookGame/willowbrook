@@ -20,14 +20,15 @@ const bagKey=bag=>JSON.stringify(bag.map(x=>[x.id,x.type]));
 const yes=(text,extra={})=>({ok:true,text,...extra});
 const no=text=>({ok:false,text});
 const dealer=p=>Math.abs(p.x+19)<=3.5&&p.z<30.12&&Math.hypot(p.x+19,p.z-32.65)<=7&&p.grounded&&Math.abs(p.y)<1.25;
-const empty=()=>({inventory:[],sales:[],catches:[]});
+const empty=()=>({inventory:[],sales:[],catches:[],discovered:[]});
 export function createPreviewFishing(store,{clock=Date.now,random=()=>randomInt(0x100000000)/0x100000000,id=()=>randomBytes(12).toString('hex')}={}){
  const fish=new Map(), lines=new Map();
  let refresh=clock(), last=clock();
  function saved(profile){
   const s=profile.previewFishing;
   if(s===undefined)return empty();
-  if(!s||!Array.isArray(s.inventory)||s.inventory.length>maxBag||!Array.isArray(s.sales)||!Array.isArray(s.catches)||s.inventory.some(r=>!id24(r?.id)||!species.has(r.type))||new Set(s.inventory.map(r=>r.id)).size!==s.inventory.length)throw Error('Invalid fishing save');
+  const discoveredOk=s.discovered===undefined||(Array.isArray(s.discovered)&&s.discovered.length<=catalog.length&&s.discovered.every(t=>typeof t==='string'&&species.has(t)));
+  if(!s||!Array.isArray(s.inventory)||s.inventory.length>maxBag||!Array.isArray(s.sales)||!Array.isArray(s.catches)||!discoveredOk||s.inventory.some(r=>!id24(r?.id)||!species.has(r.type))||new Set(s.inventory.map(r=>r.id)).size!==s.inventory.length)throw Error('Invalid fishing save');
   return s;
  }
  const item=r=>{const f=species.get(r.type);return {id:r.id,type:r.type,name:f.name,value:f.value};};
@@ -80,7 +81,7 @@ export function createPreviewFishing(store,{clock=Date.now,random=()=>randomInt(
   return [...fish.values()].map(({id,x,z,size,owner,headingX,headingZ})=>({id,x,z,size,reserved:!!owner,headingX,headingZ}));
  }
  const visual=p=>({equipped:p.fishingEquipped===true,cast:lines.get(p)?.visual??null});
- const snapshot=p=>({...visual(p),inventory:saved(p.profile).inventory.map(item)});
+ const snapshot=p=>{const s=saved(p.profile);return {...visual(p),inventory:s.inventory.map(item),discovered:Array.isArray(s.discovered)?[...s.discovered]:[]};};
  function clearLine(p,putAway=false){
   const l=lines.get(p);lines.delete(p);
   const f=l&&fish.get(l.visual.fishId);if(f?.owner===p){fish.delete(f.id);if(fish.size<2)refresh=Math.min(refresh,clock()+7000+Math.floor(random()*4001));}
@@ -151,10 +152,13 @@ export function createPreviewFishing(store,{clock=Date.now,random=()=>randomInt(
    }
    if(old.inventory.length>=maxBag){clearLine(p);return no('Your fish bag is full.');}
    const row={id:id(),type:f.type}, receipt={...row,castId:v.id,requestId:m.requestId};
-   const next={...old,inventory:[...old.inventory,row],catches:[...old.catches.slice(-63),receipt]};
+   const prevDiscovered=Array.isArray(old.discovered)?old.discovered:[];
+   const newDiscovery=!prevDiscovered.includes(f.type);
+   const discovered=newDiscovery?[...prevDiscovered,f.type]:prevDiscovered;
+   const next={...old,inventory:[...old.inventory,row],catches:[...old.catches.slice(-63),receipt],discovered};
    if(!save(p.profile,old,next,p.profile.stars))return no('Could not save the catch. Try reeling again before the fish gets away.');
    clearLine(p);p.fishingQuote=null;
-   const caught=item(row);return yes('Caught a '+caught.name+'!',{caught});
+   const caught=item(row);return yes('Caught a '+caught.name+'!',{caught,newDiscovery});
   }
   if(!dealer(p))return no('Walk to Marina at the snack shop fish counter.');
   if(lines.has(p))return no('Reel in your line first.');
