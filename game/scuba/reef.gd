@@ -8,6 +8,7 @@ const DIVER=preload("res://game/scuba/diver.gd")
 const REEF_ART=preload("res://game/scuba/reef_art.gd")
 const REEF_TREASURES=preload("res://game/scuba/reef_treasures.gd")
 const REEF_RINGS=preload("res://game/scuba/reef_rings.gd")
+const REEF_GEYSERS=preload("res://game/scuba/reef_geysers.gd")
 const STICK=preload("res://game/movement_thumbstick.gd")
 const ROUTER=preload("res://game/touch_router.gd")
 const GAMEPAD=preload("res://game/gamepad_state.gd")
@@ -35,6 +36,7 @@ var treasure_banner: Label
 var art: Node3D
 var treasures: Node3D
 var rings: Node3D
+var geysers: Node3D
 var _banner_time:=0.0
 var _touch=ROUTER.new()
 var _pad=GAMEPAD.new()
@@ -63,6 +65,9 @@ func _ready() -> void:
 	rings.name="ReefRings"
 	add_child(rings)
 	rings.ring_passed.connect(_on_ring_passed)
+	geysers=REEF_GEYSERS.new()
+	geysers.name="ReefGeysers"
+	add_child(geysers)
 	diver=DIVER.new()
 	diver.name="Diver"
 	diver.collision_layer=0
@@ -344,7 +349,9 @@ func _physics_process(delta: float) -> void:
 	vertical-=float(Input.is_physical_key_pressed(KEY_CTRL) or Input.is_physical_key_pressed(KEY_SHIFT) or _sink_held or _pad_sink or -1 in _vertical_touches.values())
 	var aim:Vector2=(_pad.look()+_touch.look_motion).limit_length()
 	_look(aim,delta*1.65)
-	_swim(axis,vertical,delta)
+	var lift:float=float(geysers.updraft_at(diver.position,vertical<-0.1)) if geysers!=null else 0.0
+	_swim(axis,vertical,delta,lift)
+	art.update_depth_mood(diver.position.y)
 	_update_camera(delta)
 	if treasures!=null:
 		treasures.check_diver(diver.position)
@@ -392,12 +399,13 @@ func _on_treasure_found(title: String, found: int, total: int) -> void:
 		_banner_time=2.6
 	treasure_banner.show()
 
-func _swim(axis: Vector2, vertical: float, dt: float) -> void:
+func _swim(axis: Vector2, vertical: float, dt: float, lift: float=0.0) -> void:
 	var local:=Vector3(axis.x,0,axis.y)
 	var target:=((Basis(Vector3.UP,_yaw)*local)+Vector3.UP*vertical*.72).limit_length()*SPEED
 	if swim_player!=null:
 		var wanted:=SWIM.STROKE if target.length_squared()>.15 else SWIM.AQUATIC_IDLE
 		if swim_player.current_animation!=wanted:swim_player.play(wanted,.18)
+	target.y+=lift
 	diver.velocity=diver.velocity.move_toward(target,(18.0 if target.length_squared()>.03 else 26.0)*dt)
 	diver.move_and_slide()
 	var at:=diver.position
