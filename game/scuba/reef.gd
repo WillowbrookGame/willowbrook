@@ -202,7 +202,7 @@ func _build_hud() -> void:
 	hud.add_child(treasure_banner)
 	var hint:=Label.new()
 	hint.name="SwimHint"
-	hint.text="WASD: Swim | Space/Ctrl: Rise/Dive | F: Photo\nR-click/C: Look | B: Book | E: Return"
+	hint.text="WASD: Swim | Space/Shift: Rise/Dive | F: Photo\nR-click/C: Look | B: Book | E: Return"
 	hint.position=Vector2(10,42)
 	hint.add_theme_constant_override("outline_size",4)
 	hud.add_child(hint)
@@ -534,7 +534,7 @@ func _physics_process(delta: float) -> void:
 	kb+=Vector2(float(Input.is_physical_key_pressed(KEY_D))-float(Input.is_physical_key_pressed(KEY_A)),float(Input.is_physical_key_pressed(KEY_S))-float(Input.is_physical_key_pressed(KEY_W)))
 	var axis:Vector2=(kb+_pad.move()+diver.touch_motion).limit_length()
 	var vertical:=float(Input.is_physical_key_pressed(KEY_SPACE) or _rise_held or _pad_rise or 1 in _vertical_touches.values())
-	vertical-=float(Input.is_physical_key_pressed(KEY_CTRL) or Input.is_physical_key_pressed(KEY_SHIFT) or _sink_held or _pad_sink or -1 in _vertical_touches.values())
+	vertical-=float(Input.is_physical_key_pressed(KEY_SHIFT) or _sink_held or _pad_sink or -1 in _vertical_touches.values())
 	var aim:Vector2=(_pad.look()+_touch.look_motion).limit_length()
 	_look(aim,delta*1.65)
 	var lift:float=float(geysers.updraft_at(diver.position,vertical<-0.1)) if geysers!=null else 0.0
