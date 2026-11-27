@@ -951,7 +951,7 @@ func _build_menu(hud: CanvasLayer) -> void:
 	_star_badge.text = "Stars: %s" % _stars
 	hud.add_child(_star_badge)
 	_star_badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT,Control.PRESET_MODE_MINSIZE)
-	_star_badge.offset_left = -440.0
+	_star_badge.offset_left = -140.0 if zone == "reef" else -440.0
 	_star_badge.offset_right = -14.0
 	_star_badge.offset_top = 48.0
 	_star_badge.offset_bottom = 72.0
@@ -998,7 +998,7 @@ func _build_menu(hud: CanvasLayer) -> void:
 	_panel.hide()
 	_create_gate(hud)
 	_sync_gate()
-	if _network_zone(zone):
+	if _network_zone(zone) and zone != "reef":
 		_hunt_view = HUNT.new()
 		_bound.add_child(_hunt_view)
 		_hunt_view.setup(self,_bound,_player,hud,zone)

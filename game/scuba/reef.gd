@@ -1,9 +1,6 @@
 extends Node3D
-const TANK=preload("res://game/town_assets/scuba-starter/twin-scuba-tank-rig.glb")
-const FIN_LEFT=preload("res://game/town_assets/scuba-starter/dive-fin-left.glb")
-const FIN_RIGHT=preload("res://game/town_assets/scuba-starter/dive-fin-right.glb")
+const DIVER_VIEW=preload("res://game/scuba/diver_presentation.gd")
 const BUBBLES=preload("res://game/scuba/audio/scuba-bubbles.mp3")
-const SWIM=preload("res://game/scuba/animation/swim_animation.gd")
 const DIVER=preload("res://game/scuba/diver.gd")
 const REEF_ART=preload("res://game/scuba/reef_art.gd")
 const REEF_TREASURES=preload("res://game/scuba/reef_treasures.gd")
@@ -25,6 +22,7 @@ var diver: CharacterBody3D
 var avatar: Node3D
 var swim_player: AnimationPlayer
 var _network_modal:=false
+var _presence: Node
 var _chat_host: Node
 var camera: Camera3D
 var hud: CanvasLayer
@@ -101,15 +99,12 @@ func _ready() -> void:
 	var character: Variant=get_tree().get_meta("scuba_avatar","male-a")
 	get_tree().remove_meta("scuba_avatar")
 	avatar=AVATARS.instantiate(character)
-	avatar.scale=Vector3.ONE*2.8
-	avatar.position.y=-.5
 	avatar.rotation.y=PI # Kenney avatar faces local +Z; the initial swim view looks -Z.
 	diver.add_child(avatar)
-	swim_player=SWIM.bind(avatar)
+	swim_player=DIVER_VIEW.fit(avatar)
 	var avatar_animation:=AVATARS.animator(avatar) if swim_player==null else null
 	if avatar_animation!=null and avatar_animation.has_animation("idle"):
 		avatar_animation.play("idle")
-	_fit_dive_gear()
 	_bubbles=AudioStreamPlayer.new()
 	_bubbles.name="ScubaBubbles"
 	var bubble_loop:=BUBBLES.duplicate() as AudioStreamMP3
@@ -125,6 +120,10 @@ func _ready() -> void:
 	camera.make_current()
 	_update_camera(0.0)
 	_build_hud()
+	_presence=get_node_or_null("/root/WillowbrookBrowserSession" if OS.has_feature("web") else "/root/WillowbrookSession")
+	if is_instance_valid(_presence) and _presence.has_method("bind_zone"):
+		_presence.bind_zone("reef",self,diver,hud)
+		_layout()
 	get_viewport().size_changed.connect(_layout)
 	get_window().focus_exited.connect(_reset_input)
 	Input.joy_connection_changed.connect(_controller_changed)
@@ -137,21 +136,10 @@ func _ready() -> void:
 		_visibility=JavaScriptBridge.create_callback(_visibility_changed)
 		if _document!=null:_document.addEventListener("visibilitychange",_visibility)
 
-func _fit_dive_gear() -> void:
-	# Kenney faces +Z. The original rig shows its cylinders/valves from +Z;
-	# turn that face out toward -Z and put the thin harness side against the back.
-	var tank:=TANK.instantiate() as Node3D
-	tank.name="DiveTanks"
-	var tank_fit:=Transform3D(Basis(Vector3.UP,PI).scaled(Vector3.ONE*.34),Vector3(0,.118,-.201))
-	SWIM.attach_wearable(avatar,tank,"torso",tank_fit)
-	# Each original fin has a heel pocket at -Z and its long blade in +Z.
-	# The Kenney rig names these leg bones, but they skin the shoes as well.
-	var left:=FIN_LEFT.instantiate() as Node3D
-	left.name="LeftDiveFin"
-	SWIM.attach_wearable(avatar,left,"leg-left",Transform3D(Basis.IDENTITY.scaled(Vector3(.81,.85,.76)),Vector3(.107,-.02,.112)))
-	var right:=FIN_RIGHT.instantiate() as Node3D
-	right.name="RightDiveFin"
-	SWIM.attach_wearable(avatar,right,"leg-right",Transform3D(Basis.IDENTITY.scaled(Vector3(.81,.85,.76)),Vector3(-.107,-.02,.112)))
+# Both transports read the displayed avatar's facing and three-dimensional motion.
+func network_presence_motion() -> Vector2:
+	return Vector2(avatar.global_rotation.y, diver.velocity.length_squared())
+
 
 func _button(title: String) -> Button:
 	var b:=Button.new()
@@ -234,9 +222,9 @@ func _build_hud() -> void:
 	photo_book.closed.connect(close_photo_book)
 	_layout()
 
-func _layout() -> void:
+func _layout(force_touch := false) -> void:
 	var screen_size:=get_viewport().get_visible_rect().size
-	var touch_ui:=FIT.touch_available()
+	var touch_ui:=force_touch or FIT.touch_available()
 	var wanted:=FIT.touch_scale(get_viewport()) if touch_ui else FIT.physical_scale(get_viewport())
 	var scale:=minf(wanted,maxf(.7, minf(screen_size.x/345.0,screen_size.y/335.0)))
 	move_stick.visible=touch_ui
@@ -248,37 +236,33 @@ func _layout() -> void:
 	FIT.right_button(back,Vector2(172,48),243.0,scale)
 	var compact_top:=screen_size.x<460.0
 	depth.add_theme_font_size_override("font_size",15 if compact_top else 20)
-	if photo_button!=null and book_button!=null:
-		var btn_w:=(64.0 if compact_top else 76.0)*scale
-		var btn_h:=(32.0 if compact_top else 34.0)*scale
-		var gap:=6.0*scale
-		var top_y:=8.0*scale
-		var right_m:=10.0*scale
-		book_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-		book_button.custom_minimum_size=Vector2(btn_w,btn_h)
-		book_button.offset_right=-right_m
-		book_button.offset_left=-(right_m+btn_w)
-		book_button.offset_top=top_y
-		book_button.offset_bottom=top_y+btn_h
-		book_button.add_theme_font_size_override("font_size",roundi((14.0 if compact_top else 15.0)*scale))
-		photo_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-		photo_button.custom_minimum_size=Vector2(btn_w,btn_h)
-		photo_button.offset_right=-(right_m+btn_w+gap)
-		photo_button.offset_left=-(right_m+btn_w*2.0+gap)
-		photo_button.offset_top=top_y
-		photo_button.offset_bottom=top_y+btn_h
-		photo_button.add_theme_font_size_override("font_size",roundi((14.0 if compact_top else 15.0)*scale))
 	if photo_book!=null:
 		photo_book.resize_book()
 	var hint:=hud.get_node("SwimHint") as Label
-	hint.visible=not touch_ui or screen_size.x>640
+	hint.visible=not touch_ui or screen_size.x/scale>640
 	var counts_bottom:=36.0
 	if activity_counts!=null and activity_counts.visible:
 		counts_bottom=activity_counts.offset_top+maxf(24.0,activity_counts.get_combined_minimum_size().y)+4.0
 	hint.position=Vector2(10,maxf(42.0,counts_bottom))
+	var hints_end:=hint.position.y+hint.get_combined_minimum_size().y if hint.visible else counts_bottom
+	var actions_y:=maxf(80.0*scale,hints_end+8.0*scale)
+	var actions_end:=actions_y
+	if photo_button!=null and book_button!=null:
+		var size:=Vector2(72,44)*scale
+		for button: Button in [photo_button,book_button]:
+			var index:=0 if button==photo_button else 1
+			var pos:=Vector2((12.0+80.0*index)*scale,actions_y)
+			button.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			button.custom_minimum_size=size
+			button.offset_left=pos.x
+			button.offset_top=pos.y
+			button.offset_right=pos.x+size.x
+			button.offset_bottom=pos.y+size.y
+			button.add_theme_font_size_override("font_size",roundi(15.0*scale))
+		actions_end+=size.y
 	if treasure_banner!=null:
-		var top_below:=hint.position.y+hint.get_combined_minimum_size().y+10.0 if hint.visible else maxf(54.0,counts_bottom+8.0)
-		treasure_banner.offset_top=maxf(96.0,top_below) if hint.visible else top_below
+		treasure_banner.offset_top=actions_end+8.0*scale
+
 
 func _controller_changed(id: int, connected: bool) -> void:
 	if connected:_pad.follow_connected()
@@ -414,6 +398,8 @@ func set_zone_modal(open: bool) -> void:
 	if is_instance_valid(diver):diver.velocity=Vector3.ZERO
 
 func _exit_tree() -> void:
+	if is_instance_valid(_presence):
+		_presence.suspend_zone_for(self)
 	if is_instance_valid(_chat_host) and _chat_host.has_method("bind_arena_chat"):
 		_chat_host.bind_arena_chat(null)
 	if _document!=null and _visibility!=null:_document.removeEventListener("visibilitychange",_visibility)
@@ -598,8 +584,7 @@ func _swim(axis: Vector2, vertical: float, dt: float, lift: float=0.0) -> void:
 	var local:=Vector3(axis.x,0,axis.y)
 	var target:=((Basis(Vector3.UP,_yaw)*local)+Vector3.UP*vertical*.72).limit_length()*SPEED
 	if swim_player!=null:
-		var wanted:=SWIM.STROKE if target.length_squared()>.15 else SWIM.AQUATIC_IDLE
-		if swim_player.current_animation!=wanted:swim_player.play(wanted,.18)
+		DIVER_VIEW.animate(swim_player,target.length_squared()>.15)
 	target.y+=lift
 	diver.velocity=diver.velocity.move_toward(target,(18.0 if target.length_squared()>.03 else 26.0)*dt)
 	diver.move_and_slide()

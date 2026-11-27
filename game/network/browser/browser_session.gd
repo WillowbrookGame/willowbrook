@@ -137,8 +137,9 @@ func _accept_weather(packet: Variant) -> void:
 func _send_pose() -> void:
 	var public_zone := _network_zone(zone) and is_instance_valid(_player) and _player.is_inside_tree()
 	var pos: Vector3 = _player.global_position if public_zone else Vector3.ZERO
-	var yaw := wrapf(_player.rotation.y,-PI,PI) if public_zone else 0.0
-	var moving := public_zone and Vector2(_player.velocity.x,_player.velocity.z).length() > 0.15
+	var motion := _presence_motion() if public_zone else Vector2.ZERO
+	var yaw := wrapf(motion.x,-PI,PI)
+	var moving := public_zone and motion.y > .0225
 	var packet := {"type":"move","zone":zone if public_zone else "private","x":pos.x,"y":pos.y,"z":pos.z,"yaw":yaw,"moving":moving,"grounded":not public_zone or _player.is_on_floor()}
 	if public_zone and is_instance_valid(_bound) and zone in ["bank","vet","salon","store","cafe","library"]:
 		var indoor_room := _bound.get("room") as Node

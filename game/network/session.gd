@@ -5,6 +5,7 @@ signal roster_changed
 signal status_changed(message: String)
 const SCOOTER_RIDER = preload("res://game/vehicles/scooter_rider.gd")
 const AVATAR_CATALOG = preload("res://game/avatars/catalog.gd")
+const DIVER_VIEW := preload("res://game/scuba/diver_presentation.gd")
 const HOCKEY = preload("res://game/network/hockey_match.gd")
 const PORT := 24861
 const MAX_GUESTS := 11
@@ -61,6 +62,11 @@ func bind_zone(zone_id: String, host: Node3D, player: CharacterBody3D, hud: Canv
 	host.add_child(_ghost_root)
 	_build_menu(hud)
 	_elapsed = PERIOD
+
+
+func suspend_zone_for(host: Node3D) -> void:
+	if _bound == host:
+		suspend_zone()
 
 
 func suspend_zone() -> void:
@@ -193,7 +199,7 @@ func _valid_zone(candidate: String) -> bool:
 
 
 func _network_zone(candidate: String) -> bool:
-	return candidate in ["town","beach","arcade","bank","vet","salon","store","cafe","library"]
+	return candidate in ["town","beach","arcade","bank","vet","salon","store","cafe","library","reef"]
 
 
 func _new_entry(alias: String) -> Dictionary:
@@ -275,7 +281,7 @@ func _pose(candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: 
 func _apply_pose(id: int, candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: bool) -> void:
 	if not _entries.has(id) or (not candidate.is_empty() and not _network_zone(candidate)) or not pos.is_finite() or not is_finite(yaw):
 		return
-	if absf(pos.x) > 240 or absf(pos.z) > 240 or pos.y < -10 or pos.y > 25:
+	if absf(pos.x) > 240 or absf(pos.z) > 240 or pos.y < (-22.0 if candidate == "reef" else -10.0) or pos.y > 25:
 		return
 	var now := Time.get_ticks_msec()
 	var row: Dictionary = _entries[id]
@@ -321,6 +327,7 @@ func _share(now: int) -> void:
 		var place := "In town"
 		match String(row.zone):
 			"beach": place = "At the beach"
+			"reef": place = "At the reef"
 			"arcade": place = "At the arcade"
 			"town": pass
 			"": place = "In another activity"
@@ -363,8 +370,9 @@ func _process(delta: float) -> void:
 		_elapsed = fmod(_elapsed, PERIOD)
 		if admitted and is_instance_valid(_player) and _network_zone(zone):
 			var p := _player.global_position
-			var y := _player.rotation.y
-			var walk := Vector2(_player.velocity.x, _player.velocity.z).length() > 0.15
+			var motion := _presence_motion()
+			var y := motion.x
+			var walk := motion.y > .0225
 			if hosting:
 				_apply_pose(1, zone, p, y, walk, _player.is_on_floor())
 			else:
@@ -381,6 +389,12 @@ func _process(delta: float) -> void:
 
 const PET_CATALOG = preload("res://game/pets/catalog.gd")
 const PET_ACTORS = preload("res://game/pets/actors.gd")
+
+func _presence_motion() -> Vector2:
+	if zone == "reef" and is_instance_valid(_bound) and _bound.has_method("network_presence_motion"):
+		return _bound.network_presence_motion()
+	return Vector2(_player.rotation.y, Vector2(_player.velocity.x,_player.velocity.z).length_squared())
+
 
 func _draw_ghosts(delta: float) -> void:
 	if not is_instance_valid(_ghost_root) or not _ghost_root.is_inside_tree():
@@ -412,6 +426,9 @@ func _draw_ghosts(delta: float) -> void:
 			label.modulate = Color("#fff9c9")
 			root.add_child(label)
 			var animation := AVATAR_CATALOG.animator(model)
+			if zone == "reef":
+				model.rotation.y = 0.0 # Reef yaw already describes the +Z-facing avatar.
+				animation = DIVER_VIEW.fit(model)
 			_ghosts[id] = {"node":root,"model":model,"animation":animation,"character":character,"companion":null,"kind":""}
 		var ghost: Node3D = _ghosts[id].node
 		if ghost.global_position.distance_to(row.position) > 8.0:
@@ -419,6 +436,9 @@ func _draw_ghosts(delta: float) -> void:
 		else:
 			ghost.global_position = ghost.global_position.lerp(row.position, 1.0 - exp(-18.0 * delta))
 		ghost.rotation.y = lerp_angle(ghost.rotation.y, row.yaw, 1.0 - exp(-18.0 * delta))
+		if zone == "reef":
+			DIVER_VIEW.animate(_ghosts[id].animation, bool(row.moving))
+			continue
 		var active_kind: String = str(row.get("companionSpecies","")) if zone in ["town","beach"] and not row.get("vehicleSeat",false) else ""
 		if active_kind not in PET_CATALOG.SPECIES: active_kind=""
 		var view: Dictionary = _ghosts[id]
