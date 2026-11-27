@@ -52,6 +52,7 @@ var equipped := false
 var line: Dictionary = {}
 var population: Array[Dictionary] = []
 var inventory: Array[String] = []
+var discovered: Array[String] = []
 var stars := 0
 
 var _spots: Array[Vector3] = []
@@ -176,13 +177,19 @@ func reel() -> Dictionary:
 	if not was_bite:
 		return _reply(false, "The fish got away." if was_late else "Too soon! Wait for the bite before reeling.")
 	var kind: Dictionary = _by_type[fish.type]
+	var was_discovered := discovered.has(kind.id)
 	inventory.append(kind.id)
+	if not was_discovered:
+		discovered.append(kind.id)
 	if not _save_profile(0):
 		inventory.pop_back()
+		if not was_discovered:
+			discovered.pop_back()
 		return _reply(false, "Couldn't save your catch. No fish was added.")
 	_quote.clear()
 	var result := _reply(true, "Caught a %s!" % kind.name)
 	result["caught"] = kind.duplicate()
+	result["new_discovery"] = not was_discovered
 	return result
 
 
@@ -390,8 +397,25 @@ func _fish_by_id(id: int) -> Dictionary:
 var _town_profile: RefCounted
 var _stored_bag: Array = []
 var _legacy_inventory: Array[String] = []
+var _legacy_discovered: Array[String] = []
 var _legacy_stars := 0
 var _legacy_readable := true
+
+
+func is_discovered(species_id: String) -> bool:
+	return discovered.has(species_id)
+
+
+func discovered_count() -> int:
+	return discovered.size()
+
+
+func _dedupe_species(items: Array) -> Array[String]:
+	var clean: Array[String] = []
+	for id: Variant in items:
+		if id is String and _by_type.has(id) and not clean.has(id):
+			clean.append(id)
+	return clean
 
 
 ## Use one wallet even when the two old saves don't fit in the same bag.
@@ -405,13 +429,23 @@ func attach_town_profile(shared: RefCounted) -> void:
 		if not id is String or not _by_type.has(id):
 			_reject_profile()
 			return
+	var seen_raw: Variant = next.get("fish_discovered",[])
+	if not seen_raw is Array:
+		_reject_profile()
+		return
+	for id in seen_raw:
+		if not id is String or not _by_type.has(id):
+			_reject_profile()
+			return
 	_legacy_readable = _profile_valid
 	if _legacy_readable:
 		_legacy_inventory.assign(inventory)
+		_legacy_discovered.assign(discovered)
 		_legacy_stars = stars
 	_town_profile = shared
 	_stored_bag = caught.duplicate()
 	inventory.assign(caught)
+	discovered = _dedupe_species(seen_raw)
 	stars = int(next.get("stars",0))
 	# A corrupt old standalone file is left alone; the shared profile is safe.
 	_profile_valid = true
@@ -429,12 +463,19 @@ func _migrate_legacy() -> void:
 	var credit := not bool(next.get("fishing_legacy_stars_paid",false))
 	if credit and int(next.get("stars",0)) > 9223372036854775807-_legacy_stars:
 		return
-	if stop==cursor and stop<_legacy_inventory.size() and not credit:
+	var merged_discovered := _dedupe_species(next.get("fish_discovered",[]))
+	var has_new_discovered := false
+	for id: String in _legacy_discovered:
+		if not merged_discovered.has(id):
+			merged_discovered.append(id)
+			has_new_discovered = true
+	if stop==cursor and stop<_legacy_inventory.size() and not credit and not has_new_discovered:
 		return
 	var merged := inventory.duplicate()
 	for i: int in range(cursor,stop):
 		merged.append(_legacy_inventory[i])
 	next.fish = merged.duplicate()
+	next.fish_discovered = merged_discovered.duplicate()
 	if credit:
 		next.stars = int(next.get("stars",0))+_legacy_stars
 		next.fishing_legacy_stars_paid = true
@@ -443,6 +484,7 @@ func _migrate_legacy() -> void:
 	if not _town_profile.commit(next):
 		return
 	inventory.assign(merged)
+	discovered = merged_discovered
 	_stored_bag = merged.duplicate()
 	stars = int(next.get("stars",0))
 
@@ -454,15 +496,21 @@ func _load_profile() -> void:
 		_reject_profile()
 		return
 	var saved_fish: Variant = config.get_value("profile", "fish", [])
+	var saved_discovered: Variant = config.get_value("profile", "fish_discovered", [])
 	var saved_stars: Variant = config.get_value("profile", "stars", 0)
-	if not saved_fish is Array or saved_fish.size() > MAX_FISH or not saved_stars is int or saved_stars < 0:
+	if not saved_fish is Array or saved_fish.size() > MAX_FISH or not saved_discovered is Array or saved_discovered.size() > MAX_FISH or not saved_stars is int or saved_stars < 0:
 		_reject_profile()
 		return
 	for id: Variant in saved_fish:
 		if not id is String or not _by_type.has(id):
 			_reject_profile()
 			return
+	for id: Variant in saved_discovered:
+		if not id is String or not _by_type.has(id):
+			_reject_profile()
+			return
 	inventory.assign(saved_fish)
+	discovered = _dedupe_species(saved_discovered)
 	stars = saved_stars
 
 
@@ -478,6 +526,7 @@ func _save_profile(star_delta: int) -> bool:
 		if next.get("fish",[]) != _stored_bag:
 			return false
 		next.fish = inventory.duplicate()
+		next.fish_discovered = discovered.duplicate()
 		next.stars = int(next.get("stars",0))+star_delta
 		if not _town_profile.commit(next):
 			return false
@@ -490,6 +539,7 @@ func _save_profile(star_delta: int) -> bool:
 		return false
 	var config := ConfigFile.new()
 	config.set_value("profile", "fish", inventory)
+	config.set_value("profile", "fish_discovered", discovered)
 	config.set_value("profile", "stars", stars)
 	var temp := _save_path + ".tmp"
 	if config.save(temp) != OK:

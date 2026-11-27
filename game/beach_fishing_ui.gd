@@ -15,6 +15,7 @@ const WATER_Y := -0.17
 const MAX_CAST := 17.0
 const PREVIEW_PATH := "res://game/fish_art/"
 const HUD_FIT = preload("res://game/hud_fit.gd")
+const PHOTO_BOOK = preload("res://game/photo_book_ui.gd")
 const THUMB_PATH := "res://game/fish_thumbs/"
 var game: FISHING
 const PROX = preload("res://game/npc_proximity.gd")
@@ -70,6 +71,8 @@ var primary: Button
 var status: Label
 var cast_button: Button
 var put_away_button: Button
+var book_button: Button
+var photo_book: Control
 var stats: Label
 var sale_mode := false
 var note_time := 0.0
@@ -151,12 +154,16 @@ func _ask_fishing(operation: String, fields: Dictionary = {}) -> bool:
 		_note("Connection lost. Reconnect to manage your saved fish.")
 		return false
 	_fishing_pending = {"id":id,"operation":operation,"at":Time.get_ticks_msec()}
+	if book_button != null:
+		book_button.disabled = true
 	return true
 
 func _on_fishing_reply(message: Dictionary) -> void:
 	if _fishing_pending.get("id") != message.get("requestId"):
 		return
 	_fishing_pending.clear()
+	if book_button != null:
+		book_button.disabled = false
 	var op: String = message.operation
 	var success: bool = message.ok
 	var info: String = String(message.get("error",message.get("text","")))
@@ -175,7 +182,7 @@ func _on_fishing_reply(message: Dictionary) -> void:
 				var caught := _species(String(message.caught.get("type","")))
 				if not caught.is_empty():
 					catch_audio.play()
-					_show_catch(caught)
+					_show_catch(caught,bool(message.get("newDiscovery",false)))
 			else:
 				plop_audio.stop()
 				plop_audio.play()
@@ -204,18 +211,28 @@ func _species(id: String) -> Dictionary:
 
 func _sync_online_fishing(delta: float) -> void:
 	if not _account.admitted:
+		var had_synced := _client_inventory_at != -1.0
 		game.equipped = false
 		game.line.clear()
 		game.population.clear()
 		game.inventory.clear()
+		game.discovered.clear()
 		game.stars = 0
 		_client_inventory_at = -1.0
 		_client_pop_at = -1.0
 		_sync_remote_casts({})
+		var had_book := photo_book != null and photo_book.visible
+		if photo_book != null and (had_book or had_synced):
+			photo_book.configure_tabs(_fishing_book_tabs())
+			photo_book.hide()
+		if book_button != null:
+			book_button.disabled = false
 		if not _fishing_pending.is_empty() or sale_mode:
 			_fishing_pending.clear()
 			_sale_quote_id = ""
 			_show_dialog("Fishing paused","Connection lost. Sign in again to check your saved fish and stars.",false)
+		elif had_book:
+			dialog_closed.emit()
 		_update_stats()
 		return
 	var view: Dictionary = _account.fishing_snapshot()
@@ -230,6 +247,9 @@ func _sync_online_fishing(delta: float) -> void:
 		game.inventory.clear()
 		for item: Dictionary in view.get("inventory",[]):
 			game.inventory.append(String(item.get("type","")))
+		game.discovered = game._dedupe_species(view.get("discovered",[]))
+		if photo_book != null and photo_book.visible:
+			photo_book.configure_tabs(_fishing_book_tabs())
 	var now := float(_account.fishing_now())
 	if cast is Dictionary and String(cast.id) != _cast_cancelled and not actions_suspended and now <= float(cast.expiresAt):
 		_online_cast_id = String(cast.id)
@@ -317,7 +337,7 @@ func _shape(color: Color, size: Vector3) -> MeshInstance3D:
 	return result
 
 func is_modal_open() -> bool:
-	return overlay.visible
+	return overlay.visible or (photo_book != null and photo_book.visible)
 
 func _near(at: Vector3) -> bool:
 	return Vector2(player.position.x-at.x,player.position.z-at.z).length() < INTERACTION
@@ -385,7 +405,7 @@ func click(camera: Camera3D) -> void:
 		_update_stats()
 		if result.get("ok",false) and result.has("caught"):
 			catch_audio.play()
-			_show_catch(result.caught)
+			_show_catch(result.caught,bool(result.get("new_discovery",false)))
 		return
 	var target := _aim_target(camera)
 	if not target.is_finite():
@@ -477,6 +497,8 @@ func set_actions_suspended(value: bool) -> void:
 		held_rod.hide()
 		cast_button.hide()
 		put_away_button.hide()
+		if book_button != null:
+			book_button.hide()
 		aim_ring.hide()
 		_draw_line()
 
@@ -563,6 +585,9 @@ func tick(delta: float, show_avatar: bool) -> void:
 	held_rod.visible = game.equipped and show_avatar and not actions_suspended
 	cast_button.visible = game.equipped and not is_modal_open() and not actions_suspended
 	put_away_button.visible = cast_button.visible
+	if book_button != null:
+		book_button.visible = not is_modal_open() and not actions_suspended
+		book_button.disabled = not _fishing_pending.is_empty()
 	cast_button.text = "Cast" if game.line.is_empty() else ("Casting..." if game.phase() == "casting" else "Reel in")
 	if game.equipped and not actions_suspended:
 		skeleton.set_bone_pose_rotation(arm_index,arm_pose)
@@ -771,6 +796,13 @@ func _build_hud(canvas: CanvasLayer) -> void:
 	put_away_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT,Control.PRESET_MODE_MINSIZE,16)
 	put_away_button.position.y -= 113
 	put_away_button.hide()
+	book_button = Button.new()
+	book_button.name = "FishBookButton"
+	book_button.text = "Fish Book"
+	book_button.focus_mode = Control.FOCUS_NONE
+	book_button.custom_minimum_size = Vector2(96,46)
+	book_button.pressed.connect(open_photo_book)
+	canvas.add_child(book_button)
 	overlay = CenterContainer.new()
 	canvas.add_child(overlay)
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -805,6 +837,9 @@ func _build_hud(canvas: CanvasLayer) -> void:
 	secondary.custom_minimum_size.y = 44
 	secondary.pressed.connect(close_modal)
 	dialog_column.add_child(secondary)
+	photo_book = PHOTO_BOOK.new()
+	canvas.add_child(photo_book)
+	photo_book.closed.connect(close_modal)
 	get_viewport().size_changed.connect(_resize_fishing_hud)
 	_resize_fishing_hud()
 	overlay.hide()
@@ -816,14 +851,28 @@ func _resize_fishing_hud() -> void:
 	var narrow := view_size.x/s < 460.0
 	var short := view_size.y/s < 455.0
 	stats.position = Vector2(12,94)*s
-	status.position = stats.position + Vector2(0,23)*s
-	status.size.x = view_size.x-24.0*s
 	stats.add_theme_font_size_override("font_size",roundi(17.0*s))
 	status.add_theme_font_size_override("font_size",roundi(17.0*s))
+	var stats_min := stats.get_combined_minimum_size()
+	var stats_h := maxf(26.0*s, stats_min.y)
+	stats.size = Vector2(maxf(stats_min.x, 120.0*s), stats_h)
 	for cue: Button in [cast_button,put_away_button,primary,secondary]:
 		cue.add_theme_font_size_override("font_size",roundi(16.0*s))
+	book_button.add_theme_font_size_override("font_size",roundi((14.0 if narrow or short else 15.0)*s))
+	var book_size := Vector2(96.0 if narrow else 108.0, 32.0 if short else 36.0)*s
+	var book_pos := stats.position + Vector2(0, stats_h + 4.0*s)
+	book_button.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	book_button.custom_minimum_size = book_size
+	book_button.offset_left = book_pos.x
+	book_button.offset_top = book_pos.y
+	book_button.offset_right = book_pos.x + book_size.x
+	book_button.offset_bottom = book_pos.y + book_size.y
+	status.position = Vector2(book_pos.x, book_pos.y + book_size.y + 6.0*s)
+	status.size.x = view_size.x-24.0*s
 	HUD_FIT.right_button(cast_button,Vector2(96,46),58,s,true)
 	HUD_FIT.right_button(put_away_button,Vector2(96,46),112,s,true)
+	if photo_book != null:
+		photo_book.resize_book()
 	dialog_panel.custom_minimum_size.x = clampf(view_size.x-20.0*s,180.0*s,(440.0 if short else 355.0)*s)
 	for edge in ["left","right","top","bottom"]:
 		dialog_padding.add_theme_constant_override("margin_"+edge,roundi((8.0 if short else (12.0 if narrow else 20.0))*s))
@@ -860,12 +909,43 @@ func _show_dialog(title: String, body: String, sale: bool) -> void:
 	primary.grab_focus()
 	dialog_opened.emit()
 
+func _fishing_book_tabs() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for fish: Dictionary in FISHING.CATALOG:
+		var id := String(fish.id)
+		entries.append({
+			"id": id,
+			"name": String(fish.name),
+			"thumb": THUMB_PATH + id + ".png",
+			"discovered": game.is_discovered(id),
+		})
+	return [{
+		"id": "fishing",
+		"label": "Fishing",
+		"title": "Fishing Photo Book",
+		"entries": entries,
+	}]
+
+
+func open_photo_book() -> void:
+	if actions_suspended or is_modal_open() or photo_book == null or not _fishing_pending.is_empty():
+		return
+	if _account != null and not _account.admitted:
+		_note("Sign in to view your saved Fish Book.")
+		return
+	photo_book.configure_tabs(_fishing_book_tabs())
+	photo_book.open("fishing")
+	dialog_opened.emit()
+
+
 func close_modal() -> void:
 	if is_instance_valid(_turning_actor):
 		_turning_actor.rotation.y = _resting_yaw
 	_turning_actor = null
 	game.cancel_sale()
 	overlay.hide()
+	if photo_book != null:
+		photo_book.hide()
 	dialog_closed.emit()
 	sale_mode = false
 
@@ -959,8 +1039,9 @@ func _stars_text(value: int) -> String:
 	return "%d %s" % [value,"star" if value == 1 else "stars"]
 
 
-func _show_catch(item: Dictionary) -> void:
-	_show_dialog("You caught a fish!","Saved in your fish bag. You can sell it to Marina at the snack shop.",false)
+func _show_catch(item: Dictionary, new_discovery: bool = false) -> void:
+	var note := "New species added to your Fish Book! Saved in your fish bag." if new_discovery else "Saved in your fish bag. You can sell it to Marina at the snack shop."
+	_show_dialog("You caught a fish!",note,false)
 	primary.text = "Keep Fishing"
 	_asset_preview(item,sale_cards,true)
 
