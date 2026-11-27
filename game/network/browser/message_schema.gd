@@ -349,6 +349,8 @@ static func valid(message: Variant) -> bool:
 				return false
 			return (not m.has("vehicles") or (m.get("zone")=="town" and _vehicle_world(m.vehicles))) and m.get("zone") in ZONES and _rows(m.get("players"),16,_pose) and _rows(m.get("presence"),16,_alias_row) and _fish_world(m) and _hide_seek_state(m.get("hideSeek")) and (not m.has("playground") or (m.zone=="town" and _playground_state(m.playground))) and (not m.has("homeScene") or (m.zone=="private" and _home_scene(m.homeScene))) and (not m.has("homeExteriors") or (m.zone=="town" and _home_exteriors(m.homeExteriors)))
 		"progress":
+			if m.get("action") == "paintball":
+				return m.get("operation") == "onlineReward" and m.get("ok") is bool and m.ok and _progress(m)
 			return m.get("action") in ["tendGarden","jobs","scavenger","pets","housing","fishing","classes","furniture","neighborQuest","vehicles","yard","reefPhotos"] and (m.get("action")!="vehicles" or (m.get("operation") in ["buy","upgrade","unknown"] and (m.get("requestId")==null or _text(m.requestId,64)))) and (m.get("action")!="classes" or (m.get("operation")=="pay" and (m.get("requestId")==null or _text(m.requestId,64)))) and m.get("ok") is bool and (not m.has("text") or _text(m.text,250)) and (not m.has("error") or _text(m.error,250)) and (not m.has("operation") or _text(m.operation,48)) and _progress(m) and _fish_reply(m) and _neighbor_reply(m) and _reef_photo_reply(m)
 		"scavengerLeaderboard":
 			return _rows(m.get("rows"),50,func(r): return _rank(r,"durationMs"))
