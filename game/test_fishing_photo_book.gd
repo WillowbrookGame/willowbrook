@@ -3,7 +3,34 @@ extends SceneTree
 const Fishing = preload("res://game/fishing_game.gd")
 const Profile = preload("res://game/progression/profile.gd")
 const PhotoBook = preload("res://game/photo_book_ui.gd")
+const BEACH_SCENE := "res://game/beach.tscn"
 const THUMB_PATH := "res://game/fish_thumbs/"
+
+
+class MockAccount extends Node:
+	signal fishing_reply(message: Dictionary)
+	var admitted := true
+	var snapshot_data: Dictionary = {}
+	var last_request_id := ""
+
+	func send_fishing(_operation: String, request_id: String, _fields: Dictionary = {}) -> bool:
+		last_request_id = request_id
+		return true
+
+	func fishing_snapshot() -> Dictionary:
+		return snapshot_data
+
+	func fishing_world() -> Dictionary:
+		return {}
+
+	func saved_stars() -> int:
+		return 0
+
+	func fishing_now() -> float:
+		return 100.0
+
+	func fishing_peer(_id: int) -> Node3D:
+		return null
 
 var failures := 0
 
@@ -129,6 +156,50 @@ func _run() -> void:
 	_check(tab_bar.visible and book.active_tab_id() == "reef", "Multi-tab mode reveals tab bar and opens requested tab")
 
 	host.queue_free()
+
+	# 5. Beach scene integration with simulated account: disconnect closes & clears book;
+	#    pending fishing request disables book button so catch popup cannot be swallowed.
+	if change_scene_to_file(BEACH_SCENE) == OK:
+		await scene_changed
+		var beach := current_scene
+		var fishing_ui: Node3D = beach.fishing_ui
+		var mock := MockAccount.new()
+		mock.snapshot_data = {"equipped": true, "inventory": [], "discovered": ["goldfish"], "_received_at": 100.0}
+		beach.add_child(mock)
+		fishing_ui.use_fishing_account(mock)
+		await physics_frame
+		await physics_frame
+		_check(fishing_ui.game.discovered == ["goldfish"], "Beach syncs discovered species from account snapshot")
+
+		# Open book, then drop admission -> book closes and clears stale discoveries.
+		fishing_ui.open_photo_book()
+		await process_frame
+		var beach_book: Control = fishing_ui.photo_book
+		var beach_progress := beach_book.find_child("BookProgress", true, false) as Label
+		_check(beach_book.visible and beach_progress.text == "1 / 35 discovered", "Beach Fish Book opens with synced discoveries")
+		mock.admitted = false
+		await physics_frame
+		await physics_frame
+		_check(not beach_book.visible and not fishing_ui.is_modal_open(), "Disconnect closes open Fish Book")
+		_check(beach_progress.text == "0 / 35 discovered", "Disconnect clears stale account discoveries from Fish Book")
+
+		# Reconnect and start a pending reel request -> book button disabled and cannot open over catch popup.
+		mock.admitted = true
+		mock.snapshot_data = {"equipped": true, "inventory": [], "discovered": ["goldfish"], "_received_at": 200.0}
+		await physics_frame
+		await physics_frame
+		_check(fishing_ui._ask_fishing("reel", {"castId": "000000000000000000000001"}), "Simulated pending reel request starts")
+		_check(fishing_ui.book_button.disabled, "Fish Book button is disabled while a fishing request is pending")
+		fishing_ui.open_photo_book()
+		_check(not beach_book.visible, "Fish Book cannot open while a fishing request is pending")
+		mock.snapshot_data = {"equipped": true, "inventory": [{"type": "tetra"}], "discovered": ["goldfish", "tetra"], "_received_at": 300.0}
+		mock.fishing_reply.emit({"requestId": mock.last_request_id, "operation": "reel", "ok": true, "text": "Caught a Tetra!", "caught": {"type": "tetra"}, "newDiscovery": true})
+		await process_frame
+		_check(not fishing_ui.book_button.disabled, "Fish Book button re-enables after fishing reply arrives")
+		_check(fishing_ui.overlay.visible and not beach_book.visible, "Catch popup is visible on top and not swallowed by Fish Book")
+	else:
+		_check(false, "Failed to load beach scene for account integration test")
+
 	for p: String in [legacy_path, legacy_path + ".bak", town_path, town_path + ".bak"]:
 		var abs_path := ProjectSettings.globalize_path(p)
 		if FileAccess.file_exists(abs_path):

@@ -154,12 +154,16 @@ func _ask_fishing(operation: String, fields: Dictionary = {}) -> bool:
 		_note("Connection lost. Reconnect to manage your saved fish.")
 		return false
 	_fishing_pending = {"id":id,"operation":operation,"at":Time.get_ticks_msec()}
+	if book_button != null:
+		book_button.disabled = true
 	return true
 
 func _on_fishing_reply(message: Dictionary) -> void:
 	if _fishing_pending.get("id") != message.get("requestId"):
 		return
 	_fishing_pending.clear()
+	if book_button != null:
+		book_button.disabled = false
 	var op: String = message.operation
 	var success: bool = message.ok
 	var info: String = String(message.get("error",message.get("text","")))
@@ -216,10 +220,18 @@ func _sync_online_fishing(delta: float) -> void:
 		_client_inventory_at = -1.0
 		_client_pop_at = -1.0
 		_sync_remote_casts({})
+		var had_book := photo_book != null and photo_book.visible
+		if photo_book != null:
+			photo_book.configure_tabs(_fishing_book_tabs())
+			photo_book.hide()
+		if book_button != null:
+			book_button.disabled = false
 		if not _fishing_pending.is_empty() or sale_mode:
 			_fishing_pending.clear()
 			_sale_quote_id = ""
 			_show_dialog("Fishing paused","Connection lost. Sign in again to check your saved fish and stars.",false)
+		elif had_book:
+			dialog_closed.emit()
 		_update_stats()
 		return
 	var view: Dictionary = _account.fishing_snapshot()
@@ -574,6 +586,7 @@ func tick(delta: float, show_avatar: bool) -> void:
 	put_away_button.visible = cast_button.visible
 	if book_button != null:
 		book_button.visible = not is_modal_open() and not actions_suspended
+		book_button.disabled = not _fishing_pending.is_empty()
 	cast_button.text = "Cast" if game.line.is_empty() else ("Casting..." if game.phase() == "casting" else "Reel in")
 	if game.equipped and not actions_suspended:
 		skeleton.set_bone_pose_rotation(arm_index,arm_pose)
@@ -903,7 +916,7 @@ func _fishing_book_tabs() -> Array[Dictionary]:
 
 
 func open_photo_book() -> void:
-	if actions_suspended or is_modal_open() or photo_book == null:
+	if actions_suspended or is_modal_open() or photo_book == null or not _fishing_pending.is_empty():
 		return
 	if _account != null and not _account.admitted:
 		_note("Sign in to view your saved Fish Book.")
