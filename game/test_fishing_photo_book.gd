@@ -182,6 +182,11 @@ func _run() -> void:
 		await physics_frame
 		_check(not beach_book.visible and not fishing_ui.is_modal_open(), "Disconnect closes open Fish Book")
 		_check(beach_progress.text == "0 / 35 discovered", "Disconnect clears stale account discoveries from Fish Book")
+		var beach_grid := beach_book.find_child("EntryGrid", true, false) as GridContainer
+		var first_card := beach_grid.get_child(0)
+		for _step in range(5):
+			await physics_frame
+		_check(is_instance_valid(first_card) and beach_grid.get_child(0) == first_card, "Staying disconnected does not rebuild Fish Book cards every frame")
 
 		# Reconnect and start a pending reel request -> book button disabled and cannot open over catch popup.
 		mock.admitted = true

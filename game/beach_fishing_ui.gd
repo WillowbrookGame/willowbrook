@@ -211,6 +211,7 @@ func _species(id: String) -> Dictionary:
 
 func _sync_online_fishing(delta: float) -> void:
 	if not _account.admitted:
+		var had_synced := _client_inventory_at != -1.0
 		game.equipped = false
 		game.line.clear()
 		game.population.clear()
@@ -221,7 +222,7 @@ func _sync_online_fishing(delta: float) -> void:
 		_client_pop_at = -1.0
 		_sync_remote_casts({})
 		var had_book := photo_book != null and photo_book.visible
-		if photo_book != null:
+		if photo_book != null and (had_book or had_synced):
 			photo_book.configure_tabs(_fishing_book_tabs())
 			photo_book.hide()
 		if book_button != null:
