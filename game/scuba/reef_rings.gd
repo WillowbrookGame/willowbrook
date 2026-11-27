@@ -61,7 +61,7 @@ func check_diver(diver_pos: Vector3) -> void:
 		return
 	var prev := _last_diver_pos
 	_last_diver_pos = diver_pos
-	if _reset_timer > 0.0 or prev.distance_squared_to(diver_pos) < 0.0001:
+	if _reset_timer > 0.0:
 		return
 	for entry: Dictionary in rings:
 		if bool(entry.passed):

@@ -37,8 +37,18 @@ func _run() -> void:
 	await physics_frame
 	if not _require(rings.passed_count == 0, "Swimming outside the ring hoop should not count"):
 		return
-	# Swim cleanly through all 8 rings (alternating front->back and back->front directions).
-	for i in rings.rings.size():
+	# Slow centered pass (0.48 m/s = 0.008 m per 60Hz tick, light touch-stick tilt) MUST count.
+	reef.diver.position = r0.to_global(Vector3(0.0, 0.0, 0.032))
+	reef.diver.velocity = Vector3.ZERO
+	await physics_frame
+	for step in range(8):
+		reef.diver.position = r0.to_global(Vector3(0.0, 0.0, 0.032 - 0.008 * float(step + 1)))
+		reef.diver.velocity = Vector3.ZERO
+		await physics_frame
+	if not _require(rings.passed_count == 1, "Slow 0.48 m/s centered pass through ring 1 did not count"):
+		return
+	# Swim cleanly through the remaining 7 rings (alternating front->back and back->front directions).
+	for i in range(1, rings.rings.size()):
 		var node: Node3D = rings.rings[i].node
 		var side := 0.8 if i % 2 == 0 else -0.8
 		reef.diver.position = node.to_global(Vector3(0.0, 0.0, side))
