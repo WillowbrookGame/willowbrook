@@ -851,15 +851,26 @@ func _resize_fishing_hud() -> void:
 	var narrow := view_size.x/s < 460.0
 	var short := view_size.y/s < 455.0
 	stats.position = Vector2(12,94)*s
-	status.position = stats.position + Vector2(0,23)*s
-	status.size.x = view_size.x-24.0*s
 	stats.add_theme_font_size_override("font_size",roundi(17.0*s))
 	status.add_theme_font_size_override("font_size",roundi(17.0*s))
-	for cue: Button in [cast_button,put_away_button,book_button,primary,secondary]:
+	var stats_min := stats.get_combined_minimum_size()
+	var stats_h := maxf(26.0*s, stats_min.y)
+	stats.size = Vector2(maxf(stats_min.x, 120.0*s), stats_h)
+	for cue: Button in [cast_button,put_away_button,primary,secondary]:
 		cue.add_theme_font_size_override("font_size",roundi(16.0*s))
+	book_button.add_theme_font_size_override("font_size",roundi((14.0 if narrow or short else 15.0)*s))
+	var book_size := Vector2(96.0 if narrow else 108.0, 32.0 if short else 36.0)*s
+	var book_pos := stats.position + Vector2(0, stats_h + 4.0*s)
+	book_button.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	book_button.custom_minimum_size = book_size
+	book_button.offset_left = book_pos.x
+	book_button.offset_top = book_pos.y
+	book_button.offset_right = book_pos.x + book_size.x
+	book_button.offset_bottom = book_pos.y + book_size.y
+	status.position = Vector2(book_pos.x, book_pos.y + book_size.y + 6.0*s)
+	status.size.x = view_size.x-24.0*s
 	HUD_FIT.right_button(cast_button,Vector2(96,46),58,s,true)
 	HUD_FIT.right_button(put_away_button,Vector2(96,46),112,s,true)
-	HUD_FIT.right_button(book_button,Vector2(96,46),166,s,true)
 	if photo_book != null:
 		photo_book.resize_book()
 	dialog_panel.custom_minimum_size.x = clampf(view_size.x-20.0*s,180.0*s,(440.0 if short else 355.0)*s)

@@ -202,6 +202,38 @@ func _run() -> void:
 		await process_frame
 		_check(not fishing_ui.book_button.disabled, "Fish Book button re-enables after fishing reply arrives")
 		_check(fishing_ui.overlay.visible and not beach_book.visible, "Catch popup is visible on top and not swallowed by Fish Book")
+
+		# 6. Full Beach HUD overlap check with touch controls visible in portrait (360x640) and landscape (640x360).
+		fishing_ui.close_modal()
+		var hud := beach.get_node("WorldHUD") as CanvasLayer
+		var jump_btn := hud.get_node_or_null("Jump") as Control
+		var move_stick := hud.get_node_or_null("MovementThumbstick") as Control
+		var cam_stick := hud.get_node_or_null("CameraThumbstick") as Control
+		for ctrl: Control in [jump_btn, move_stick, cam_stick]:
+			if ctrl != null:
+				ctrl.show()
+		fishing_ui._note("Watch the bobber.")
+		for vp_size: Vector2i in [Vector2i(360, 640), Vector2i(640, 360)]:
+			root.size = vp_size
+			await process_frame
+			await physics_frame
+			await process_frame
+			var vp_rect := beach.get_viewport().get_visible_rect()
+			var book_rect: Rect2 = fishing_ui.book_button.get_global_rect()
+			_check(book_rect.position.x >= 0.0 and book_rect.position.y >= 0.0 and book_rect.end.x <= vp_rect.size.x and book_rect.end.y <= vp_rect.size.y, "Fish Book button inside %s viewport: %s" % [vp_size, book_rect])
+			for pair: Array in [
+				["Jump", jump_btn],
+				["Cast", fishing_ui.cast_button],
+				["Put Away", fishing_ui.put_away_button],
+				["MovementThumbstick", move_stick],
+				["CameraThumbstick", cam_stick],
+				["Stats", fishing_ui.stats],
+				["Status", fishing_ui.status],
+			]:
+				var other: Control = pair[1]
+				if other != null and other.visible:
+					var other_rect := other.get_global_rect()
+					_check(not book_rect.intersects(other_rect), "Fish Book button overlaps %s at %s: book=%s other=%s" % [pair[0], vp_size, book_rect, other_rect])
 	else:
 		_check(false, "Failed to load beach scene for account integration test")
 
