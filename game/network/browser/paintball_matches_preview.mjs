@@ -4,7 +4,7 @@ const HOLD_MS=20000, ABSENT_MS=15000, MAX_MATCH_MS=13*60_000;
 const ACTIONS=['ready','view','input','next','leave'];
 const closed=()=>({ok:false,error:'Online Paintball is unavailable. Solo play still works.'});
 
-export function createPrivatePaintballMatches({worker,admitted,send,hideFromWorld,rewards=null,onStarsUpdated=null,now=()=>Date.now()}){
+export function createPrivatePaintballMatches({worker,admitted,send,hideFromWorld,character=()=>'male-a',rewards=null,onStarsUpdated=null,now=()=>Date.now()}){
  const matches=new Map(), memberships=new Map();
  const peerSlot=p=>{const row=memberships.get(p.profile?.id);return row?.peer===p?row:null;};
  const reply=(p,action,data)=>{if(admitted(p))send(p,{type:'paintballMatch',action,...data});};
@@ -48,7 +48,7 @@ export function createPrivatePaintballMatches({worker,admitted,send,hideFromWorl
    return {ok:false,error:'At least two connected players are needed.'};
   const connected=lobby.slots.slice();
   const room={id:randomBytes(12).toString('hex'),epoch:randomBytes(8).toString('hex'),members:[],until:now()+MAX_MATCH_MS};
-  const humans=connected.map(s=>({slot:String(s.id),alias:s.alias}));
+  const humans=connected.map(s=>({slot:String(s.id),alias:s.alias,avatar:character(s.peer.profile)}));
   const result=await worker.call('open',{room:room.id,slot:String(host.id),humans});
   if(!result?.ok||!ready())return closed();
   if(lobby.revision!==revision||lobby.slots.length!==connected.length||connected.some(s=>!lobby.slots.includes(s)||!s.peer||!admitted(s.peer)||memberships.has(s.account))){

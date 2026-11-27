@@ -777,11 +777,6 @@ func bank_command(operation: String, argument: Variant = null) -> bool:
 	if fresh: _bank_request.clear()
 	return false
 
-func send_paintball_solo_reward(rank: int, request_id: String) -> bool:
-	if not admitted or rank < 1 or rank > 4 or request_id.is_empty():
-		return false
-	return _send_packet({"type":"progress","action":"paintball","operation":"completeSolo","rank":rank,"requestId":request_id})
-
 func send_fishing(operation: String, request_id: String, fields: Dictionary = {}) -> bool:
 	if not admitted or zone != "beach":
 		return false

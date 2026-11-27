@@ -141,7 +141,7 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
  if(accounts&&enablePaintballLobbyTransport===true&&paintballWorker){
   try{
    worker=startPaintballWorker({...paintballWorker,onLost:()=>matches?.unavailable()});
-   matches=createPrivatePaintballMatches({worker,admitted,rewards:paintballRewards,onStarsUpdated:p=>send(p.ws,{type:'progress',action:'paintball',operation:'onlineReward',ok:true,...progress(p)}),send:(p,m)=>send(p.ws,m),hideFromWorld:p=>{
+   matches=createPrivatePaintballMatches({worker,admitted,character,rewards:paintballRewards,onStarsUpdated:p=>send(p.ws,{type:'progress',action:'paintball',operation:'onlineReward',ok:true,...progress(p)}),send:(p,m)=>send(p.ws,m),hideFromWorld:p=>{
     homeVisits?.release(p);playground.release(p);clearArcade(p);clearVehicle(p);fishing?.close(p);
     Object.assign(p,{zone:'private',x:0,y:0,z:0,yaw:0,moving:false,grounded:true,rest:'',interiorBusiness:null});
     chat.update(p);
@@ -375,12 +375,6 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
      try{result=jobs.apply(p,m,now);}
      catch{result={error:'The local account store could not save that update.'};}
      jobReply(p,m.operation,result,now);
-     return;
-    }
-    if(m.action==='paintball'&&paintballRewards){
-     const result=paintballRewards.applySolo(p.profile,m,now);
-     const requestId=typeof m.requestId==='string'?m.requestId.slice(0,64):'';
-     send(ws,{type:'progress',action:'paintball',operation:'completeSolo',...(requestId?{requestId}:{}),ok:!result.error,reward:result.reward??0,text:result.error??result.text,...progress(p,now),...(result.error?{error:result.error}:{})});
      return;
     }
     const action='tendGarden';
