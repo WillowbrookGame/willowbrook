@@ -40,7 +40,7 @@ var _touch=ROUTER.new()
 var _pad=GAMEPAD.new()
 var _yaw:=0.0
 var _pitch:=0.22
-var _right:=false
+var _mouse_look:=false
 var _rise_held:=false
 var _sink_held:=false
 var _pad_rise:=false
@@ -189,7 +189,7 @@ func _build_hud() -> void:
 	hud.add_child(treasure_banner)
 	var hint:=Label.new()
 	hint.name="SwimHint"
-	hint.text="WASD to swim | Space / Ctrl to rise / dive\nRight-drag to look | E to return"
+	hint.text="WASD to swim | Space / Ctrl to rise / dive\nR-click / C: Look | Esc: Cursor | E: Return"
 	hint.position=Vector2(10,42)
 	hint.add_theme_constant_override("outline_size",4)
 	hud.add_child(hint)
@@ -243,6 +243,28 @@ func _exit_tree() -> void:
 		_chat_host.bind_arena_chat(null)
 	if _document!=null and _visibility!=null:_document.removeEventListener("visibilitychange",_visibility)
 
+func _is_mouse_looking() -> bool:
+	if DisplayServer.get_name()=="headless":
+		return _mouse_look
+	if _mouse_look and Input.mouse_mode!=Input.MOUSE_MODE_CAPTURED:
+		_mouse_look=false
+	return Input.mouse_mode==Input.MOUSE_MODE_CAPTURED
+
+func _release_look() -> void:
+	_mouse_look=false
+	if Input.mouse_mode==Input.MOUSE_MODE_CAPTURED:
+		Input.mouse_mode=Input.MOUSE_MODE_VISIBLE
+
+func _toggle_mouse_look() -> void:
+	if _changing or _network_modal:
+		return
+	if _is_mouse_looking():
+		_release_look()
+	else:
+		_touch.release_look()
+		_mouse_look=true
+		Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
+
 func _reset_input() -> void:
 	_touch.reset()
 	_vertical_touches.clear()
@@ -250,17 +272,20 @@ func _reset_input() -> void:
 	_sink_held=false
 	_pad_rise=false
 	_pad_sink=false
-	_right=false
 	_pad.suspend()
-	if Input.mouse_mode==Input.MOUSE_MODE_CAPTURED:Input.mouse_mode=Input.MOUSE_MODE_VISIBLE
+	_release_look()
 
 func _input(event: InputEvent) -> void:
 	if _changing or _network_modal:
 		if GAMEPAD.accepts(event):_pad.update(event,true)
 		return
-	if event is InputEventMouseButton and _right and event.button_index==MOUSE_BUTTON_RIGHT and not event.pressed:
-		_right=false
-		Input.mouse_mode=Input.MOUSE_MODE_VISIBLE
+	if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_RIGHT and event.device!=-1 and _is_mouse_looking():
+		# Release from anywhere if the mouse is locked, even over a HUD control.
+		_release_look()
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventMouseMotion and event.device!=-1 and _is_mouse_looking():
+		_look(event.screen_relative,.003)
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventScreenTouch:
@@ -291,13 +316,19 @@ func _input(event: InputEvent) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _changing or _network_modal:return
-	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_RIGHT and event.device!=-1:
-		_right=event.pressed
-		Input.mouse_mode=Input.MOUSE_MODE_CAPTURED if _right else Input.MOUSE_MODE_VISIBLE
-	elif event is InputEventMouseMotion and _right and event.device!=-1:
-		_look(event.screen_relative,.003)
+	if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_RIGHT and event.device!=-1:
+		# The HUD gets first chance at mouse presses. Left-click never enters camera mode.
+		_toggle_mouse_look()
+		get_viewport().set_input_as_handled()
 	elif event is InputEventKey and event.pressed and not event.echo:
+		var focused:=get_viewport().gui_get_focus_owner()
+		if focused is LineEdit or focused is TextEdit:
+			if event.keycode==KEY_ESCAPE:_release_look()
+			return
 		if event.keycode==KEY_ESCAPE:_reset_input()
+		elif event.physical_keycode==KEY_C or event.keycode==KEY_C:
+			_toggle_mouse_look()
+			get_viewport().set_input_as_handled()
 		elif event.keycode==KEY_E:return_to_shop()
 
 func _look(at: Vector2, gain: float) -> void:
