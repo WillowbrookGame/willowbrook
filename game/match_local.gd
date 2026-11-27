@@ -1,15 +1,19 @@
 extends Node3D
 signal finished
 signal round_started
+signal player_scored_tag
+signal player_was_tagged(color: Color)
 const ARENA_ACTOR_LAYER := 4
 const ARENA_COLLISION_MASK := 7
 const BOT_TURN_SPEED := 7.0
 const BOT_AIM_TOLERANCE := 0.17
 const BOT_AIM_TIMEOUT := 0.55
+const TAG_COOLDOWN := 2.2
 const YARD = preload("res://game/warehouse_yard.gd")
 const RULES = preload("res://game/match_rules.gd")
 const AVATAR = preload("res://game/character-male-a.glb")
 const FX = preload("res://game/arena_marker.gd")
+const SFX = preload("res://game/paintball_audio.gd")
 const NAMES: Array[String] = ["You", "Pip", "Scout", "Sunny"]
 const COLORS := [Color("#4ce9fc"), Color("#ff7886"), Color("#9cff6b"), Color("#ffbc52")]
 var rules := RULES.new()
@@ -17,14 +21,18 @@ var player: CharacterBody3D
 var fx: Node3D
 var bots: Array[Dictionary] = []
 var roster: Dictionary = {}
+var actor_colors: Dictionary = {}
+var tagged_until: Dictionary = {}
 var overlay: CenterContainer
 var heading: Label
 var summary: Label
 var action: Button
 var hud: Label
+var popup: Label
 var notice := ""
 var notice_time := 0.0
 var clock_label := ""
+var last_countdown_sec := -1
 var rng := RandomNumberGenerator.new()
 
 func setup(body: CharacterBody3D, paint: Node3D, canvas: CanvasLayer) -> void:
@@ -35,6 +43,7 @@ func setup(body: CharacterBody3D, paint: Node3D, canvas: CanvasLayer) -> void:
 	player.collision_layer = ARENA_ACTOR_LAYER
 	player.collision_mask = ARENA_COLLISION_MASK
 	roster[player] = NAMES[0]
+	actor_colors[player] = COLORS[0]
 	fx.actor_tag.connect(_on_player_tag)
 	_build_hud(canvas)
 	_set_player_enabled(false)
@@ -49,6 +58,14 @@ func _build_hud(canvas: CanvasLayer) -> void:
 	hud.add_theme_constant_override("outline_size", 6)
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(hud)
+	popup = Label.new()
+	popup.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	popup.add_theme_font_size_override("font_size", 26)
+	popup.add_theme_constant_override("outline_size", 7)
+	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	popup.hide()
+	canvas.add_child(popup)
+	popup.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 64)
 	overlay = CenterContainer.new()
 	canvas.add_child(overlay)
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -105,6 +122,10 @@ func _reset_field() -> void:
 			_create_bot(index)
 	player.position = YARD.SPAWNS[0]
 	player.velocity = Vector3.ZERO
+	tagged_until.clear()
+	last_countdown_sec = -1
+	if popup != null:
+		popup.hide()
 	fx.clear_round_paint()
 	for index in range(bots.size()):
 		var bot := bots[index]
@@ -114,6 +135,8 @@ func _reset_field() -> void:
 		bot.reload = 1.5 + index * 0.4
 		bot.target = null
 		bot.aim_left = 0.0
+		bot.flee_delay = 0.0
+		bot.flee_from = Vector3.ZERO
 		bot.route = (index * 3) % YARD.PATROL.size()
 		bot.stuck = 0.0
 		var facing: Vector3 = YARD.PATROL[bot.route] - body.position
@@ -156,20 +179,36 @@ func _create_bot(index: int) -> void:
 	badge.position.y = 1.72
 	body.add_child(badge)
 	roster[body] = NAMES[index]
-	bots.append({"body":body, "animation":animation, "prop":prop, "color":COLORS[index], "reload":0.0, "route":0,"stuck":0.0,"target":null,"aim_left":0.0})
+	actor_colors[body] = COLORS[index]
+	bots.append({"body":body, "animation":animation, "prop":prop, "badge":badge, "color":COLORS[index], "reload":0.0, "route":0,"stuck":0.0,"target":null,"aim_left":0.0,"flee_delay":0.0,"flee_from":Vector3.ZERO})
 
 func tick(delta: float) -> void:
 	if not is_playing():
 		return
+	for actor: Variant in tagged_until.keys():
+		var left: float = float(tagged_until[actor]) - delta
+		if left <= 0.0:
+			tagged_until.erase(actor)
+		else:
+			tagged_until[actor] = left
 	if rules.tick(delta):
+		SFX.play(self, "finish", -6.0, 1.0)
 		_show_results()
 		return
+	var sec := ceili(rules.remaining)
+	if sec <= 5 and sec > 0 and sec != last_countdown_sec:
+		last_countdown_sec = sec
+		SFX.play(self, "tick", -8.0, 1.0 + (5 - sec) * 0.06)
 	for bot in bots:
 		_update_bot(bot,delta)
 	_update_hud(delta)
 
 func _update_bot(bot: Dictionary, delta: float) -> void:
 	var body: CharacterBody3D = bot.body
+	if float(bot.flee_delay) > 0.0:
+		bot.flee_delay = maxf(0.0, float(bot.flee_delay) - delta)
+		if float(bot.flee_delay) <= 0.0:
+			_flee_waypoint(bot, bot.flee_from)
 	var goal: Vector3 = YARD.PATROL[bot.route]
 	var move := goal - body.position
 	move.y = 0.0
@@ -205,6 +244,13 @@ func _update_bot(bot: Dictionary, delta: float) -> void:
 		animation.play(clip,0.15)
 	animation.advance(delta)
 	bot.prop.update_hand(0.0,true)
+	var badge: Label3D = bot.badge
+	if tagged_until.has(body):
+		badge.text = "%s (tagged!)" % roster[body]
+		badge.modulate = Color.WHITE if int(Time.get_ticks_msec() / 120) % 2 == 0 else bot.color
+	else:
+		badge.text = roster[body]
+		badge.modulate = bot.color
 	if is_instance_valid(target) and (aligned or bot.aim_left <= 0.0):
 		bot.target = null
 		if aligned:
@@ -236,41 +282,96 @@ func _bot_paint(bot: Dictionary, target: CharacterBody3D) -> void:
 	var victim: Variant = ray.get("collider")
 	var impact: Vector3 = ray.get("position",end)
 	if roster.has(victim):
-		fx._animate_paint(origin,impact,{},bot.color,_record_tag.bind(body,victim))
+		fx._animate_paint(origin,impact,{},bot.color,_on_bot_tag.bind(body,victim,impact,bot.color))
 	else:
 		fx._animate_paint(origin,impact,ray,bot.color)
+
+func _on_bot_tag(shooter: Node3D, victim: Variant, at: Vector3, tint: Color) -> void:
+	fx.burst_at(at, tint)
+	_record_tag(shooter, victim, true)
 
 func _ray(body: CharacterBody3D, origin: Vector3, end: Vector3) -> Dictionary:
 	var excluded: Array[RID] = [body.get_rid()]
 	return get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(origin,end,5,excluded))
 
 func _on_player_tag(victim: Node3D) -> void:
-	_record_tag(player,victim)
+	_record_tag(player,victim,true)
 
-func _record_tag(shooter: Variant, victim: Variant) -> bool:
+func is_tagged(actor: Variant) -> bool:
+	return tagged_until.has(actor)
+
+func _flee_waypoint(bot: Dictionary, away_from: Vector3) -> void:
+	var body: CharacterBody3D = bot.body
+	var best_idx: int = bot.route
+	var best_dist := -1.0
+	for i in YARD.PATROL.size():
+		var waypoint: Vector3 = YARD.PATROL[i]
+		var dist := waypoint.distance_squared_to(away_from)
+		if dist > best_dist and waypoint.distance_squared_to(body.position) > 9.0:
+			best_dist = dist
+			best_idx = i
+	bot.route = best_idx
+	bot.stuck = 0.0
+	bot.target = null
+
+func _record_tag(shooter: Variant, victim: Variant, respect_cooldown := false) -> bool:
 	if not roster.has(shooter) or not roster.has(victim):
+		return false
+	if respect_cooldown and tagged_until.has(victim):
+		if shooter == player:
+			notice = "%s is recovering!" % roster[victim]
+			notice_time = 0.85
 		return false
 	var from_name: String = roster[shooter]
 	var to_name: String = roster[victim]
 	if not rules.tag(from_name,to_name):
 		return false
-	if shooter == player or victim == player:
-		notice = "Tagged %s!  +1" % to_name if shooter == player else "%s tagged you!" % from_name
+	if respect_cooldown:
+		tagged_until[victim] = TAG_COOLDOWN
+		for bot in bots:
+			if bot.body == victim and shooter is Node3D:
+				bot.flee_delay = 0.55
+				bot.flee_from = (shooter as Node3D).position
+				break
+	if shooter == player:
+		notice = "Tagged %s!  +1" % to_name
 		notice_time = 1.4
+		SFX.play(self, "tag", -5.0, 1.0)
+		player_scored_tag.emit()
+	elif victim == player:
+		notice = "%s tagged you!" % from_name
+		notice_time = 1.4
+		SFX.play(self, "tagged", -5.0, 1.0)
+		player_was_tagged.emit(actor_colors.get(shooter, COLORS[1]))
 	return true
 
 func _update_hud(delta: float) -> void:
 	notice_time = maxf(0.0, notice_time-delta)
 	var sec := ceili(rules.remaining)
-	var current := "Round %d / %d   •   %d:%02d   •   You: %d" % [rules.round_number,RULES.ROUND_COUNT,floori(sec/60.0),sec%60,rules.points["You"]]
+	var board := PackedStringArray()
+	for row in rules.rankings(false):
+		board.append("%d. %s %d" % row)
+	var current := "Round %d / %d   •   %d:%02d   •   You: %d\n%s" % [
+		rules.round_number, RULES.ROUND_COUNT, floori(sec/60.0), sec%60, rules.points["You"], "  ·  ".join(board)
+	]
 	if notice_time > 0.0:
 		current += "\n"+notice
 	if clock_label != current:
 		clock_label = current
 		hud.text = current
+	if popup != null:
+		if notice_time > 0.0 and not notice.is_empty():
+			popup.text = notice
+			popup.add_theme_color_override("font_color", Color("#4ce9fc") if notice.begins_with("Tagged") else Color("#ffbc52"))
+			popup.show()
+		else:
+			popup.hide()
 
 func _show_results() -> void:
 	_set_player_enabled(false)
+	tagged_until.clear()
+	if popup != null:
+		popup.hide()
 	fx.clear_round_paint()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var final := rules.phase == RULES.Phase.FINISHED

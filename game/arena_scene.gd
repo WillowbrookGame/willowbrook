@@ -7,6 +7,13 @@ var marker_preview: Node3D
 var arena_match: Node3D
 var arena_online: Node
 var touch_fire_button: Button
+var reticle: Label
+var hitmarker: Label
+var _hitmarker_time := 0.0
+var _tagged_flash_time := 0.0
+var _tagged_flash_color := Color("#ff7886")
+var _flash_edges: Array[ColorRect] = []
+var _mouse_holding_fire := false
 @onready var yard := $WarehouseYard as WAREHOUSE_YARD
 
 
@@ -33,14 +40,50 @@ func _setup_zone_avatar() -> void:
 
 
 func _build_zone_overlay(hud: CanvasLayer) -> void:
-	var reticle := Label.new()
+	reticle = Label.new()
 	reticle.text = "+"
 	reticle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	reticle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	reticle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	reticle.add_theme_constant_override("outline_size", 4)
+	reticle.add_theme_font_size_override("font_size", 24)
+	reticle.add_theme_constant_override("outline_size", 5)
 	hud.add_child(reticle)
 	reticle.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	hitmarker = Label.new()
+	hitmarker.text = "×"
+	hitmarker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hitmarker.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hitmarker.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hitmarker.add_theme_font_size_override("font_size", 32)
+	hitmarker.add_theme_constant_override("outline_size", 6)
+	hitmarker.add_theme_color_override("font_color", Color("#4ce9fc"))
+	hitmarker.hide()
+	hud.add_child(hitmarker)
+	hitmarker.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	for preset in [Control.PRESET_TOP_WIDE, Control.PRESET_BOTTOM_WIDE, Control.PRESET_LEFT_WIDE, Control.PRESET_RIGHT_WIDE]:
+		var edge := ColorRect.new()
+		edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		edge.color = Color(1, 1, 1, 0)
+		edge.set_anchors_preset(preset)
+		match preset:
+			Control.PRESET_TOP_WIDE: edge.offset_bottom = 18.0
+			Control.PRESET_BOTTOM_WIDE: edge.offset_top = -18.0
+			Control.PRESET_LEFT_WIDE: edge.offset_right = 18.0
+			Control.PRESET_RIGHT_WIDE: edge.offset_left = -18.0
+		edge.hide()
+		hud.add_child(edge)
+		_flash_edges.append(edge)
+
+
+func flash_hitmarker() -> void:
+	_hitmarker_time = 0.22
+	if hitmarker != null:
+		hitmarker.show()
+
+
+func flash_tagged(tint: Color) -> void:
+	_tagged_flash_color = tint
+	_tagged_flash_time = 0.65
 
 
 func _build_zone_buttons(hud: CanvasLayer) -> void:
@@ -54,18 +97,24 @@ func _build_zone_buttons(hud: CanvasLayer) -> void:
 
 
 func _fit_zone_hud(physical_width: float, s: float) -> void:
-	var side_by_side := physical_width >= 500.0
-	var button_size := Vector2(76,52)*s
-	var stick_left := movement_thumbstick.offset_left
-	var stick_right := movement_thumbstick.offset_right
-	var x := stick_right+12.0*s if side_by_side else stick_left+(stick_right-stick_left-button_size.x)*.5
-	var bottom := movement_thumbstick.offset_bottom if side_by_side else movement_thumbstick.offset_top-12.0*s
-	touch_fire_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	touch_fire_button.offset_left=x
-	touch_fire_button.offset_right=x+button_size.x
-	touch_fire_button.offset_bottom=bottom
-	touch_fire_button.offset_top=bottom-button_size.y
-	touch_fire_button.add_theme_font_size_override("font_size",roundi(18.0*s))
+	# Place Fire on the right side so tablet players can move with their left
+	# thumb and aim/fire with their right thumb. On compact viewports (<500 CSS px),
+	# sit Fire beside Jump instead of stacking vertically above the camera stick.
+	var view := get_viewport().get_visible_rect().size
+	if physical_width >= 500.0:
+		HUD_FIT.right_button(touch_fire_button, Vector2(88, 52), 116.0, s, true)
+	else:
+		HUD_FIT.right_button(touch_fire_button, Vector2(82, 46), 58.0, s, true)
+		var beside_shift := (82.0 + 10.0) * s
+		touch_fire_button.offset_left -= beside_shift
+		touch_fire_button.offset_right -= beside_shift
+	var top_y := view.y + touch_fire_button.offset_top
+	var min_top := 8.0 * s
+	if top_y < min_top:
+		var push_down := min_top - top_y
+		touch_fire_button.offset_top += push_down
+		touch_fire_button.offset_bottom += push_down
+	touch_fire_button.add_theme_font_size_override("font_size", roundi(18.0 * s))
 
 
 func _setup_zone(hud: CanvasLayer) -> void:
@@ -87,6 +136,8 @@ func _setup_zone(hud: CanvasLayer) -> void:
 		add_child(arena_match)
 		arena_match.finished.connect(_return_to_town_after_match)
 		arena_match.round_started.connect(_reset_arena_round_view)
+		arena_match.player_scored_tag.connect(flash_hitmarker)
+		arena_match.player_was_tagged.connect(flash_tagged)
 		arena_match.setup(player, marker_preview, hud)
 
 
@@ -126,8 +177,32 @@ func _tick_zone(delta: float) -> void:
 	marker_preview.update_hand(look_pitch, arena_avatar.visible)
 	if arena_match != null:
 		arena_match.tick(delta)
-	if arena_online == null and (arena_match == null or arena_match.is_playing()):
+	var local_active: bool = arena_online == null and (arena_match == null or bool(arena_match.is_playing()))
+	if local_active:
+		if _mouse_holding_fire and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_mouse_holding_fire = false
+		marker_preview.set_holding_fire(_mouse_holding_fire and not _world_input_blocked())
 		marker_preview.tick(delta, camera)
+	elif marker_preview != null:
+		_mouse_holding_fire = false
+		marker_preview.set_holding_fire(false)
+	_update_reticle_and_flash(delta, local_active)
+
+
+func _update_reticle_and_flash(delta: float, local_active: bool) -> void:
+	if reticle != null:
+		var aimed: bool = local_active and not _world_input_blocked() and marker_preview != null and bool(marker_preview.has_aim_target(camera))
+		reticle.add_theme_color_override("font_color", Color("#7dff9b") if aimed else Color.WHITE)
+	if _hitmarker_time > 0.0:
+		_hitmarker_time = maxf(0.0, _hitmarker_time - delta)
+		if hitmarker != null:
+			hitmarker.visible = _hitmarker_time > 0.0
+	if _tagged_flash_time > 0.0:
+		_tagged_flash_time = maxf(0.0, _tagged_flash_time - delta)
+		var alpha := (_tagged_flash_time / 0.65) * 0.55
+		for edge in _flash_edges:
+			edge.color = Color(_tagged_flash_color.r, _tagged_flash_color.g, _tagged_flash_color.b, alpha)
+			edge.visible = alpha > 0.01
 
 
 func _update_zone_cutaway() -> bool:
@@ -151,6 +226,9 @@ func _zone_blocks_world() -> bool:
 
 
 func _reset_zone_inputs() -> void:
+	_mouse_holding_fire = false
+	if marker_preview != null:
+		marker_preview.set_holding_fire(false)
 	if arena_online != null:
 		arena_online.reset_inputs()
 
@@ -170,6 +248,8 @@ func _consume_zone_input(event: InputEvent) -> bool:
 
 
 func _world_primary_action() -> bool:
+	if arena_online == null and not _world_input_blocked() and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_mouse_holding_fire = true
 	_fire_marker()
 	return true
 
