@@ -7,6 +7,7 @@ const SWIM=preload("res://game/scuba/animation/swim_animation.gd")
 const DIVER=preload("res://game/scuba/diver.gd")
 const REEF_ART=preload("res://game/scuba/reef_art.gd")
 const REEF_TREASURES=preload("res://game/scuba/reef_treasures.gd")
+const REEF_RINGS=preload("res://game/scuba/reef_rings.gd")
 const STICK=preload("res://game/movement_thumbstick.gd")
 const ROUTER=preload("res://game/touch_router.gd")
 const GAMEPAD=preload("res://game/gamepad_state.gd")
@@ -32,6 +33,7 @@ var depth: Label
 var treasure_banner: Label
 var art: Node3D
 var treasures: Node3D
+var rings: Node3D
 var _banner_time:=0.0
 var _touch=ROUTER.new()
 var _pad=GAMEPAD.new()
@@ -56,6 +58,10 @@ func _ready() -> void:
 	treasures.name="ReefTreasures"
 	add_child(treasures)
 	treasures.treasure_found.connect(_on_treasure_found)
+	rings=REEF_RINGS.new()
+	rings.name="ReefRings"
+	add_child(rings)
+	rings.ring_passed.connect(_on_ring_passed)
 	diver=DIVER.new()
 	diver.name="Diver"
 	diver.collision_layer=0
@@ -293,6 +299,8 @@ func _physics_process(delta: float) -> void:
 	_update_camera(delta)
 	if treasures!=null:
 		treasures.check_diver(diver.position)
+	if rings!=null:
+		rings.check_diver(diver.position)
 	if _banner_time>0.0:
 		_banner_time=maxf(0.0,_banner_time-delta)
 		if _banner_time<=0.0 and treasure_banner!=null:
@@ -300,7 +308,18 @@ func _physics_process(delta: float) -> void:
 	var readout:="%s  %dm" % [art.landmark(diver.position),roundi(-diver.position.y)]
 	if treasures!=null and treasures.found_count>0:
 		readout+="  ·  Treasures %d / %d" % [treasures.found_count,treasures.total_count()]
+	if rings!=null and rings.passed_count>0:
+		readout+="  ·  Rings %d / %d" % [rings.passed_count,rings.total_count()]
 	depth.text=readout
+
+
+func _on_ring_passed(passed: int, total: int, completed: bool) -> void:
+	if treasure_banner==null or not completed:
+		return
+	treasure_banner.text="Reef melody complete!  (%d / %d)" % [passed,total]
+	treasure_banner.add_theme_color_override("font_color",Color("#7bf1ff"))
+	_banner_time=3.2
+	treasure_banner.show()
 
 
 func _on_treasure_found(title: String, found: int, total: int) -> void:
