@@ -188,7 +188,10 @@ func _layout() -> void:
 	FIT.right_button(rise,Vector2(120,48),183.0,scale)
 	FIT.right_button(sink,Vector2(120,48),126.0,scale)
 	FIT.right_button(back,Vector2(172,48),243.0,scale)
-	hud.get_node("SwimHint").visible=not touch_ui or screen_size.x>640
+	var hint:=hud.get_node("SwimHint") as Label
+	hint.visible=not touch_ui or screen_size.x>640
+	if treasure_banner!=null:
+		treasure_banner.offset_top=maxf(96.0,hint.position.y+hint.get_combined_minimum_size().y+10.0) if hint.visible else 54.0
 
 func _controller_changed(id: int, connected: bool) -> void:
 	if connected:_pad.follow_connected()

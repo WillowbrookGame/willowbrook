@@ -64,7 +64,10 @@ func _run() -> void:
 	await process_frame
 	var view_w: float = reef.get_viewport().get_visible_rect().size.x
 	var banner_rect: Rect2 = reef.treasure_banner.get_global_rect()
+	var hint := reef.hud.get_node("SwimHint") as Label
 	if not _require(banner_rect.position.x >= 0.0 and banner_rect.end.x <= view_w and absf(banner_rect.get_center().x - view_w * 0.5) <= 2.0, "Discovery banner clipped or off-center in 640x360 viewport: %s (view_w=%s)" % [banner_rect, view_w]):
+		return
+	if hint.visible and not _require(banner_rect.position.y >= hint.get_global_rect().end.y, "Discovery banner overlaps SwimHint: banner=%s hint=%s" % [banner_rect, hint.get_global_rect()]):
 		return
 	print("PASS: 6 Sunken Reef Treasures across all 5 zones, plain-sight entry pickup, no double-count, and clean HUD")
 	quit()
