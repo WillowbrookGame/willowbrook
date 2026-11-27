@@ -3,6 +3,9 @@ extends Node3D
 const HUD_FIT := preload("res://game/hud_fit.gd")
 const LAYOUT := preload("res://game/scuba/shop_layout.tscn")
 const TRIP := preload("res://game/scuba/departure.gd")
+const PHOTO_BOOK := preload("res://game/photo_book_ui.gd")
+const REEF_PHOTOS := preload("res://game/scuba/reef_photos.gd")
+const FISHING := preload("res://game/fishing_game.gd")
 const DOOR := Vector3(2.20,0,1.90)
 
 var _host: Node3D
@@ -10,6 +13,7 @@ var _player: CharacterBody3D
 var _hud: CanvasLayer
 var _panel: Control
 var _trip: Control
+var _book: Control
 var _actor: Node3D
 
 func setup(_id: String, host: Node3D, player: CharacterBody3D, hud: CanvasLayer) -> void:
@@ -62,12 +66,15 @@ func interact() -> bool:
 	return false
 
 func is_modal_open() -> bool:
-	return is_instance_valid(_panel) or is_instance_valid(_trip)
+	return is_instance_valid(_panel) or is_instance_valid(_trip) or (is_instance_valid(_book) and _book.visible)
 
 func close_modal() -> void:
 	if is_instance_valid(_trip):
 		_trip.cancel()
 		return
+	if is_instance_valid(_book):
+		_book.queue_free()
+		_book=null
 	if is_instance_valid(_panel):
 		_panel.queue_free()
 		_panel=null
@@ -106,6 +113,11 @@ func _open_dialogue() -> void:
 	start.custom_minimum_size.y=50
 	start.pressed.connect(_start_trip)
 	box.add_child(start)
+	var book_btn := Button.new()
+	book_btn.text="Photo Book"
+	book_btn.custom_minimum_size.y=44
+	book_btn.pressed.connect(open_photo_book)
+	box.add_child(book_btn)
 	var back := Button.new()
 	back.text="Not now"
 	back.custom_minimum_size.y=44
@@ -118,7 +130,7 @@ func _open_dialogue() -> void:
 		box.custom_minimum_size.x = minf(298.0,maxf(160.0,width - 30.0))*factor
 		box.add_theme_constant_override("separation",roundi(8*factor))
 		talk.add_theme_font_size_override("font_size",roundi(16*factor))
-		for button: Button in [start,back]:
+		for button: Button in [start,book_btn,back]:
 			button.custom_minimum_size.y=44.0*factor
 			button.add_theme_font_size_override("font_size",roundi(15*factor))
 	resize_dialogue.call()
@@ -127,6 +139,29 @@ func _open_dialogue() -> void:
 		if is_instance_valid(viewport) and viewport.size_changed.is_connected(resize_dialogue):
 			viewport.size_changed.disconnect(resize_dialogue),CONNECT_ONE_SHOT)
 	start.grab_focus()
+
+func open_photo_book(account_override: Node = null) -> void:
+	if is_instance_valid(_panel):
+		_panel.queue_free()
+		_panel=null
+	if is_instance_valid(_book):
+		_book.queue_free()
+	var account := account_override if account_override != null else REEF_PHOTOS.browser_session(get_tree())
+	if account != null and not bool(account.get("admitted")):
+		_host.set_zone_modal(false)
+		return
+	var profile := REEF_PHOTOS.resolve_profile(get_tree())
+	var caught: Array = REEF_PHOTOS.load_collection_fishing(profile, account)
+	var reef_found: Array[String] = REEF_PHOTOS.load_collection_reef(profile, account)
+	_book = PHOTO_BOOK.new()
+	_hud.add_child(_book)
+	_book.closed.connect(close_modal)
+	var tabs: Array[Dictionary]=[
+		FISHING.book_tab(caught),
+		REEF_PHOTOS.book_tab(reef_found),
+	]
+	_book.configure_tabs(tabs)
+	_book.open("reef")
 
 func _start_trip() -> void:
 	if is_instance_valid(_trip): return

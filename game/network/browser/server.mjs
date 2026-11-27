@@ -6,6 +6,7 @@ import {createPreviewFurniture} from './furniture_progress_preview.mjs';
 import {createPreviewNeighborQuests} from './neighbor_quest_preview.mjs';
 import {createPreviewClasses} from './class_progress_preview.mjs';
 import {createPreviewFishing} from './fishing_progress_preview.mjs';
+import {createPreviewReefPhotos} from './reef_photos_preview.mjs';
 import {createPreviewPets} from './pet_progress_preview.mjs';
 import {createServer} from 'node:http';
 import {randomBytes,timingSafeEqual} from 'node:crypto';
@@ -78,12 +79,13 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
  const pets=accounts?createPreviewPets(accounts):null;
  const furniture=accounts?createPreviewFurniture({store:accounts,housingRules:await load('public/housing.js'),catalogRules:await load('public/furniture-catalog.js')}):null;
  const fishing=accounts?createPreviewFishing(accounts):null;
+ const reefPhotos=accounts?createPreviewReefPhotos(accounts):null;
  const vehicles=accounts?createPreviewVehicles(accounts):null;
  const vehicleRules=accounts?await load('public/car-economy.js'):null;
  const vehicleWorld=accounts?createVehicleWorld(accounts,()=>[...peers.values()].filter(admitted),p=>!!playground.own(p),vehicleRules.validCarSpot):null;
  const classes=accounts?createPreviewClasses(accounts,worldStore):null;
  const yards=accounts?createPreviewYards({store:accounts,rules:await load('public/yard-upgrades.js')}):null;
- const progress=(p,serverTime=Date.now())=>({vehicleOffer:vehicles.snapshot(p.profile),neighborQuests:neighborQuests.snapshot(p.profile,serverTime),classes:classes.snapshot(p.profile),fishing:fishing.snapshot(p),...pets.snapshot(p.profile),furniture:furniture.snapshot(p.profile),yard:yards.snapshot(p.profile),stars:p.profile.stars,gardenLastTendedAt:p.profile.gardenLastTendedAt,serverTime,jobs:jobs.snapshot(p.profile,serverTime),scavenger:hunt.snapshot(p.profile),scavengerLeaderboard:hunt.leaderboard()});
+ const progress=(p,serverTime=Date.now())=>({vehicleOffer:vehicles.snapshot(p.profile),neighborQuests:neighborQuests.snapshot(p.profile,serverTime),classes:classes.snapshot(p.profile),fishing:fishing.snapshot(p),reefPhotos:reefPhotos.snapshot(p.profile),...pets.snapshot(p.profile),furniture:furniture.snapshot(p.profile),yard:yards.snapshot(p.profile),stars:p.profile.stars,gardenLastTendedAt:p.profile.gardenLastTendedAt,serverTime,jobs:jobs.snapshot(p.profile,serverTime),scavenger:hunt.snapshot(p.profile),scavengerLeaderboard:hunt.leaderboard()});
  function jobReply(p,operation,result,now){
   send(p.ws,{type:'progress',action:'jobs',operation,ok:!result.error,text:result.error??result.text,...progress(p,now),...(result.error?{error:result.error}:{})});
  }
@@ -348,6 +350,14 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
      let result;try{result=fishing.apply(p,m,now);}catch{result={ok:false,text:'Fishing progress is unavailable.'};}
      const {ok,text,...payload}=result;
      send(ws,{type:'progress',action:'fishing',operation:typeof m.operation==='string'?m.operation.slice(0,48):'unknown',
+      ...(typeof m.requestId==='string'?{requestId:m.requestId.slice(0,64)}:{}),
+      ok,text,...progress(p,now),...payload,...(!ok?{error:text}:{})});
+     return;
+    }
+    if(m.action==='reefPhotos'){
+     let result;try{result=reefPhotos.apply(p,m);}catch{result={ok:false,text:'Reef photos are unavailable.'};}
+     const {ok,text,...payload}=result;
+     send(ws,{type:'progress',action:'reefPhotos',operation:typeof m.operation==='string'?m.operation.slice(0,48):'unknown',
       ...(typeof m.requestId==='string'?{requestId:m.requestId.slice(0,64)}:{}),
       ok,text,...progress(p,now),...payload,...(!ok?{error:text}:{})});
      return;

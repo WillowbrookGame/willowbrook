@@ -38,7 +38,7 @@ func _init(save_path: String = "user://willowbrook_profile.cfg", seed_value: int
 
 func _defaults() -> Dictionary:
 	return {
-		"stars":0, "fish":[], "fish_discovered":[], "fishing_migrated":false, "employed":"", "memberships":[],
+		"stars":0, "fish":[], "fish_discovered":[], "reef_photos":[], "fishing_migrated":false, "employed":"", "memberships":[],
 		"classes":{}, "home":{}, "loan":{}, "pet":{}, "furniture":[], "furniture_stock":{},
 		"deliveries":[], "portfolio":{}, "job":{"stage":"none","deliveries":0},
 		"work":{}, "work_completed":{}, "starter":{"completed":{},"rewarded":{},"run":{}}
@@ -53,15 +53,18 @@ func _valid(value: Dictionary) -> bool:
 	for field in ["classes","home","loan","pet","furniture_stock","portfolio","job","work","work_completed","starter"]:
 		if not value.get(field) is Dictionary:
 			return false
-	for field in ["fish","fish_discovered","furniture","deliveries","memberships"]:
+	for field in ["fish","fish_discovered","reef_photos","furniture","deliveries","memberships"]:
 		if not value.get(field) is Array:
 			return false
-	if value.fish.size() > MAX_FISH or value.fish_discovered.size() > MAX_FISH:
+	if value.fish.size() > MAX_FISH or value.fish_discovered.size() > MAX_FISH or value.reef_photos.size() > MAX_FISH:
 		return false
 	for id in value.fish:
 		if not id is String or id.length() > 64 or id.is_empty():
 			return false
 	for id in value.fish_discovered:
+		if not id is String or id.length() > 64 or id.is_empty():
+			return false
+	for id in value.reef_photos:
 		if not id is String or id.length() > 64 or id.is_empty():
 			return false
 	if value.has("pets"):
