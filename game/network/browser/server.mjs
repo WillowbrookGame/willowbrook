@@ -34,15 +34,15 @@ import {createPrivatePaintballMatches} from './paintball_matches_preview.mjs';
 import {createPaintballLobbies} from './paintball_lobby_preview.mjs';
 import {createPaintballRewards} from './paintball_rewards_preview.mjs';
 import {createPlayground} from './playground_preview.mjs';
-const publicZones=new Set(['town','beach','arcade','bank','vet','salon','store','cafe','library']);
-const place=z=>({town:'In town',beach:'At the beach',arcade:'At the arcade',private:'In another activity'})[z]||'Indoors';
+const publicZones=new Set(['town','beach','arcade','bank','vet','salon','store','cafe','library','reef']);
+const place=z=>({town:'In town',beach:'At the beach',arcade:'At the arcade',reef:'At the reef',private:'In another activity'})[z]||'Indoors';
 const send=(ws,m)=>{if(ws.readyState===1&&ws.bufferedAmount<32768)ws.send(JSON.stringify(m));};
 function sameCode(a,b){return typeof a==='string'&&/^[0-9a-f]{12}$/i.test(a)&&timingSafeEqual(Buffer.from(a.toUpperCase()),Buffer.from(b));}
 function cleanAlias(value){return (typeof value==='string'?value.slice(0,32).replace(/[^a-z0-9 _-]/gi,'').trim().slice(0,18):'')||'Player';}
 function cleanPose(m){
  if(typeof m.zone!=='string'||!publicZones.has(m.zone)&&m.zone!=='private')return null;
  if(m.zone==='private')return {zone:'private',x:0,y:0,z:0,yaw:0,grounded:true,moving:false,rest:''};
- if(![m.x,m.y,m.z,m.yaw].every(Number.isFinite)||Math.abs(m.x)>240||Math.abs(m.z)>240||m.y< -10||m.y>25||Math.abs(m.yaw)>Math.PI*2)return null;
+ if(![m.x,m.y,m.z,m.yaw].every(Number.isFinite)||Math.abs(m.x)>240||Math.abs(m.z)>240||m.y<(m.zone==='reef'?-22:-10)||m.y>25||Math.abs(m.yaw)>Math.PI*2)return null;
  return {zone:m.zone,x:m.x,y:m.y,z:m.z,yaw:m.yaw,moving:m.moving===true,grounded:m.grounded===true,rest:m.rest==='sit'&&m.moving!==true&&Math.abs(m.y)<1.5&&['bank','vet','salon','store','cafe','library'].includes(m.zone)?'sit':''};
 }
 

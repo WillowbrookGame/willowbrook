@@ -942,6 +942,7 @@ func _build_menu(hud: CanvasLayer) -> void:
 		_neighbor_bind()
 	_neighbor_context()
 	var multiplayer_button := Button.new()
+	_zone_menu_button = multiplayer_button
 	multiplayer_button.text = "Multiplayer (M)"
 	multiplayer_button.focus_mode = Control.FOCUS_NONE
 	hud.add_child(multiplayer_button)
@@ -951,7 +952,7 @@ func _build_menu(hud: CanvasLayer) -> void:
 	_star_badge.text = "Stars: %s" % _stars
 	hud.add_child(_star_badge)
 	_star_badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT,Control.PRESET_MODE_MINSIZE)
-	_star_badge.offset_left = -440.0
+	_star_badge.offset_left = -140.0 if zone == "reef" else -440.0
 	_star_badge.offset_right = -14.0
 	_star_badge.offset_top = 48.0
 	_star_badge.offset_bottom = 72.0
@@ -998,7 +999,7 @@ func _build_menu(hud: CanvasLayer) -> void:
 	_panel.hide()
 	_create_gate(hud)
 	_sync_gate()
-	if _network_zone(zone):
+	if _network_zone(zone) and zone != "reef":
 		_hunt_view = HUNT.new()
 		_bound.add_child(_hunt_view)
 		_hunt_view.setup(self,_bound,_player,hud,zone)
@@ -1048,6 +1049,22 @@ func _bind_family_chat(window: JavaScriptObject) -> void:
 	if not bool(_family_chat.bind(_chat_send_cb,_chat_toggle_cb)):
 		_family_chat = null
 	_sync_family_chat()
+
+
+func set_zone_book_open(host: Node3D, open: bool) -> void:
+	if _bound != host or zone != "reef":
+		return
+	super.set_zone_book_open(host, open)
+	if is_instance_valid(_star_badge):
+		_star_badge.visible = not open
+	if _family_chat != null:
+		_family_chat.setOccluded(open)
+
+
+func suspend_zone() -> void:
+	if zone == "reef" and _family_chat != null:
+		_family_chat.setOccluded(false)
+	super.suspend_zone()
 
 
 func _sync_family_chat() -> void:

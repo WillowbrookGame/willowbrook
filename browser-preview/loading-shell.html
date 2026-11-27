@@ -331,7 +331,7 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 		const form = document.getElementById('family-chat-form');
 		const input = document.getElementById('family-chat-entry');
 		const note = document.getElementById('family-chat-feedback');
-		let callbacks = null, available = false, open = false, unread = 0;
+		let callbacks = null, available = false, open = false, occluded = false, unread = 0;
 		const badge = () => { toggle.textContent = unread ? 'Family chat (' + unread + ')' : 'Family chat'; };
 		function close(escape = false) {
 			if (!open) return;
@@ -348,7 +348,7 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 			} else if (escape && !gateOpen) canvas.focus({preventScroll:true});
 		}
 		function sync() {
-			root.hidden = !gameReady || gateOpen || !available;
+			root.hidden = !gameReady || gateOpen || !available || occluded;
 			if (!available || gateOpen) {
 				close(!gateOpen && gameReady);
 				log.replaceChildren();
@@ -358,7 +358,7 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 				badge();
 			}
 		}
-		toggle.addEventListener('click', () => { if (available && !open && !gateOpen) callbacks?.toggle(true); });
+		toggle.addEventListener('click', () => { if (available && !open && !gateOpen && !occluded) callbacks?.toggle(true); });
 		minimize.addEventListener('click', () => callbacks?.toggle(false));
 		form.addEventListener('submit', event => {
 			event.preventDefault();
@@ -407,6 +407,7 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 				return true;
 			},
 			setAvailable(value) { available = value === true; sync(); },
+			setOccluded(value) { occluded = value === true; sync(); },
 			setOpen(value) {
 				if (value !== true) {close(true);return;}
 				if (!available || gateOpen || !gameReady || open) return;

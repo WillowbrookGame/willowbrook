@@ -121,6 +121,22 @@ if(process.argv[2]!=='--relocated-fixture'){
   await assert.rejects(connect(seeds[0],'https://wrong-origin.invalid'),/403/);
   const a=await connect(seeds[0]),b=await connect(seeds[1]);
   assert.ok(a.welcome.id&&a.welcome.progress.classes&&a.welcome.progress.jobs&&a.welcome.progress.fishing);
+  // Reef poses use the same route as the exported game, including vertical movement and isolation.
+  const reefPose=(y,x)=>({...move('reef',x,12),y,grounded:false,moving:true});
+  a.send(reefPose(-17.4,3)); b.send(reefPose(-16,1));
+  const aReef=await a.take(m=>m.type==='world'&&m.zone==='reef'&&m.players.some(p=>p.id===b.welcome.id&&p.y===-16));
+  const bReef=await b.take(m=>m.type==='world'&&m.zone==='reef'&&m.players.some(p=>p.id===a.welcome.id&&p.y===-17.4));
+  assert.ok(aReef.players.some(p=>p.moving&&!p.grounded));
+  assert.ok(bReef.presence.some(p=>p.alias===seeds[0].username&&p.place==='At the reef'));
+  b.send(move('beach',0,12));
+  await b.take(m=>m.type==='world'&&m.zone==='beach'&&!m.players.length);
+  await a.take(m=>m.type==='world'&&m.zone==='reef'&&!m.players.length&&m.presence.some(p=>p.alias===seeds[1].username&&p.place==='At the beach'));
+  b.send(move('town',0,12));
+  await b.take(m=>m.type==='world'&&m.zone==='town'&&!m.players.length);
+  b.send({...move('town',1,12),y:-15});
+  b.send(reefPose(-16,5));
+  await a.take(m=>m.type==='world'&&m.zone==='reef'&&m.players.some(p=>p.id===b.welcome.id&&p.x===5));
+  console.log('PASS two browser protocol peers: deep Reef poses, roster, Beach/Town isolation, and re-entry');
   a.send(move('town',20,49));
   a.send({type:'progress',action:'tendGarden'});
   assert.equal((await a.take(m=>m.type==='progress'&&m.ok)).stars,2);
