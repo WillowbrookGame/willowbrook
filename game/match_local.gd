@@ -62,6 +62,9 @@ func is_playing() -> bool:
 func is_counting_down() -> bool:
 	return rules.phase == RULES.Phase.PLAYING and start_countdown > 0.0
 
+func _allows_local_stars() -> bool:
+	return not OS.has_feature("web") and profile != null and profile.has_method("change_stars")
+
 func _build_hud(canvas: CanvasLayer) -> void:
 	hud = Label.new()
 	hud.position = Vector2(18,110)
@@ -96,7 +99,8 @@ func _build_hud(canvas: CanvasLayer) -> void:
 	heading.add_theme_font_size_override("font_size", 24)
 	column.add_child(heading)
 	summary = Label.new()
-	summary.text = "You vs. Pip, Scout, and Sunny\n3 rounds · 1:15 each (or first to %d tags)\nFinish all 3 rounds to earn Stars!" % SOLO_TARGET_POINTS
+	var reward_line := "Finish all 3 rounds to earn Stars!" if _allows_local_stars() else "Every tag earns 1 point."
+	summary.text = "You vs. Pip, Scout, and Sunny\n3 rounds · 1:15 each (or first to %d tags)\n%s" % [SOLO_TARGET_POINTS, reward_line]
 	summary.add_theme_font_size_override("font_size", 18)
 	column.add_child(summary)
 	action = Button.new()
@@ -167,9 +171,9 @@ func _reset_field() -> void:
 		bot.aim_left = 0.0
 		bot.flee_delay = 0.0
 		bot.flee_from = Vector3.ZERO
-		bot.route = (index * 3) % YARD.PATROL.size()
+		bot.route = (index * 3) % YARD.SOLO_PATROL.size()
 		bot.stuck = 0.0
-		var facing: Vector3 = YARD.PATROL[bot.route] - body.position
+		var facing: Vector3 = YARD.SOLO_PATROL[bot.route] - body.position
 		body.rotation.y = atan2(-facing.x,-facing.z)
 		bot.animation.play("idle")
 		bot.animation.advance(0.0)
@@ -262,14 +266,14 @@ func _update_bot(bot: Dictionary, delta: float) -> void:
 		bot.flee_delay = maxf(0.0, float(bot.flee_delay) - delta)
 		if float(bot.flee_delay) <= 0.0:
 			_flee_waypoint(bot, bot.flee_from)
-	var goal: Vector3 = YARD.PATROL[bot.route]
+	var goal: Vector3 = YARD.SOLO_PATROL[bot.route]
 	var move := goal - body.position
 	move.y = 0.0
 	if move.length_squared() < 0.9 or bot.stuck > 0.65:
-		bot.route = (int(bot.route) + rng.randi_range(1,3)) % YARD.PATROL.size()
+		bot.route = (int(bot.route) + rng.randi_range(1,3)) % YARD.SOLO_PATROL.size()
 		bot.stuck = 0.0
 		bot.strafe_dir = -float(bot.strafe_dir)
-		goal = YARD.PATROL[bot.route]
+		goal = YARD.SOLO_PATROL[bot.route]
 		move = Vector3(goal.x-body.position.x,0,goal.z-body.position.z)
 	bot.reload -= delta
 	if bot.reload <= 0.0 and not is_instance_valid(bot.target):
@@ -361,8 +365,8 @@ func _flee_waypoint(bot: Dictionary, away_from: Vector3) -> void:
 	var body: CharacterBody3D = bot.body
 	var best_idx: int = bot.route
 	var best_dist := -1.0
-	for i in YARD.PATROL.size():
-		var waypoint: Vector3 = YARD.PATROL[i]
+	for i in YARD.SOLO_PATROL.size():
+		var waypoint: Vector3 = YARD.SOLO_PATROL[i]
 		var dist := waypoint.distance_squared_to(away_from)
 		if dist > best_dist and waypoint.distance_squared_to(body.position) > 9.0:
 			best_dist = dist
@@ -428,7 +432,7 @@ func _update_hud(delta: float) -> void:
 			popup.hide()
 
 func _award_match_stars(final_rankings: Array) -> int:
-	if awarded_stars > 0:
+	if awarded_stars > 0 or not _allows_local_stars():
 		return awarded_stars
 	var rank := 4
 	for row in final_rankings:
@@ -436,10 +440,7 @@ func _award_match_stars(final_rankings: Array) -> int:
 			rank = int(row[0])
 			break
 	var reward := 10 if rank == 1 else (7 if rank == 2 else 5)
-	if profile != null and profile.has_method("change_stars"):
-		if profile.change_stars(reward):
-			awarded_stars = reward
-	else:
+	if profile.change_stars(reward):
 		awarded_stars = reward
 	return awarded_stars
 
