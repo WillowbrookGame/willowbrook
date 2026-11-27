@@ -16,6 +16,7 @@ const MAX_CAST := 17.0
 const PREVIEW_PATH := "res://game/fish_art/"
 const HUD_FIT = preload("res://game/hud_fit.gd")
 const PHOTO_BOOK = preload("res://game/photo_book_ui.gd")
+const REEF_PHOTOS = preload("res://game/scuba/reef_photos.gd")
 const THUMB_PATH := "res://game/fish_thumbs/"
 var game: FISHING
 const PROX = preload("res://game/npc_proximity.gd")
@@ -910,21 +911,13 @@ func _show_dialog(title: String, body: String, sale: bool) -> void:
 	dialog_opened.emit()
 
 func _fishing_book_tabs() -> Array[Dictionary]:
-	var entries: Array[Dictionary] = []
-	for fish: Dictionary in FISHING.CATALOG:
-		var id := String(fish.id)
-		entries.append({
-			"id": id,
-			"name": String(fish.name),
-			"thumb": THUMB_PATH + id + ".png",
-			"discovered": game.is_discovered(id),
-		})
-	return [{
-		"id": "fishing",
-		"label": "Fishing",
-		"title": "Fishing Photo Book",
-		"entries": entries,
-	}]
+	var reef_found: Array[String] = []
+	if _account == null or _account.admitted:
+		reef_found = REEF_PHOTOS.load_discovered(REEF_PHOTOS.resolve_profile(get_tree()))
+	return [
+		FISHING.book_tab(game.discovered, THUMB_PATH),
+		REEF_PHOTOS.book_tab(reef_found),
+	]
 
 
 func open_photo_book() -> void:

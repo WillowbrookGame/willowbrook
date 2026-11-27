@@ -79,7 +79,7 @@ func _school(species: String, origin: Vector3, count: int, radius: float, ratio:
 		if n==null:continue
 		n.set_meta("reef_fish",true)
 		# Equal phase separation and shared angular speed prevent school members passing through one another.
-		_fish.append({"node":n,"origin":origin,"radius":radius,"phase":float(i)*TAU/count,"rate":rate})
+		_fish.append({"node":n,"species":species,"origin":origin,"radius":radius,"phase":float(i)*TAU/count,"rate":rate})
 
 func _visitor(species: String, origin: Vector3, radius: float, ratio: float, rate: float, phase: float) -> void:
 	var n:=_asset(FISH+species+".glb",origin,ratio,0.0)

@@ -410,6 +410,28 @@ func discovered_count() -> int:
 	return discovered.size()
 
 
+static func book_tab(discovered_ids: Array, thumb_path: String = "res://game/fish_thumbs/") -> Dictionary:
+	var seen := {}
+	for raw: Variant in discovered_ids:
+		if raw is String:
+			seen[raw] = true
+	var entries: Array[Dictionary] = []
+	for fish: Dictionary in CATALOG:
+		var id := String(fish.id)
+		entries.append({
+			"id": id,
+			"name": String(fish.name),
+			"thumb": thumb_path + id + ".png",
+			"discovered": seen.has(id),
+		})
+	return {
+		"id": "fishing",
+		"label": "Fishing",
+		"title": "Fishing Photo Book",
+		"entries": entries,
+	}
+
+
 func _dedupe_species(items: Array) -> Array[String]:
 	var clean: Array[String] = []
 	for id: Variant in items:
