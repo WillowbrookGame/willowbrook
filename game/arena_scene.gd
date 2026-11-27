@@ -3,12 +3,87 @@ extends "res://game/map.gd"
 ## The map shell still owns player/avatar creation, camera, and common HUD.
 const WAREHOUSE_YARD = preload("res://game/warehouse_yard.gd")
 
+class VisorSplatOverlay extends Control:
+	var tint := Color("#ff7886")
+	var duration := 2.2
+	var remaining := 0.0
+	var blobs: Array[Dictionary] = []
+	var _rng := RandomNumberGenerator.new()
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_rng.randomize()
+		hide()
+
+	func splat(color: Color, seconds: float) -> void:
+		tint = color
+		duration = maxf(0.1, seconds)
+		remaining = duration
+		blobs.clear()
+		# Place 6 main splatters + 10 smaller droplets, keeping dead-center clear enough to see.
+		for i in 6:
+			var angle := (TAU / 6.0) * i + _rng.randf_range(-0.35, 0.35)
+			var dist := _rng.randf_range(0.18, 0.42)
+			blobs.append({
+				"uv": Vector2(0.5 + cos(angle) * dist, 0.5 + sin(angle) * dist * 0.85),
+				"radius": _rng.randf_range(0.065, 0.125),
+				"drip": _rng.randf_range(0.025, 0.065),
+				"alpha": 0.30,
+			})
+		for i in 10:
+			var angle := _rng.randf_range(0.0, TAU)
+			var dist := _rng.randf_range(0.12, 0.46)
+			blobs.append({
+				"uv": Vector2(0.5 + cos(angle) * dist, 0.5 + sin(angle) * dist * 0.88),
+				"radius": _rng.randf_range(0.016, 0.042),
+				"drip": _rng.randf_range(0.0, 0.03),
+				"alpha": 0.36,
+			})
+		show()
+		queue_redraw()
+
+	func clear() -> void:
+		remaining = 0.0
+		blobs.clear()
+		hide()
+
+	func tick(delta: float) -> void:
+		if remaining <= 0.0:
+			return
+		remaining = maxf(0.0, remaining - delta)
+		if remaining <= 0.0:
+			hide()
+		else:
+			queue_redraw()
+
+	func _draw() -> void:
+		if remaining <= 0.0:
+			return
+		var progress := 1.0 - (remaining / duration)
+		var fade := clampf(remaining / minf(0.55, duration), 0.0, 1.0)
+		var sz := size
+		var min_dim := minf(sz.x, sz.y)
+		# Soft full-viewport glaze so the immunity state reads immediately.
+		draw_rect(Rect2(Vector2.ZERO, sz), Color(tint.r, tint.g, tint.b, 0.08 * fade), true)
+		for b: Dictionary in blobs:
+			var uv: Vector2 = b.uv
+			var r: float = float(b.radius) * min_dim
+			var drip_len: float = float(b.drip) * min_dim * progress
+			var pos := Vector2(uv.x * sz.x, uv.y * sz.y + drip_len * 0.35)
+			var col := Color(tint.r, tint.g, tint.b, float(b.alpha) * fade)
+			draw_circle(pos, r, col)
+			if drip_len > 2.0:
+				var drip_w := maxf(3.0, r * 0.24)
+				draw_line(pos, pos + Vector2(0.0, r * 0.65 + drip_len), col, drip_w, true)
+				draw_circle(pos + Vector2(0.0, r * 0.65 + drip_len), drip_w * 0.55, col)
+
 var marker_preview: Node3D
 var arena_match: Node3D
 var arena_online: Node
 var touch_fire_button: Button
 var reticle: Label
 var hitmarker: Label
+var visor_splat: VisorSplatOverlay
 var _hitmarker_time := 0.0
 var _tagged_flash_time := 0.0
 var _tagged_flash_color := Color("#ff7886")
@@ -40,6 +115,10 @@ func _setup_zone_avatar() -> void:
 
 
 func _build_zone_overlay(hud: CanvasLayer) -> void:
+	visor_splat = VisorSplatOverlay.new()
+	visor_splat.name = "VisorPaintSplat"
+	visor_splat.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hud.add_child(visor_splat)
 	reticle = Label.new()
 	reticle.text = "+"
 	reticle.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -81,9 +160,11 @@ func flash_hitmarker() -> void:
 		hitmarker.show()
 
 
-func flash_tagged(tint: Color) -> void:
+func flash_tagged(tint: Color, duration := 2.2) -> void:
 	_tagged_flash_color = tint
 	_tagged_flash_time = 0.65
+	if visor_splat != null:
+		visor_splat.splat(tint, duration)
 
 
 func _build_zone_buttons(hud: CanvasLayer) -> void:
@@ -143,6 +224,8 @@ func _setup_zone(hud: CanvasLayer) -> void:
 
 func _reset_arena_round_view() -> void:
 	_reset_input_context()
+	if visor_splat != null:
+		visor_splat.clear()
 	look_yaw = 0.0
 	look_pitch = DEFAULT_LOOK_PITCH
 	look_shoulder = 1.0
@@ -197,6 +280,11 @@ func _update_reticle_and_flash(delta: float, local_active: bool) -> void:
 		_hitmarker_time = maxf(0.0, _hitmarker_time - delta)
 		if hitmarker != null:
 			hitmarker.visible = _hitmarker_time > 0.0
+	if visor_splat != null:
+		if not local_active:
+			visor_splat.clear()
+		else:
+			visor_splat.tick(delta)
 	if _tagged_flash_time > 0.0:
 		_tagged_flash_time = maxf(0.0, _tagged_flash_time - delta)
 		var alpha := (_tagged_flash_time / 0.65) * 0.55

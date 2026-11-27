@@ -2,7 +2,7 @@ extends Node3D
 signal finished
 signal round_started
 signal player_scored_tag
-signal player_was_tagged(color: Color)
+signal player_was_tagged(color: Color, duration: float)
 const ARENA_ACTOR_LAYER := 4
 const ARENA_COLLISION_MASK := 7
 const BOT_TURN_SPEED := 7.0
@@ -399,7 +399,7 @@ func _record_tag(shooter: Variant, victim: Variant, respect_cooldown := false) -
 		notice = "%s tagged you!" % from_name
 		notice_time = 1.4
 		SFX.play(self, "tagged", -5.0, 1.0)
-		player_was_tagged.emit(actor_colors.get(shooter, COLORS[1]))
+		player_was_tagged.emit(actor_colors.get(shooter, COLORS[1]), TAG_COOLDOWN)
 	if rules.phase != RULES.Phase.PLAYING:
 		SFX.play(self, "finish", -6.0, 1.0)
 		_show_results()

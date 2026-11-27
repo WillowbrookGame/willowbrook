@@ -72,6 +72,11 @@ func _run() -> void:
 		await physics_frame
 	if not require(game.rules.points["Pip"]==1 and game.notice=="Pip tagged you!","An arriving bot paintball did not count"):
 		return
+	if not require(map.visor_splat != null and map.visor_splat.visible and map.visor_splat.remaining > 0.0,"Visor paint splat did not appear when player was tagged"):
+		return
+	map.visor_splat.tick(game.TAG_COOLDOWN + 0.1)
+	if not require(not map.visor_splat.visible,"Visor paint splat did not clear after immunity ended"):
+		return
 	if not require(game.rules.points["You"]==1 and game._record_tag(bot,game.bots[1].body) and game.rules.points["Pip"]==2 and not game._record_tag(bot,bot),"Human, bot and bot-vs-bot scoring must use the same rule"):
 		return
 	game.tick(game.SOLO_ROUND_LENGTH)
