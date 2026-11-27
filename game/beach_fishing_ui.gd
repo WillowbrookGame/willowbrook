@@ -911,9 +911,7 @@ func _show_dialog(title: String, body: String, sale: bool) -> void:
 	dialog_opened.emit()
 
 func _fishing_book_tabs() -> Array[Dictionary]:
-	var reef_found: Array[String] = []
-	if _account == null or _account.admitted:
-		reef_found = REEF_PHOTOS.load_discovered(REEF_PHOTOS.resolve_profile(get_tree()))
+	var reef_found: Array[String] = REEF_PHOTOS.load_collection_reef(REEF_PHOTOS.resolve_profile(get_tree()), _account)
 	return [
 		FISHING.book_tab(game.discovered, THUMB_PATH),
 		REEF_PHOTOS.book_tab(reef_found),

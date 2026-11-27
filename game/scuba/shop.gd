@@ -140,15 +140,19 @@ func _open_dialogue() -> void:
 			viewport.size_changed.disconnect(resize_dialogue),CONNECT_ONE_SHOT)
 	start.grab_focus()
 
-func open_photo_book() -> void:
+func open_photo_book(account_override: Node = null) -> void:
 	if is_instance_valid(_panel):
 		_panel.queue_free()
 		_panel=null
 	if is_instance_valid(_book):
 		_book.queue_free()
+	var account := account_override if account_override != null else REEF_PHOTOS.browser_session(get_tree())
+	if account != null and not bool(account.get("admitted")):
+		_host.set_zone_modal(false)
+		return
 	var profile := REEF_PHOTOS.resolve_profile(get_tree())
-	var caught: Array = profile.snapshot().get("fish_discovered",[]) if profile!=null else []
-	var reef_found: Array[String] = REEF_PHOTOS.load_discovered(profile)
+	var caught: Array = REEF_PHOTOS.load_collection_fishing(profile, account)
+	var reef_found: Array[String] = REEF_PHOTOS.load_collection_reef(profile, account)
 	_book = PHOTO_BOOK.new()
 	_hud.add_child(_book)
 	_book.closed.connect(close_modal)

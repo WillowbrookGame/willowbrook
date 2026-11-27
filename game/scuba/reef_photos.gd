@@ -41,12 +41,17 @@ static func resolve_profile(tree: SceneTree) -> RefCounted:
 	return PROFILE.new(save_path)
 
 
-static func load_discovered(profile: RefCounted) -> Array[String]:
+static func browser_session(tree: SceneTree) -> Node:
+	if not OS.has_feature("web") or tree == null or tree.root == null:
+		return null
+	var session := tree.root.get_node_or_null("WillowbrookBrowserSession")
+	if session != null and session.has_method("reef_photos_snapshot"):
+		return session
+	return null
+
+
+static func dedupe_ids(raw: Variant) -> Array[String]:
 	var clean: Array[String] = []
-	if profile == null:
-		return clean
-	var snap: Dictionary = profile.snapshot()
-	var raw: Variant = snap.get("reef_photos", [])
 	if not raw is Array:
 		return clean
 	for item: Variant in raw:
@@ -57,6 +62,40 @@ static func load_discovered(profile: RefCounted) -> Array[String]:
 				if not clean.has(id):
 					clean.append(id)
 	return clean
+
+
+static func load_discovered(profile: RefCounted) -> Array[String]:
+	if profile == null:
+		return []
+	var snap: Dictionary = profile.snapshot()
+	return dedupe_ids(snap.get("reef_photos", []))
+
+
+static func load_collection_fishing(profile: RefCounted, session: Node = null) -> Array:
+	if session != null:
+		if not bool(session.get("admitted")):
+			return []
+		if session.has_method("fishing_snapshot"):
+			var snap: Dictionary = session.fishing_snapshot()
+			var discovered: Variant = snap.get("discovered", [])
+			if discovered is Array:
+				return discovered.duplicate()
+		return []
+	if profile == null:
+		return []
+	var local_snap: Dictionary = profile.snapshot()
+	var local_discovered: Variant = local_snap.get("fish_discovered", [])
+	return local_discovered.duplicate() if local_discovered is Array else []
+
+
+static func load_collection_reef(profile: RefCounted, session: Node = null) -> Array[String]:
+	if session != null:
+		if not bool(session.get("admitted")):
+			return []
+		if session.has_method("reef_photos_snapshot"):
+			return dedupe_ids(session.reef_photos_snapshot())
+		return []
+	return load_discovered(profile)
 
 
 static func record_photo(species_id: String, profile: RefCounted) -> Dictionary:

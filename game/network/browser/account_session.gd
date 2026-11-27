@@ -73,7 +73,9 @@ var _garden_notice: Label
 var _garden_notice_until := 0
 var _login_layer: CanvasLayer
 signal fishing_reply(message: Dictionary)
+signal reef_photos_reply(message: Dictionary)
 var _fishing_state: Dictionary = {}
+var _reef_photos: Array = []
 var _fishing_world: Dictionary = {}
 var _town_home_exteriors: Array = []
 var _fishing_clock := 0.0
@@ -325,6 +327,7 @@ func _web_leave(message: String) -> void:
 	_garden_until = 0.0
 	_stars = 0
 	_fishing_state.clear()
+	_reef_photos.clear()
 	_fishing_world.clear()
 	_town_home_exteriors.clear()
 	_job_state.clear()
@@ -563,6 +566,8 @@ func _on_web_message(message: Dictionary) -> void:
 				vehicle_result.emit(str(message.get("error",message.get("text",""))))
 			if message.get("action") == "fishing":
 				fishing_reply.emit(message)
+			if message.get("action") == "reefPhotos":
+				reef_photos_reply.emit(message)
 			if message.get("action") == "yard" and message.get("requestId") == _yard_retry.get("id"):
 				_yard_retry.clear()
 				_yard_until = 0
@@ -788,6 +793,14 @@ func send_fishing(operation: String, request_id: String, fields: Dictionary = {}
 func fishing_snapshot() -> Dictionary:
 	return _fishing_state
 
+func reef_photos_snapshot() -> Array:
+	return _reef_photos.duplicate() if admitted else []
+
+func send_reef_photo(species_id: String, request_id: String) -> bool:
+	if not admitted:
+		return false
+	return _send_packet({"type":"progress","action":"reefPhotos","operation":"record","species":species_id,"requestId":request_id})
+
 func town_home_exteriors() -> Array:
 	return _town_home_exteriors if admitted else []
 
@@ -845,6 +858,8 @@ func _update_progress(data: Dictionary) -> void:
 		_fishing_state = data.fishing.duplicate()
 		_fishing_state["_received_at"] = data.serverTime
 		_sync_fishing_clock(data)
+	if data.get("reefPhotos") is Array:
+		_reef_photos = data.reefPhotos.duplicate()
 	if data.get("pets") is Dictionary:
 		var next_home: Dictionary = data.home if data.get("home") is Dictionary else {}
 		var changed: bool = _pet_store != data.pets or _owned_home != next_home or not _has_pet_service

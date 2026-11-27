@@ -1,10 +1,53 @@
 extends SceneTree
 ## Run headlessly: godot --headless --path . --script res://game/scuba/test_scuba_photos.gd
 const REEF := "res://game/scuba/reef.tscn"
+const BEACH := "res://game/beach.tscn"
+const SHOP := preload("res://game/scuba/shop.gd")
 const REEF_PHOTOS := preload("res://game/scuba/reef_photos.gd")
 const PROFILE := preload("res://game/progression/profile.gd")
 
 var failures := 0
+
+
+class MockBrowserSession extends Node:
+	signal fishing_reply(message: Dictionary)
+	signal reef_photos_reply(message: Dictionary)
+	var admitted := true
+	var fish_discovered: Array = []
+	var reef_photos: Array = []
+	var last_photo_species := ""
+	var last_photo_req := ""
+
+	func fishing_snapshot() -> Dictionary:
+		return {"equipped": false, "inventory": [], "discovered": fish_discovered.duplicate(), "_received_at": 100.0}
+
+	func fishing_world() -> Dictionary:
+		return {}
+
+	func saved_stars() -> int:
+		return 0
+
+	func fishing_now() -> float:
+		return 100.0
+
+	func fishing_peer(_id: int) -> Node3D:
+		return null
+
+	func reef_photos_snapshot() -> Array:
+		return reef_photos.duplicate() if admitted else []
+
+	func send_reef_photo(species_id: String, request_id: String) -> bool:
+		if not admitted:
+			return false
+		last_photo_species = species_id
+		last_photo_req = request_id
+		return true
+
+
+class MockShopHost extends Node3D:
+	var modal_open := false
+	func set_zone_modal(open: bool) -> void:
+		modal_open = open
 
 
 func _initialize() -> void:
@@ -99,6 +142,74 @@ func _run() -> void:
 		if hint != null and hint.visible:
 			var h_rect := hint.get_global_rect()
 			_check(h_rect.end.x <= vp_rect.size.x + 1.0, "SwimHint fits in %s viewport: %s" % [vp_size, h_rect])
+
+	# 2. Signed-in browser account consistency across Reef, Dive Shop, and Beach:
+	#    Local temp profile is EMPTY, while signed-in server account has 2 caught fish + 1 reef photo.
+	var temp_profile := PROFILE.new("")
+	set_meta("willowbrook_profile", temp_profile)
+	var session := MockBrowserSession.new()
+	session.fish_discovered = ["goldfish", "tuna"]
+	session.reef_photos = ["shark"]
+	reef.add_child(session)
+	reef.use_photo_account(session)
+
+	# Reef takes a photo -> sends to server account, does NOT write to temp_profile.
+	reef.camera.global_position = clown_pos + Vector3(0.0, 0.0, 2.5)
+	reef.camera.look_at(clown_pos, Vector3.UP)
+	var online_shot: Dictionary = reef.take_photo()
+	_check(bool(online_shot.get("ok", false)) and bool(online_shot.get("pending", false)) and session.last_photo_species == "clownfish", "Signed-in Reef photo sends request to server account")
+	_check(REEF_PHOTOS.load_discovered(temp_profile).is_empty(), "Signed-in Reef photo does not write to temporary local profile")
+	session.reef_photos.append("clownfish")
+	session.reef_photos_reply.emit({"requestId": session.last_photo_req, "ok": true, "species": "clownfish", "newDiscovery": true, "count": 2, "total": 8})
+
+	# Check Reef book tabs agree with signed-in account (2/35 Fishing, 2/8 Reef).
+	reef.open_photo_book()
+	await process_frame
+	var reef_prog := (reef.photo_book.find_child("BookProgress", true, false) as Label).text
+	reef.photo_book.open("fishing")
+	await process_frame
+	var reef_fish_prog := (reef.photo_book.find_child("BookProgress", true, false) as Label).text
+	_check(reef_prog == "2 / 8 discovered" and reef_fish_prog == "2 / 35 discovered", "Reef Photo Book reads signed-in account for both tabs: reef=%s fish=%s" % [reef_prog, reef_fish_prog])
+	reef.close_photo_book()
+
+	# Check Dive Shop book tabs agree with the exact same signed-in account.
+	var shop_host := MockShopHost.new()
+	var shop_hud := CanvasLayer.new()
+	root.add_child(shop_host)
+	shop_host.add_child(shop_hud)
+	var shop := SHOP.new()
+	shop._host = shop_host
+	shop._hud = shop_hud
+	shop_host.add_child(shop)
+	shop.open_photo_book(session)
+	await process_frame
+	var shop_reef_prog := (shop._book.find_child("BookProgress", true, false) as Label).text
+	shop._book.open("fishing")
+	await process_frame
+	var shop_fish_prog := (shop._book.find_child("BookProgress", true, false) as Label).text
+	_check(shop_reef_prog == "2 / 8 discovered" and shop_fish_prog == "2 / 35 discovered", "Dive Shop Photo Book matches signed-in account for both tabs: reef=%s fish=%s" % [shop_reef_prog, shop_fish_prog])
+	shop_host.queue_free()
+
+	# Check Beach book tabs agree with the exact same signed-in account.
+	if change_scene_to_file(BEACH) == OK:
+		await scene_changed
+		var beach := current_scene
+		var beach_session := MockBrowserSession.new()
+		beach_session.fish_discovered = ["goldfish", "tuna"]
+		beach_session.reef_photos = ["shark", "clownfish"]
+		beach.add_child(beach_session)
+		beach.fishing_ui.use_fishing_account(beach_session)
+		await physics_frame
+		await physics_frame
+		beach.fishing_ui.open_photo_book()
+		await process_frame
+		var beach_fish_prog := (beach.fishing_ui.photo_book.find_child("BookProgress", true, false) as Label).text
+		beach.fishing_ui.photo_book.open("reef")
+		await process_frame
+		var beach_reef_prog := (beach.fishing_ui.photo_book.find_child("BookProgress", true, false) as Label).text
+		_check(beach_fish_prog == "2 / 35 discovered" and beach_reef_prog == "2 / 8 discovered", "Beach Photo Book matches signed-in account for both tabs: fish=%s reef=%s" % [beach_fish_prog, beach_reef_prog])
+	else:
+		_check(false, "Failed to load Beach scene for cross-entry Photo Book consistency check")
 
 	remove_meta("willowbrook_profile")
 	for p: String in [save_path, save_path + ".bak"]:
