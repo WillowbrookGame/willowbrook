@@ -6,6 +6,7 @@ const BUBBLES=preload("res://game/scuba/audio/scuba-bubbles.mp3")
 const SWIM=preload("res://game/scuba/animation/swim_animation.gd")
 const DIVER=preload("res://game/scuba/diver.gd")
 const REEF_ART=preload("res://game/scuba/reef_art.gd")
+const REEF_TREASURES=preload("res://game/scuba/reef_treasures.gd")
 const STICK=preload("res://game/movement_thumbstick.gd")
 const ROUTER=preload("res://game/touch_router.gd")
 const GAMEPAD=preload("res://game/gamepad_state.gd")
@@ -28,7 +29,10 @@ var rise: Button
 var sink: Button
 var back: Button
 var depth: Label
+var treasure_banner: Label
 var art: Node3D
+var treasures: Node3D
+var _banner_time:=0.0
 var _touch=ROUTER.new()
 var _pad=GAMEPAD.new()
 var _yaw:=0.0
@@ -48,6 +52,10 @@ func _ready() -> void:
 	art=REEF_ART.new()
 	art.name="ReefArt"
 	add_child(art)
+	treasures=REEF_TREASURES.new()
+	treasures.name="ReefTreasures"
+	add_child(treasures)
+	treasures.treasure_found.connect(_on_treasure_found)
 	diver=DIVER.new()
 	diver.name="Diver"
 	diver.collision_layer=0
@@ -146,6 +154,16 @@ func _build_hud() -> void:
 	depth.add_theme_font_size_override("font_size",20)
 	depth.add_theme_constant_override("outline_size",4)
 	hud.add_child(depth)
+	treasure_banner=Label.new()
+	treasure_banner.name="TreasureBanner"
+	treasure_banner.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	treasure_banner.add_theme_font_size_override("font_size",24)
+	treasure_banner.add_theme_constant_override("outline_size",6)
+	treasure_banner.add_theme_color_override("font_color",Color("#fff3b0"))
+	treasure_banner.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	treasure_banner.hide()
+	hud.add_child(treasure_banner)
+	treasure_banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP,Control.PRESET_MODE_MINSIZE,64)
 	var hint:=Label.new()
 	hint.name="SwimHint"
 	hint.text="WASD to swim | Space / Ctrl to rise / dive\nRight-drag to look | E to return"
@@ -266,7 +284,30 @@ func _physics_process(delta: float) -> void:
 	_look(aim,delta*1.65)
 	_swim(axis,vertical,delta)
 	_update_camera(delta)
-	depth.text="%s  %dm" % [art.landmark(diver.position),roundi(-diver.position.y)]
+	if treasures!=null:
+		treasures.check_diver(diver.position)
+	if _banner_time>0.0:
+		_banner_time=maxf(0.0,_banner_time-delta)
+		if _banner_time<=0.0 and treasure_banner!=null:
+			treasure_banner.hide()
+	var readout:="%s  %dm" % [art.landmark(diver.position),roundi(-diver.position.y)]
+	if treasures!=null and treasures.found_count>0:
+		readout+="  ·  Treasures %d / %d" % [treasures.found_count,treasures.total_count()]
+	depth.text=readout
+
+
+func _on_treasure_found(title: String, found: int, total: int) -> void:
+	if treasure_banner==null:
+		return
+	if found>=total:
+		treasure_banner.text="All %d sunken reef treasures found!" % total
+		treasure_banner.add_theme_color_override("font_color",Color("#8dffb0"))
+		_banner_time=3.6
+	else:
+		treasure_banner.text="Found %s!  (%d / %d)" % [title,found,total]
+		treasure_banner.add_theme_color_override("font_color",Color("#fff3b0"))
+		_banner_time=2.6
+	treasure_banner.show()
 
 func _swim(axis: Vector2, vertical: float, dt: float) -> void:
 	var local:=Vector3(axis.x,0,axis.y)
