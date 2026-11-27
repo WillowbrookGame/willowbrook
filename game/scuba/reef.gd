@@ -189,7 +189,7 @@ func _build_hud() -> void:
 	hud.add_child(treasure_banner)
 	var hint:=Label.new()
 	hint.name="SwimHint"
-	hint.text="WASD to swim | Space / Ctrl to rise / dive\nRight-click or C to look | Esc free cursor | E return"
+	hint.text="WASD to swim | Space / Ctrl to rise / dive\nR-click / C: Look | Esc: Cursor | E: Return"
 	hint.position=Vector2(10,42)
 	hint.add_theme_constant_override("outline_size",4)
 	hud.add_child(hint)
