@@ -44,14 +44,23 @@ func _run() -> void:
 		return
 	var epoch := session.paintball_epoch()
 	var state := {
-		"round":1, "phase":"playing", "remainingMs":180000, "events":[],
+		"round":1, "phase":"playing", "countdownMs":0, "remainingMs":75000, "events":[],
 		"selfSlot":"a","hostSlot":"a","ranking":[],
-		"players":[{"slot":"a", "position":[0,0,7], "grounded":true, "moving":false, "points":0},
-			{"slot":"b", "position":[2,0,7], "connected":true, "alias":"Test Peer", "yaw":0, "moving":false}]
+		"players":[{"slot":"a", "alias":"You", "position":[0,0,7], "grounded":true, "moving":false, "points":0},
+			{"slot":"b", "position":[2,0,7], "connected":true, "alias":"Test Peer", "avatar":"robot", "yaw":0, "moving":false, "immuneMs":0, "points":0}]
 	}
 	session.paintball_packet.emit({"type":"paintballMatch", "action":"ready", "epoch":epoch, "ok":true, "view":state})
-	if not _require(online.is_playing() and online._actors.size() == 1 and not arena._consume_zone_input(space), "Playing view renders a remote peer and enables keyboard input"):
+	if not _require(online.is_playing() and online._actors.size() == 1 and online._actors["b"].node.get_meta("avatar_id","") == "robot" and not arena._consume_zone_input(space), "Playing view renders a remote peer with its avatar and enables keyboard input"):
 		return
+	# Verify online tag hitmarker and visor paint splat events.
+	state.events = [
+		{"eid":1, "kind":"paint", "slot":"a", "tagged":"b", "immuneMs":2200, "from":[0,1,7], "to":[2,1,7]},
+		{"eid":2, "kind":"paint", "slot":"b", "tagged":"a", "immuneMs":2200, "from":[2,1,7], "to":[0,1,7]},
+	]
+	session.paintball_packet.emit({"type":"paintballMatch", "action":"view", "epoch":epoch, "ok":true, "view":state})
+	if not _require(arena.hitmarker.visible and arena.visor_splat.visible and arena.visor_splat.remaining > 1.5, "Online paint tag events did not trigger hitmarker and visor paint splat"):
+		return
+	state.events = []
 	var mouse := InputEventMouseButton.new()
 	mouse.button_index = MOUSE_BUTTON_LEFT
 	mouse.pressed = true

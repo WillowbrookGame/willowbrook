@@ -4,7 +4,11 @@ const YARD_SCENE = preload("res://game/warehouse_yard.tscn")
 const RULES = preload("res://game/match_rules.gd")
 const PLAYER = preload("res://game/player.gd")
 const YARD = preload("res://game/warehouse_yard.gd")
-const ROUND_MS := 180000
+const AVATARS = preload("res://game/avatars/catalog.gd")
+const ROUND_MS := 75000
+const TARGET_POINTS := 12
+const COUNTDOWN_MS := 1950
+const TAG_IMMUNITY_MS := 2200
 const HOLD_MS := 20000
 const LOAD_MS := 12000
 const PAINT_COOLDOWN_MS := 160
@@ -13,6 +17,7 @@ const BOT_NAMES := ["Pip","Scout","Sunny"]
 
 var phase := "idle"
 var deadline := 0
+var countdown_until := 0
 var slots: Dictionary = {}
 var host_slot := ""
 var rules := RULES.new()
@@ -22,6 +27,7 @@ var _spawns: Array[String] = []
 var _room_time := 0
 var _event_id := 0
 var _next_bot_id := 0
+var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	# Share only the yard; the client scene owns its own HUD, camera and exit.
@@ -52,14 +58,26 @@ func open(humans: Array, host: String, now: int) -> bool:
 		return false
 	host_slot = host
 	_room_time = now
+	_rng.randomize()
+	rules.round_length = float(ROUND_MS) / 1000.0
+	rules.target_points = TARGET_POINTS
 	for row: Dictionary in humans:
-		_add_slot(row.slot,row.alias,false)
+		_add_slot(row.slot,row.alias,false,AVATARS.sanitize(row.get("avatar",AVATARS.DEFAULT)))
 	_fill_bots()
 	phase = "loading"
 	deadline = now+LOAD_MS
 	return true
 
-func _add_slot(id: String, alias: String, bot: bool) -> void:
+func _pick_bot_avatar(used_avatars: Dictionary) -> String:
+	var pool: Array[String] = []
+	for id: String in AVATARS.MODELS.keys():
+		if not used_avatars.has(id):
+			pool.append(id)
+	if pool.is_empty():
+		return AVATARS.DEFAULT
+	return pool[_rng.randi_range(0, pool.size() - 1)]
+
+func _add_slot(id: String, alias: String, bot: bool, avatar_id := AVATARS.DEFAULT) -> void:
 	var body := PLAYER.new()
 	body.arena_movement = true
 	body.floor_snap_length = .47
@@ -78,20 +96,25 @@ func _add_slot(id: String, alias: String, bot: bool) -> void:
 	var idx := _spawns.size()
 	_spawns.append(id)
 	body.position = YARD.SPAWNS[idx]
-	slots[id] = {"id":id,"alias":alias,"bot":bot,"body":body,"connected":true,"ready":bot,"hold":0,"retired":false,"last_input":-1,"last_at":-1,"axis":Vector2.ZERO,"pitch":0.0,"jump":false,"paint":false,"next_paint":0,"route":idx*3,"ticks_blocked":0}
+	var strafe := 1.0 if idx % 2 == 1 else -1.0
+	slots[id] = {"id":id,"alias":alias,"bot":bot,"avatar":avatar_id,"body":body,"connected":true,"ready":bot,"hold":0,"retired":false,"last_input":-1,"last_at":-1,"axis":Vector2.ZERO,"pitch":0.0,"jump":false,"paint":false,"next_paint":0,"immune_until":0,"flee_at":0,"flee_from":Vector3.ZERO,"strafe_dir":strafe,"route":idx*3,"ticks_blocked":0}
 	rules.points[id] = 0
 	rules.totals[id] = 0
 
 func _fill_bots() -> void:
 	var used := {}
+	var used_avatars := {}
 	for id: String in _spawns:
+		used_avatars[slots[id].avatar]=true
 		if slots[id].bot: used[slots[id].alias]=true
 	while _spawns.size()<4:
 		for bot_alias: String in BOT_NAMES:
 			if not used.has(bot_alias):
 				_next_bot_id += 1
-				_add_slot("npc_%d" % _next_bot_id,bot_alias,true)
+				var avatar_id := _pick_bot_avatar(used_avatars)
+				_add_slot("npc_%d" % _next_bot_id,bot_alias,true,avatar_id)
 				used[bot_alias]=true
+				used_avatars[avatar_id]=true
 				break
 
 func ready_slot(id: String, now: int) -> bool:
@@ -109,7 +132,8 @@ func _begin_round(now: int) -> void:
 	if not rules.start_round():
 		return
 	phase="playing"
-	deadline=now+ROUND_MS
+	countdown_until=now+COUNTDOWN_MS
+	deadline=countdown_until+ROUND_MS
 	for i in _spawns.size():
 		var s: Dictionary=slots[_spawns[i]]
 		var body: PLAYER=s.body
@@ -123,9 +147,11 @@ func _begin_round(now: int) -> void:
 		s.axis=Vector2.ZERO
 		s.paint=false
 		s.jump=false
+		s.immune_until=0
+		s.flee_at=0
 		s.route=i*3
 		s.ticks_blocked=0
-		s.next_paint=now+(1000+i*200 if s.bot else 0)
+		s.next_paint=countdown_until+(1000+i*200 if s.bot else 0)
 	_emit("round",{"round":rules.round_number})
 
 func next_round(id: String, now: int) -> bool:
@@ -239,13 +265,15 @@ func step(delta: float, now: int) -> void:
 		phase="abandoned"
 		_emit("abandoned",{"message":"The arena did not finish loading. Return to Town and try again."})
 	if phase!="playing": return
-	if now>=deadline:
-		rules.tick(rules.remaining)
-		phase="finished" if rules.phase==RULES.Phase.FINISHED else "between"
+	if now<countdown_until:
+		rules.remaining=float(ROUND_MS)/1000.
 		for id: String in _spawns:
-			slots[id].body.collision_layer=0
-			slots[id].body.velocity=Vector3.ZERO
-		_emit("results",{"round":rules.round_number,"rankings":_rank(phase=="finished")})
+			var s: Dictionary=slots[id]
+			s.jump=false
+			s.paint=false
+		return
+	if now>=deadline:
+		_finish_round()
 		return
 	rules.remaining=float(deadline-now)/1000.
 	if host_slot.is_empty(): return
@@ -267,28 +295,48 @@ func step(delta: float, now: int) -> void:
 				_tag_ray(s,aim,now)
 			s.jump=false
 			s.paint=false
+		if phase!="playing":
+			return
+
+func _finish_round() -> void:
+	if rules.phase==RULES.Phase.PLAYING:
+		rules.tick(rules.remaining)
+	phase="finished" if rules.phase==RULES.Phase.FINISHED else "between"
+	for id: String in _spawns:
+		slots[id].body.collision_layer=0
+		slots[id].body.velocity=Vector3.ZERO
+	_emit("results",{"round":rules.round_number,"rankings":_rank(phase=="finished")})
+
+func _flee_waypoint(s: Dictionary, away_from: Vector3) -> void:
+	var body: PLAYER=s.body
+	var best_idx: int=int(s.route)%YARD.SOLO_PATROL.size()
+	var best_dist:=-1.0
+	for i in YARD.SOLO_PATROL.size():
+		var waypoint: Vector3=YARD.SOLO_PATROL[i]
+		var dist:=waypoint.distance_squared_to(away_from)
+		if dist>best_dist and waypoint.distance_squared_to(body.position)>9.0:
+			best_dist=dist
+			best_idx=i
+	s.route=best_idx
+	s.ticks_blocked=0
 
 func _bot(s: Dictionary, dt: float, now: int) -> void:
 	var body: PLAYER=s.body
-	var goal: Vector3=YARD.PATROL[int(s.route)%YARD.PATROL.size()]
+	if int(s.flee_at)>0 and now>=int(s.flee_at):
+		s.flee_at=0
+		_flee_waypoint(s,s.flee_from)
+	var goal: Vector3=YARD.SOLO_PATROL[int(s.route)%YARD.SOLO_PATROL.size()]
 	var offset:=goal-body.position
 	offset.y=0
 	if offset.length_squared()<1.2 or int(s.ticks_blocked)>48:
-		s.route=int(s.route)+3
+		s.route=(int(s.route)+_rng.randi_range(1,3))%YARD.SOLO_PATROL.size()
 		s.ticks_blocked=0
-	if offset.length_squared()>.01:
-		var desired:=atan2(-offset.x,-offset.z)
-		body.rotation.y=rotate_toward(body.rotation.y,desired,7.0*dt)
-	body.touch_motion=Vector2(0,-.57)
-	body._physics_process(dt)
-	s.ticks_blocked=int(s.ticks_blocked)+1 if body.get_real_velocity().length()<.45 else 0
-	if now<int(s.next_paint): return
-	s.next_paint=now+1050
+		s.strafe_dir=-float(s.strafe_dir)
 	var nearest: PLAYER
 	var best:=15.0
 	for id: String in _spawns:
 		var candidate: Dictionary=slots[id]
-		if candidate.id==s.id or not candidate.connected: continue
+		if candidate.id==s.id or not candidate.connected or now<int(candidate.immune_until): continue
 		var target: PLAYER=candidate.body
 		var distance:=body.position.distance_to(target.position)
 		if distance>=best: continue
@@ -296,28 +344,50 @@ func _bot(s: Dictionary, dt: float, now: int) -> void:
 		if hit.get("collider")==target:
 			best=distance
 			nearest=target
+	var motion:=Vector2(0,-.57)
 	if is_instance_valid(nearest):
 		var aim:=nearest.position-body.position-Vector3.UP*.08
-		body.rotation.y=atan2(-aim.x,-aim.z)
-		_tag_ray(s,aim.normalized(),now)
+		var desired:=atan2(-aim.x,-aim.z)
+		body.rotation.y=rotate_toward(body.rotation.y,desired,7.0*dt)
+		motion=Vector2(float(s.strafe_dir)*0.45,-0.25)
+	elif offset.length_squared()>.01:
+		var desired:=atan2(-offset.x,-offset.z)
+		body.rotation.y=rotate_toward(body.rotation.y,desired,7.0*dt)
+	body.touch_motion=motion
+	body._physics_process(dt)
+	s.ticks_blocked=int(s.ticks_blocked)+1 if body.get_real_velocity().length()<.45 else 0
+	if now<int(s.next_paint) or not is_instance_valid(nearest): return
+	s.next_paint=now+1050
+	var shot_aim:=nearest.position-body.position-Vector3.UP*.08
+	_tag_ray(s,shot_aim.normalized(),now)
 
 func _ray(body: PLAYER, from: Vector3, to: Vector3) -> Dictionary:
 	var query:=PhysicsRayQueryParameters3D.create(from,to,5,[body.get_rid()])
 	return arena.get_world_3d().direct_space_state.intersect_ray(query)
 
 func _tag_ray(shooter: Dictionary, direction: Vector3, now: int) -> void:
-	if phase!="playing" or now>=deadline or not shooter.connected: return
+	if phase!="playing" or now<countdown_until or now>=deadline or not shooter.connected: return
 	var body: PLAYER=shooter.body
 	shooter.next_paint=now+(1050 if shooter.bot else PAINT_COOLDOWN_MS)
 	var origin:=body.position+Vector3.UP*1.05
 	var hit:=_ray(body,origin,origin+direction*42.)
 	var endpoint: Vector3=hit.get("position",origin+direction*42.)
 	var tagged: String=""
+	var immune_ms:=0
 	for id: String in _spawns:
-		if slots[id].connected and slots[id].body==hit.get("collider") and rules.tag(shooter.id,id):
-			tagged=id
+		var victim: Dictionary=slots[id]
+		if victim.connected and victim.body==hit.get("collider"):
+			if now>=int(victim.immune_until) and rules.tag(shooter.id,id):
+				tagged=id
+				immune_ms=TAG_IMMUNITY_MS
+				victim.immune_until=now+TAG_IMMUNITY_MS
+				if victim.bot:
+					victim.flee_at=now+550
+					victim.flee_from=body.position
 			break
-	_emit("paint",{"slot":shooter.id,"tagged":tagged,"from":_vec(origin),"to":_vec(endpoint)})
+	_emit("paint",{"slot":shooter.id,"tagged":tagged,"immuneMs":immune_ms,"from":_vec(origin),"to":_vec(endpoint)})
+	if rules.phase!=RULES.Phase.PLAYING:
+		_finish_round()
 
 func _emit(kind: String, fields: Dictionary) -> void:
 	_event_id+=1
@@ -352,5 +422,5 @@ func snapshot(id: String, now: int) -> Dictionary:
 	for sid: String in _spawns:
 		var s: Dictionary=slots[sid]
 		var body: PLAYER=s.body
-		list.append({"slot":sid,"alias":s.alias,"bot":s.bot,"connected":s.connected,"ready":s.ready,"position":_vec(body.position),"yaw":body.rotation.y,"grounded":body.is_on_floor(),"moving":body.active,"points":int(rules.points.get(sid,0)),"total":int(rules.totals.get(sid,0))})
-	return {"phase":phase,"hostSlot":host_slot,"selfSlot":id,"round":rules.round_number,"remainingMs":maxi(0,deadline-now) if phase in ["playing","loading"] else 0,"players":list,"ranking":_rank(phase=="finished") if phase in ["between","finished"] else [],"events":next_events.duplicate(true)}
+		list.append({"slot":sid,"alias":s.alias,"bot":s.bot,"avatar":s.avatar,"connected":s.connected,"ready":s.ready,"position":_vec(body.position),"yaw":body.rotation.y,"grounded":body.is_on_floor(),"moving":body.active,"immuneMs":maxi(0,int(s.immune_until)-now),"points":int(rules.points.get(sid,0)),"total":int(rules.totals.get(sid,0))})
+	return {"phase":phase,"hostSlot":host_slot,"selfSlot":id,"round":rules.round_number,"countdownMs":maxi(0,countdown_until-now) if phase=="playing" else 0,"remainingMs":maxi(0,deadline-now) if phase in ["playing","loading"] else 0,"players":list,"ranking":_rank(phase=="finished") if phase in ["between","finished"] else [],"events":next_events.duplicate(true)}

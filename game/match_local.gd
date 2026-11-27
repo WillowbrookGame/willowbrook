@@ -62,8 +62,18 @@ func is_playing() -> bool:
 func is_counting_down() -> bool:
 	return rules.phase == RULES.Phase.PLAYING and start_countdown > 0.0
 
-func _allows_local_stars() -> bool:
-	return not OS.has_feature("web") and profile != null and profile.has_method("change_stars")
+func _browser_account() -> Node:
+	if not OS.has_feature("web"):
+		return null
+	var account := get_node_or_null("/root/WillowbrookBrowserSession")
+	if account != null and bool(account.get("admitted")) and account.has_method("send_paintball_solo_reward"):
+		return account
+	return null
+
+func _allows_stars() -> bool:
+	if OS.has_feature("web"):
+		return _browser_account() != null
+	return profile != null and profile.has_method("change_stars")
 
 func _build_hud(canvas: CanvasLayer) -> void:
 	hud = Label.new()
@@ -99,7 +109,7 @@ func _build_hud(canvas: CanvasLayer) -> void:
 	heading.add_theme_font_size_override("font_size", 24)
 	column.add_child(heading)
 	summary = Label.new()
-	var reward_line := "Finish all 3 rounds to earn Stars!" if _allows_local_stars() else "Every tag earns 1 point."
+	var reward_line := "Finish all 3 rounds to earn Stars!" if _allows_stars() else "Every tag earns 1 point."
 	summary.text = "You vs. Pip, Scout, and Sunny\n3 rounds · 1:15 each (or first to %d tags)\n%s" % [SOLO_TARGET_POINTS, reward_line]
 	summary.add_theme_font_size_override("font_size", 18)
 	column.add_child(summary)
@@ -432,7 +442,7 @@ func _update_hud(delta: float) -> void:
 			popup.hide()
 
 func _award_match_stars(final_rankings: Array) -> int:
-	if awarded_stars > 0 or not _allows_local_stars():
+	if awarded_stars > 0 or not _allows_stars():
 		return awarded_stars
 	var rank := 4
 	for row in final_rankings:
@@ -440,7 +450,12 @@ func _award_match_stars(final_rankings: Array) -> int:
 			rank = int(row[0])
 			break
 	var reward := 10 if rank == 1 else (7 if rank == 2 else 5)
-	if profile.change_stars(reward):
+	if OS.has_feature("web"):
+		var account := _browser_account()
+		var req_id := "pb_solo_%d_%d" % [Time.get_ticks_msec(), rng.randi_range(1000, 9999)]
+		if account != null and account.send_paintball_solo_reward(rank, req_id):
+			awarded_stars = reward
+	elif profile != null and profile.change_stars(reward):
 		awarded_stars = reward
 	return awarded_stars
 

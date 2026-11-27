@@ -4,12 +4,27 @@ const HOLD_MS=20000, ABSENT_MS=15000, MAX_MATCH_MS=13*60_000;
 const ACTIONS=['ready','view','input','next','leave'];
 const closed=()=>({ok:false,error:'Online Paintball is unavailable. Solo play still works.'});
 
-export function createPrivatePaintballMatches({worker,admitted,send,hideFromWorld,now=()=>Date.now()}){
+export function createPrivatePaintballMatches({worker,admitted,send,hideFromWorld,rewards=null,onStarsUpdated=null,now=()=>Date.now()}){
  const matches=new Map(), memberships=new Map();
  const peerSlot=p=>{const row=memberships.get(p.profile?.id);return row?.peer===p?row:null;};
  const reply=(p,action,data)=>{if(admitted(p))send(p,{type:'paintballMatch',action,...data});};
  const ready=()=>worker.healthy();
  const active=p=>!!peerSlot(p);
+
+ function applyMatchRewards(room,view){
+  if(!rewards||view?.phase!=='finished'||!Array.isArray(view.ranking))return;
+  if(!room.rewards)room.rewards=new Map();
+  for(const member of room.members){
+   if(room.rewards.has(member.slot)||!member.peer?.profile)continue;
+   const entry=view.ranking.find(x=>x&&String(x.slot)===member.slot);
+   if(!entry)continue;
+   const earned=rewards.awardOnline(member.peer.profile,entry.rank,'pb_'+room.id);
+   if(earned>0){
+    room.rewards.set(member.slot,earned);
+    if(onStarsUpdated&&admitted(member.peer))onStarsUpdated(member.peer);
+   }
+  }
+ }
 
  function end(room,message){
   if(matches.get(room.id)!==room)return;
@@ -104,8 +119,10 @@ export function createPrivatePaintballMatches({worker,admitted,send,hideFromWorl
   if(peerSlot(p)!==row)return;
   if(!r)return reply(p,action,closed());
   if(r.view?.phase==='abandoned')return end(row.room,'This match has ended. Return to Town.');
+  if(r.view?.phase==='finished')applyMatchRewards(row.room,r.view);
   if(r.ok) row.last=time;
-  reply(p,action,{ok:r.ok,epoch:row.room.epoch,...(r.view?{view:r.view}:{})});
+  const view=r.view&&row.room.rewards?.has(row.slot)?{...r.view,rewardStars:row.room.rewards.get(row.slot)}:r.view;
+  reply(p,action,{ok:r.ok,epoch:row.room.epoch,...(view?{view}:{})});
  }
  function tick(time){
   if(!ready()){unavailable();return;}
