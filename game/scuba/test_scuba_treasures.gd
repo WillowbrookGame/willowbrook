@@ -60,5 +60,11 @@ func _run() -> void:
 			return
 	if not _require("6 / 6" in reef.depth.text and "All 6" in reef.treasure_banner.text, "Final treasure completion banner/readout missing"):
 		return
+	root.size = Vector2i(640, 360)
+	await process_frame
+	var view_w: float = reef.get_viewport().get_visible_rect().size.x
+	var banner_rect: Rect2 = reef.treasure_banner.get_global_rect()
+	if not _require(banner_rect.position.x >= 0.0 and banner_rect.end.x <= view_w and absf(banner_rect.get_center().x - view_w * 0.5) <= 2.0, "Discovery banner clipped or off-center in 640x360 viewport: %s (view_w=%s)" % [banner_rect, view_w]):
+		return
 	print("PASS: 6 Sunken Reef Treasures across all 5 zones, plain-sight entry pickup, no double-count, and clean HUD")
 	quit()

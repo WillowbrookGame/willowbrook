@@ -157,13 +157,17 @@ func _build_hud() -> void:
 	treasure_banner=Label.new()
 	treasure_banner.name="TreasureBanner"
 	treasure_banner.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	treasure_banner.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	treasure_banner.add_theme_font_size_override("font_size",24)
 	treasure_banner.add_theme_constant_override("outline_size",6)
 	treasure_banner.add_theme_color_override("font_color",Color("#fff3b0"))
 	treasure_banner.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	treasure_banner.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	treasure_banner.offset_left=24.0
+	treasure_banner.offset_right=-24.0
+	treasure_banner.offset_top=64.0
 	treasure_banner.hide()
 	hud.add_child(treasure_banner)
-	treasure_banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP,Control.PRESET_MODE_MINSIZE,64)
 	var hint:=Label.new()
 	hint.name="SwimHint"
 	hint.text="WASD to swim | Space / Ctrl to rise / dive\nRight-drag to look | E to return"
