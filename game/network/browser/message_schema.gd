@@ -2,6 +2,7 @@
 extends RefCounted
 ## Validate backend packets once, before they reach account views or the arcade relay.
 const MAX_PACKET_BYTES := 1048576
+const REEF_PHOTO_IDS := ["clownfish","bluetang","butterflyfish","coralgrouper","parrotfish","tuna","shark","sunfish"]
 const ZONES := ["town","beach","arcade","bank","vet","salon","store","cafe","library","private"]
 
 
@@ -225,8 +226,22 @@ static func _yard(v: Variant) -> bool:
 static func _yard_public(v: Variant) -> bool:
 	return _rows(v,6,func(r): return _yard_flags(r) and _whole(r.get("plot"),0,5))
 
+static func _reef_photo_ids(v: Variant) -> bool:
+	return _rows(v, REEF_PHOTO_IDS.size(), func(id): return id is String and id in REEF_PHOTO_IDS) and v.all(func(id): return v.count(id) == 1)
+
+
+static func _reef_photo_reply(m: Dictionary) -> bool:
+	if m.action != "reefPhotos":
+		return true
+	if m.operation != "record" or not _fish_id(m.get("requestId")) or not _reef_photo_ids(m.get("reefPhotos")):
+		return false
+	if not m.ok:
+		return true
+	return m.get("species") in m.reefPhotos and m.get("newDiscovery") is bool and _whole(m.get("count"),m.reefPhotos.size(),m.reefPhotos.size()) and _whole(m.get("total"),REEF_PHOTO_IDS.size(),REEF_PHOTO_IDS.size())
+
+
 static func _progress(v: Variant) -> bool:
-	return v is Dictionary and _whole(v.get("stars"),0,9007199254740991.0) and _whole(v.get("serverTime"),0,9007199254740991.0) and _nullable_num(v.get("gardenLastTendedAt"),0,9007199254740991.0) and (not v.has("vehicleOffer") or (v.vehicleOffer is Dictionary and _whole(v.vehicleOffer.get("tier"),-1,2))) and _pet_payload(v) and (not v.has("furniture") or _furniture(v.furniture)) and (not v.has("yard") or _yard(v.yard)) and (not v.has("neighborQuests") or _neighbor_state(v.neighborQuests)) and (not v.has("classes") or _classes(v.classes)) and (not v.has("fishing") or _fish_state(v.fishing)) and _job_state(v.get("jobs")) and _hunt_state(v.get("scavenger")) and _rows(v.get("scavengerLeaderboard"),50,func(r): return _rank(r,"durationMs"))
+	return v is Dictionary and _whole(v.get("stars"),0,9007199254740991.0) and _whole(v.get("serverTime"),0,9007199254740991.0) and _nullable_num(v.get("gardenLastTendedAt"),0,9007199254740991.0) and (not v.has("vehicleOffer") or (v.vehicleOffer is Dictionary and _whole(v.vehicleOffer.get("tier"),-1,2))) and _pet_payload(v) and (not v.has("furniture") or _furniture(v.furniture)) and (not v.has("yard") or _yard(v.yard)) and (not v.has("neighborQuests") or _neighbor_state(v.neighborQuests)) and (not v.has("classes") or _classes(v.classes)) and (not v.has("fishing") or _fish_state(v.fishing)) and (not v.has("reefPhotos") or _reef_photo_ids(v.reefPhotos)) and _job_state(v.get("jobs")) and _hunt_state(v.get("scavenger")) and _rows(v.get("scavengerLeaderboard"),50,func(r): return _rank(r,"durationMs"))
 
 
 static func _vehicle_seat(v: Variant) -> bool:
@@ -334,7 +349,7 @@ static func valid(message: Variant) -> bool:
 				return false
 			return (not m.has("vehicles") or (m.get("zone")=="town" and _vehicle_world(m.vehicles))) and m.get("zone") in ZONES and _rows(m.get("players"),16,_pose) and _rows(m.get("presence"),16,_alias_row) and _fish_world(m) and _hide_seek_state(m.get("hideSeek")) and (not m.has("playground") or (m.zone=="town" and _playground_state(m.playground))) and (not m.has("homeScene") or (m.zone=="private" and _home_scene(m.homeScene))) and (not m.has("homeExteriors") or (m.zone=="town" and _home_exteriors(m.homeExteriors)))
 		"progress":
-			return m.get("action") in ["tendGarden","jobs","scavenger","pets","housing","fishing","classes","furniture","neighborQuest","vehicles","yard"] and (m.get("action")!="vehicles" or (m.get("operation") in ["buy","upgrade","unknown"] and (m.get("requestId")==null or _text(m.requestId,64)))) and (m.get("action")!="classes" or (m.get("operation")=="pay" and (m.get("requestId")==null or _text(m.requestId,64)))) and m.get("ok") is bool and (not m.has("text") or _text(m.text,250)) and (not m.has("error") or _text(m.error,250)) and (not m.has("operation") or _text(m.operation,48)) and _progress(m) and _fish_reply(m) and _neighbor_reply(m)
+			return m.get("action") in ["tendGarden","jobs","scavenger","pets","housing","fishing","classes","furniture","neighborQuest","vehicles","yard","reefPhotos"] and (m.get("action")!="vehicles" or (m.get("operation") in ["buy","upgrade","unknown"] and (m.get("requestId")==null or _text(m.requestId,64)))) and (m.get("action")!="classes" or (m.get("operation")=="pay" and (m.get("requestId")==null or _text(m.requestId,64)))) and m.get("ok") is bool and (not m.has("text") or _text(m.text,250)) and (not m.has("error") or _text(m.error,250)) and (not m.has("operation") or _text(m.operation,48)) and _progress(m) and _fish_reply(m) and _neighbor_reply(m) and _reef_photo_reply(m)
 		"scavengerLeaderboard":
 			return _rows(m.get("rows"),50,func(r): return _rank(r,"durationMs"))
 		"chat":
