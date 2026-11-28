@@ -35,6 +35,8 @@ func _run() -> void:
 				break
 			if not _seek(west.global_position, 20.0, 24.0, INF):
 				break
+			if lap == 0:
+				_check(level.goals.next[1] == level.goals.routes[1].size(), "The linked ridge flight should complete the full ridge ring trail (%s)" % level.goals.progress_line())
 			if lap == 3:
 				_check(elapsed >= 60.0,"Linked circuits should pass one minute in the air")
 				if _climb_and_align(west, 19.0, 50.0, meadow.global_position, 22.0):
