@@ -13,7 +13,7 @@
 [ext_resource type="PackedScene" path="res://game/skyhill/art/cascade-spray.glb" id="spray"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/cascade-pool.glb" id="pool"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/curling-wind-ribbon.glb" id="ribbon"]
-[ext_resource type="PackedScene" path="res://game/skyhill/art/canvas-windsock.glb" id="sock"]
+[ext_resource type="PackedScene" path="res://game/skyhill/windsock.tscn" id="sock"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/distant-ridges.glb" id="skyline"]
 
 [ext_resource type="PackedScene" path="res://game/skyhill/art/grass_leafsLarge.glb" id="bankgrass"]
@@ -762,7 +762,7 @@ text = "Skyhill Park"
 theme_override_colors/font_outline_color = Color(0.09, 0.19, 0.18, 1)
 theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 16
-text = "A / D or ← / → to steer. W to descend, S to climb."
+text = "A/D or Left/Right to steer. W descends, S climbs."
 autowrap_mode = 3
 
 [node name="WaterfallGuide" type="PanelContainer" parent="HUD"]
