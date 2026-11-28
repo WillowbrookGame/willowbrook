@@ -136,7 +136,7 @@ size = Vector3(19, 0.45, 12)
 
 [sub_resource type="BoxMesh" id="Mesh_WaterSheet"]
 material = SubResource("Mat_water")
-size = Vector3(0.6, 17, 8)
+size = Vector3(7.2, 17, 0.55)
 
 [sub_resource type="BoxMesh" id="Mesh_Foam"]
 material = SubResource("Mat_foam")
@@ -341,7 +341,7 @@ shape = SubResource("Shape_Deck")
 
 [node name="DeckPlanks" parent="Scenery" instance=ExtResource("dock")]
 position = Vector3(0, 23.08, 19)
-scale = Vector3(1.2, 1, 1)
+scale = Vector3(0.68, 0.68, 0.68)
 
 [node name="DeckRail0" parent="Scenery" instance=ExtResource("fence")]
 position = Vector3(-4.5, 23.1, 21.9)
@@ -400,11 +400,11 @@ mesh = SubResource("Mesh_ScenicRidgeTop")
 shape = SubResource("Shape_ScenicRidgeTop")
 
 [node name="Waterfall" type="Node3D" parent="Scenery"]
-position = Vector3(36, 7.5, -32)
+position = Vector3(33, 7.5, -32)
 
 [node name="WaterSheet" type="MeshInstance3D" parent="Scenery/Waterfall"]
 position = Vector3(-0.6, 0, 0)
-rotation = Vector3(0, 0.07, 0)
+rotation = Vector3(0, -0.43, 0)
 mesh = SubResource("Mesh_WaterSheet")
 cast_shadow = 0
 
@@ -681,9 +681,9 @@ position = Vector3(0, -0.73, 0)
 scale = Vector3(0.76, 0.76, 0.76)
 
 [node name="RiderAnchor" type="Marker3D" parent="Glider"]
-position = Vector3(0, 0.03, 0.12)
+position = Vector3(0, -0.27, 0.20)
 rotation_degrees = Vector3(-60, 180, 0)
-scale = Vector3(0.74, 0.74, 0.74)
+scale = Vector3(0.92, 0.92, 0.92)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 position = Vector3(0, 28.4, 23.3)

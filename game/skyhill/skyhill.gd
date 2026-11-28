@@ -160,9 +160,14 @@ func _glider_pose() -> void:
 	glider.rotation = Vector3(0.0, flight.heading, flight.bank)
 
 func _camera_pose(weight: float) -> void:
-	var target := flight.position + Vector3(0, 4.4, 11.3).rotated(Vector3.UP, flight.heading)
+	var offset := Vector3(0.0, 4.0, 9.4)
+	var focus := Vector3(0.0, 0.8, -6.5)
+	if state == State.DECK:
+		offset = Vector3(7.8, 8.0, 11.8)
+		focus = Vector3(0.0, 0.7, -3.5)
+	var target := flight.position + offset.rotated(Vector3.UP, flight.heading)
 	camera.global_position = camera.global_position.lerp(target, weight)
-	camera.look_at(flight.position + Vector3(0, 0.8, -8).rotated(Vector3.UP, flight.heading), Vector3.UP)
+	camera.look_at(flight.position + focus.rotated(Vector3.UP, flight.heading), Vector3.UP)
 
 func _make_lift_cue() -> AudioStreamWAV:
 	var pcm := PackedByteArray()
