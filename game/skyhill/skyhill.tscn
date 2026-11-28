@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://game/skyhill/overlook.tscn" id="overlook"]
 [ext_resource type="Script" path="res://game/movement_thumbstick.gd" id="walk_stick"]
 [ext_resource type="PackedScene" path="res://game/skyhill/glider_view.tscn" id="glider"]
+[ext_resource type="PackedScene" path="res://game/skyhill/flight_atmosphere.tscn" id="atmosphere"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/tree_pineDefaultA.glb" id="pine"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/rock_smallB.glb" id="rock"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/fence_simple.glb" id="fence"]
@@ -842,6 +843,11 @@ position = Vector3(0, 23.17, 15.5)
 
 [node name="Glider" parent="." instance=ExtResource("glider")]
 position = Vector3(0, 24, 12)
+
+[node name="Atmosphere" parent="." node_paths=PackedStringArray("windsocks", "left_tip", "right_tip") instance=ExtResource("atmosphere")]
+windsocks = NodePath("../Scenery/RouteWindsocks")
+left_tip = NodePath("../Glider/LeftWingtip")
+right_tip = NodePath("../Glider/RightWingtip")
 
 [node name="GroundShadow" type="MeshInstance3D" parent="." node_paths=PackedStringArray("subject")]
 visible = false

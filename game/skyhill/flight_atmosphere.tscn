@@ -1,0 +1,74 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/skyhill/flight_atmosphere.gd" id="script"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/valley-bird.glb" id="bird"]
+
+[sub_resource type="StandardMaterial3D" id="Trail"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="Curve3D" id="BluffBird"]
+_data = {
+"points": PackedVector3Array(0, -2.1217, -3.4478, 0, 2.1217, 3.4478, -16, 34, -16, 3.5632, 0, -2.438, -3.5632, 0, 2.438, -21.565, 38, -6.8076, 5.0391, 2.1217, 0, -5.0391, -2.1217, 0, -35, 34, -3, 3.5632, 0, 2.438, -3.5632, 0, -2.438, -48.435, 30, -6.8076, 0, -2.1217, 3.4478, 0, 2.1217, -3.4478, -54, 34, -16, -3.5632, 0, 2.438, 3.5632, 0, -2.438, -48.435, 38, -25.1924, -5.0391, 2.1217, 0, 5.0391, -2.1217, 0, -35, 34, -29, -3.5632, 0, -2.438, 3.5632, 0, 2.438, -21.565, 30, -25.1924, 0, -2.1217, -3.4478, 0, 2.1217, 3.4478, -16, 34, -16),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 9
+
+[sub_resource type="Curve3D" id="RidgeBird"]
+_data = {
+"points": PackedVector3Array(0, -3.713, -5.5695, 0, 3.713, 5.5695, 105, 47, -76, 5.0635, 0, -3.9383, -5.0635, 0, 3.9383, 97.0919, 54, -61.1508, 7.1608, 3.713, 0, -7.1608, -3.713, 0, 78, 47, -55, 5.0635, 0, 3.9383, -5.0635, 0, -3.9383, 58.9081, 40, -61.1508, 0, -3.713, 5.5695, 0, 3.713, -5.5695, 51, 47, -76, -5.0635, 0, 3.9383, 5.0635, 0, -3.9383, 58.9081, 54, -90.8492, -7.1608, 3.713, 0, 7.1608, -3.713, 0, 78, 47, -97, -5.0635, 0, -3.9383, 5.0635, 0, 3.9383, 97.0919, 40, -90.8492, 0, -3.713, -5.5695, 0, 3.713, 5.5695, 105, 47, -76),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 9
+
+[sub_resource type="Curve3D" id="WestBird"]
+_data = {
+"points": PackedVector3Array(0, -3.1826, -6.1, 0, 3.1826, 6.1, -37, 53, -106, 5.6261, 0, -4.3133, -5.6261, 0, 4.3133, -45.7868, 59, -89.7365, 7.9565, 3.1826, 0, -7.9565, -3.1826, 0, -67, 53, -83, 5.6261, 0, 4.3133, -5.6261, 0, -4.3133, -88.2132, 47, -89.7365, 0, -3.1826, 6.1, 0, 3.1826, -6.1, -97, 53, -106, -5.6261, 0, 4.3133, 5.6261, 0, -4.3133, -88.2132, 59, -122.2635, -7.9565, 3.1826, 0, 7.9565, -3.1826, 0, -67, 53, -129, -5.6261, 0, -4.3133, 5.6261, 0, 4.3133, -45.7868, 47, -122.2635, 0, -3.1826, -6.1, 0, 3.1826, 6.1, -37, 53, -106),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 9
+
+[node name="Atmosphere" type="Node3D"]
+script = ExtResource("script")
+
+[node name="Wind" type="AudioStreamPlayer" parent="."]
+volume_db = -33.0
+
+[node name="Cue" type="AudioStreamPlayer" parent="."]
+volume_db = -15.0
+
+[node name="WingtipTrails" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+material_override = SubResource("Trail")
+
+[node name="BluffBird" type="Path3D" parent="."]
+curve = SubResource("BluffBird")
+metadata/speed = 5.5
+metadata/phase = 0.00
+
+[node name="Follow" type="PathFollow3D" parent="BluffBird"]
+
+[node name="Bird" parent="BluffBird/Follow" instance=ExtResource("bird")]
+scale = Vector3(1, 1, 1)
+
+[node name="RidgeBird" type="Path3D" parent="."]
+curve = SubResource("RidgeBird")
+metadata/speed = 7.5
+metadata/phase = 2.60
+
+[node name="Follow" type="PathFollow3D" parent="RidgeBird"]
+
+[node name="Bird" parent="RidgeBird/Follow" instance=ExtResource("bird")]
+scale = Vector3(1.06, 1.06, 1.06)
+
+[node name="WestBird" type="Path3D" parent="."]
+curve = SubResource("WestBird")
+metadata/speed = 7
+metadata/phase = 4.40
+
+[node name="Follow" type="PathFollow3D" parent="WestBird"]
+
+[node name="Bird" parent="WestBird/Follow" instance=ExtResource("bird")]
+scale = Vector3(1.03, 1.03, 1.03)

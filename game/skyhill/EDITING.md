@@ -15,6 +15,10 @@ Open game/skyhill/skyhill.tscn in Godot and run the current scene (F6) for a sta
 - Open `overlook.tscn` to edit the bench, picnic table, on-foot arrival spot, and glider interaction marker. Move the entire PicnicTable or Bench node to carry its art, collider and seat markers together. A seat marker sits on the cushion or plank and its +Z faces the seated avatar’s forward direction. Its Approach marker stays on the deck, clear of furniture collision. Keep the walkway collider and edge guards aligned with the deck. On-foot colliders are on a separate physics layer from the flight course.
 - Walk with WASD, arrow keys or the touch stick after arriving from Town. Press E or tap Sit beside either side of the picnic table or in front of the bench. Stand up returns you to the same spot you walked up from. Launch is available only beside the glider. Ride back up after landing, or recover from a crash, to return to the overlook on foot. Use Back to Town (button or R) there. The small `town_link.gd` module passes the avatar and return intent without changing saves or requiring a new network zone.
 
+- Edit the three bird loops under Atmosphere in `flight_atmosphere.tscn`. The GLB comes from `art/build_valley_bird.py` in Blender and keeps its wing hinges separate; the birds are decorative and have no collision. Keep the paths above the terrain and clear of the meadow landing lane. The two glider wingtip markers in `glider_view.tscn` place the brief trails. The windsock shader animates its fabric only. Wind and flight cues are generated locally and go silent on pause or return.
+
+Atmosphere check: `godot --headless --path . --script res://game/skyhill/test_skyhill_atmosphere.gd`.
+
 Automated check:
 
     godot --headless --path . --script res://game/skyhill/test_skyhill_flight.gd
