@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://game/skyhill/skyhill.gd" id="logic"]
+[ext_resource type="Script" path="res://game/skyhill/ground_shadow.gd" id="ground_shadow"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/hang-glider.glb" id="glider"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/tree_pineDefaultA.glb" id="pine"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/rock_smallB.glb" id="rock"]
@@ -734,6 +735,11 @@ position = Vector3(0, 1.82, 1.6)
 position = Vector3(0, -0.27, -0.20)
 rotation_degrees = Vector3(-60, 180, 0)
 scale = Vector3(0.92, 0.92, 0.92)
+
+[node name="GroundShadow" type="MeshInstance3D" parent="." node_paths=PackedStringArray("subject")]
+visible = false
+script = ExtResource("ground_shadow")
+subject = NodePath("../Glider")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 position = Vector3(0, 28.4, 23.3)

@@ -7,6 +7,8 @@ Open game/skyhill/skyhill.tscn in Godot and run the current scene (F6). This pro
 - Scenery uses instanced GLB assets (original Skyhill terrain, deck, waterfall, and flight markers, plus the selected Kenney props). Select each instance or its parent in Godot to move it. The valley terrain asset imports its own triangle collision from the same geometry, so the rolling shoulders stay solid when moved. The gray cliffs and mossy scenic ridge also import collision with their meshes. Move individual cliff sections or the group root. The landing surface and deck keep separate simple collision shapes; preserve their fit when swapping art. Move Creek, Woodland, and BanksAndWildflowers independently in the scene. Original models can also be opened in Blender or rebuilt with `python game/skyhill/art/build_skyhill_art.py`.
 - The lift sound is an original, local cue. Visible ribbons and the climb carry the mechanic with sound off. Positional waterfall ambience is deferred until browser and device testing.
 - Each route windsock instances `windsock.tscn`. Move the whole instance so its solid post and cap follow the visual; the fabric has no collision.
+- The soft glider shadow samples the existing terrain layer underneath, not the windsock layer. It is a visual cue only and uses a flat transparent mesh for the browser renderer.
+- Switching browser tabs or unfocusing the game pauses a flight, a landing, or a crash. Use Resume or E after returning, then press or touch the controls again. For browser QA, switch away mid-turn with a control held and verify that the glider stays put and the old input does not carry over. Reload the scene once and repeat.
 
 Automated check:
 

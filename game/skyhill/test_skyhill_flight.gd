@@ -155,6 +155,79 @@ func check_camera(level: Node3D) -> void:
 	check(not level.camera.is_position_behind(level.flight.position), "The closer flight camera should still see the rider")
 	level._on_deck()
 
+func check_focus_suspension(level: Node3D) -> void:
+	level._launch()
+	keyboard_event(KEY_W, true)
+	level._physics_process(FRAME)
+	check(level.flight.pitch < 0.0, "Fresh pitch key must affect flight")
+	level._notification(NOTIFICATION_APPLICATION_FOCUS_OUT)
+	var before: Vector3 = level.flight.position
+	level._physics_process(2.0)
+	level._action()
+	check(level._paused and level.flight.position == before, "Hidden flight must freeze and reject resume")
+	level._notification(NOTIFICATION_APPLICATION_FOCUS_IN)
+	level._physics_process(2.0)
+	check(level._paused and level.flight.position == before, "Returning focus must not auto-resume")
+	level._action()
+	var echo_event := InputEventKey.new()
+	echo_event.physical_keycode = KEY_W
+	echo_event.pressed = true
+	echo_event.echo = true
+	level._input(echo_event)
+	var pitch: float = level.flight.pitch
+	level._physics_process(FRAME)
+	check(not level._paused and absf(level.flight.pitch) < absf(pitch), "Held or echoed input must not control resumed flight")
+	keyboard_event(KEY_W, false)
+	keyboard_event(KEY_W, true)
+	pitch = level.flight.pitch
+	level._physics_process(FRAME)
+	check(level.flight.pitch < pitch, "A new press after resume must work")
+	keyboard_event(KEY_W, false)
+	level._action()
+	for state in [level.State.LANDING, level.State.CRASHED]:
+		level._launch()
+		if state == level.State.LANDING:
+			level._land(level.meadow.global_position)
+		else:
+			level._crash(level.flight.position, "Test crash")
+		level._tab_hidden = true
+		level._update_suspension()
+		var elapsed: float = level.flight.runout_elapsed if state == level.State.LANDING else level._crash_elapsed
+		level._physics_process(3.0)
+		check(level.state == state and elapsed == (level.flight.runout_elapsed if state == level.State.LANDING else level._crash_elapsed), "Hidden landing and crash timers must not advance")
+		level._tab_hidden = false
+		level._update_suspension()
+		level._action()
+		level._physics_process(3.0)
+		check(level.state == (level.State.MEADOW if state == level.State.LANDING else level.State.DECK), "Resuming must finish the landing or crash")
+		level._on_deck()
+
+
+func check_ground_shadow(level: Node3D) -> void:
+	var shadow := level.get_node("GroundShadow") as MeshInstance3D
+	var space := level.get_world_3d().direct_space_state
+	var material := shadow.material_override as ShaderMaterial
+	check(not shadow.visible, "Shadow should start hidden on the deck")
+	var meadow: Vector3 = level.meadow.global_position
+	shadow.project_at(space, meadow + Vector3.UP * 26.0)
+	var high_opacity: float = material.get_shader_parameter("opacity")
+	shadow.project_at(space, meadow + Vector3.UP * 2.0)
+	var low_opacity: float = material.get_shader_parameter("opacity")
+	check(shadow.visible and shadow.global_position.is_equal_approx(meadow + Vector3.UP * 0.035), "Shadow should sit just above the meadow beneath the glider")
+	check(low_opacity > high_opacity and high_opacity > 0.0, "Shadow should strengthen near the ground")
+	var slope_start := Vector3(75, 21, -130)
+	var slope := space.intersect_ray(PhysicsRayQueryParameters3D.create(slope_start, slope_start + Vector3.DOWN * 36, level.COURSE_MASK))
+	shadow.project_at(space, slope_start)
+	check(not slope.is_empty() and shadow.visible and shadow.global_basis.y.normalized().is_equal_approx(slope.normal.normalized()), "Shadow should follow the actual sloped terrain")
+	var pole := level.get_node("Scenery/RouteWindsocks/Windsock1") as Node3D
+	var over_pole := pole.global_position + Vector3.UP * 9
+	var pole_hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(over_pole, over_pole + Vector3.DOWN * 36, level.POLE_MASK))
+	shadow.project_at(space, over_pole)
+	check(not pole_hit.is_empty() and shadow.visible and shadow.global_position.y < pole_hit.position.y - 2, "Shadow must go past the windsock pole to the ground")
+	shadow.project_at(space, Vector3(500, 25, 500))
+	check(not shadow.visible, "Don't draw a shadow when there is no ground")
+	level._on_deck()
+
 func _run() -> void:
 	var level := SKYHILL.instantiate()
 	root.add_child(level)
@@ -180,7 +253,9 @@ func _run() -> void:
 	var launch: Vector3 = level.launch.global_position
 	check(level.flight.position.is_equal_approx(launch), "Authored launch placement was ignored")
 	check_pitch_controls(level)
+	check_focus_suspension(level)
 	check_camera(level)
+	check_ground_shadow(level)
 	check_windsocks(level)
 	if not wall.is_empty():
 		check_crashes(level, wall.position)
