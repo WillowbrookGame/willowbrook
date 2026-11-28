@@ -4,7 +4,7 @@ const ROUTE_NAMES := ["Meadow rings", "Ridge rings"]
 const NOTES := [523.25,587.33,659.25,698.46,783.99,880.0,987.77,1046.50]
 const BULLSEYE_RADIUS := 4.0
 const GREAT_RADIUS := 9.0
-@onready var routes := [$MeadowTrail.get_children(), $RidgeTrail.get_children()]
+var routes: Array[Array] = []
 var next := [0,0]
 var _original_materials: Array[Material] = []
 var _passed_material := StandardMaterial3D.new()
@@ -15,9 +15,14 @@ var landing_text := ""
 func _ready() -> void:
 	_passed_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_passed_material.albedo_color = Color("#547a88")
-	for rings: Array in routes:
-		var first: MeshInstance3D = rings[0]
-		_original_materials.append(first.material_override)
+	for route: Node3D in [$MeadowTrail,$RidgeTrail]:
+		var rings: Array[MeshInstance3D] = []
+		for child in route.get_children():
+			if child is MeshInstance3D:
+				rings.append(child)
+		routes.append(rings)
+		var original: Material = rings[0].material_override if not rings.is_empty() else null
+		_original_materials.append(original)
 	if DisplayServer.get_name() != "headless":
 		for frequency in NOTES:
 			_tones.append(_make_note(float(frequency)))
@@ -47,7 +52,7 @@ func step_segment(from: Vector3, to: Vector3) -> bool:
 		while next[i] < routes[i].size():
 			var ring: MeshInstance3D = routes[i][next[i]]
 			var hit := segment_hit(ring.to_local(from),ring.to_local(to))
-			if hit < low_t:
+			if hit <= low_t:
 				break
 			low_t = hit
 			if next[i] < _tones.size():

@@ -49,6 +49,19 @@ func _run() -> void:
 	level._launch()
 	level._crash(center,"Crash test")
 	check(goals.landing_text.is_empty() and not level.goal_status.visible,"A crash cannot be graded as a landing")
+	level._launch()
+	for route in goals.routes:
+		var first: Node3D = route[0]
+		level._track_goals(first.to_global(Vector3(0,1,0)), first.to_global(Vector3(0,-1,0)))
+	check(goals.next == [1,1], "Either trail can be started independently")
+	for size in [Vector2i(360,640),Vector2i(640,360)]:
+		root.size = size
+		await process_frame
+		await process_frame
+		level._update_route_guide()
+		var status_rect: Rect2 = level.goal_status.get_global_rect()
+		check(root.get_visible_rect().encloses(status_rect) and not status_rect.intersects(level.prompt.get_global_rect()) and not status_rect.intersects(level.guide.get_global_rect()), "Two-route progress fits above the guide at %s" % size)
+	level._on_deck()
 	# Two simultaneous game scenes use the same assets but cannot complete one another's goals.
 	var second := SCENE.instantiate()
 	root.add_child(second)
