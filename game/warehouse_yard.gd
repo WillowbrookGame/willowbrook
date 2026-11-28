@@ -3,21 +3,6 @@ extends Node3D
 ## pieces that physically occupy the yard, not signs, paint, or the roof.
 
 const WORLD_BOUNDS := Vector2(24.2, 20.9)
-const SOUTH_LOBBY := Vector3(-1.65, 0.04, 7.05)
-const TOWN_EXIT := Vector3(-1.65, 0, 9.95)
-
-# Placement shared by the local and authoritative matches. Keep slot order stable.
-const SPAWNS := [Vector3(-1.65,0.04,7.05), Vector3(-17.6,0.08,4.4), Vector3(13.8,0.08,5.2), Vector3(2.3,0.08,-8.0)]
-const PATROL := [Vector3(-11.1,0,-8.1),Vector3(-18.6,0,3.7),Vector3(-10.5,0,8.3),Vector3(5.6,0,8.0),Vector3(10.1,0,5.7),Vector3(19.2,0,5.0),Vector3(10.0,0,-6.0),Vector3(4.2,0,-8.0),Vector3(-8.9,0,-9.3)]
-# Solo-only patrol points include the stair approaches and upper catwalk landings.
-const SOLO_PATROL := [
-	Vector3(-11.1,0,-8.1), Vector3(-18.6,0,3.7), Vector3(-10.5,0,8.3),
-	Vector3(5.6,0,8.0), Vector3(10.1,0,5.7), Vector3(19.2,0,5.0),
-	Vector3(10.0,0,-6.0), Vector3(4.2,0,-8.0), Vector3(-8.9,0,-9.3),
-	Vector3(1.1,0,-3.2), Vector3(6.8,4.5,-3.2),
-	Vector3(-1.1,0,3.2), Vector3(-6.8,4.5,3.2),
-]
-
 const COLLISION_PREFIXES := [
 	"Container_", "Forklift_", "Catwalk_", "RollUpDoor_", "SideDoor_",
 	"Spawn_Blue_", "Spawn_Red_",
@@ -27,9 +12,25 @@ const COLLISION_NAMES := [
 	"Crane_Gantry", "Drums", "Pallet_Stacks", "Cones",
 ]
 
+# Marker positions are converted to the arena parent's coordinate space.
+@onready var south_lobby := _arena_position($GameplayMarkers/SouthLobby)
+@onready var town_exit := _arena_position($GameplayMarkers/TownExit)
+@onready var match_spawns := _arena_positions($GameplayMarkers/MatchSpawns)
+@onready var bot_waypoints := _arena_positions($GameplayMarkers/BotWaypoints)
+
 @onready var warehouse_roof := find_child("Warehouse_Roof", true, false) as Node3D
 var roof_meshes: Array[GeometryInstance3D] = []
 var roof_cutaway := false
+
+func _arena_position(marker: Node3D) -> Vector3:
+	return transform * to_local(marker.global_position)
+
+func _arena_positions(group: Node3D) -> Array[Vector3]:
+	var positions: Array[Vector3] = []
+	for child: Node in group.get_children():
+		if child is Marker3D:
+			positions.append(_arena_position(child))
+	return positions
 
 func _ready() -> void:
 	if warehouse_roof is GeometryInstance3D:

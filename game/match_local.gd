@@ -22,6 +22,7 @@ const COLORS := [Color("#4ce9fc"), Color("#ff7886"), Color("#9cff6b"), Color("#f
 var rules := RULES.new()
 var player: CharacterBody3D
 var fx: Node3D
+var yard: YARD
 var profile: RefCounted
 var bots: Array[Dictionary] = []
 var roster: Dictionary = {}
@@ -42,9 +43,10 @@ var last_start_beat := 0
 var awarded_stars := 0
 var rng := RandomNumberGenerator.new()
 
-func setup(body: CharacterBody3D, paint: Node3D, canvas: CanvasLayer, user_profile: RefCounted = null) -> void:
+func setup(body: CharacterBody3D, paint: Node3D, canvas: CanvasLayer, authored_yard: YARD, user_profile: RefCounted = null) -> void:
 	player = body
 	fx = paint
+	yard = authored_yard
 	profile = user_profile
 	rng.randomize()
 	rules.setup(NAMES, SOLO_ROUND_LENGTH, SOLO_TARGET_POINTS)
@@ -154,7 +156,7 @@ func _reset_field() -> void:
 		for index in range(1,NAMES.size()):
 			var avatar_id := picks[index - 1] if index - 1 < picks.size() else AVATARS.DEFAULT
 			_create_bot(index, avatar_id)
-	player.position = YARD.SPAWNS[0]
+	player.position = yard.match_spawns[0]
 	player.velocity = Vector3.ZERO
 	tagged_until.clear()
 	last_countdown_sec = -1
@@ -164,16 +166,16 @@ func _reset_field() -> void:
 	for index in range(bots.size()):
 		var bot := bots[index]
 		var body: CharacterBody3D = bot.body
-		body.position = YARD.SPAWNS[index+1]
+		body.position = yard.match_spawns[index+1]
 		body.velocity = Vector3.ZERO
 		bot.reload = 1.5 + index * 0.4
 		bot.target = null
 		bot.aim_left = 0.0
 		bot.flee_delay = 0.0
 		bot.flee_from = Vector3.ZERO
-		bot.route = (index * 3) % YARD.SOLO_PATROL.size()
+		bot.route = (index * 3) % yard.bot_waypoints.size()
 		bot.stuck = 0.0
-		var facing: Vector3 = YARD.SOLO_PATROL[bot.route] - body.position
+		var facing: Vector3 = yard.bot_waypoints[bot.route] - body.position
 		body.rotation.y = atan2(-facing.x,-facing.z)
 		bot.animation.play("idle")
 		bot.animation.advance(0.0)
@@ -266,14 +268,14 @@ func _update_bot(bot: Dictionary, delta: float) -> void:
 		bot.flee_delay = maxf(0.0, float(bot.flee_delay) - delta)
 		if float(bot.flee_delay) <= 0.0:
 			_flee_waypoint(bot, bot.flee_from)
-	var goal: Vector3 = YARD.SOLO_PATROL[bot.route]
+	var goal: Vector3 = yard.bot_waypoints[bot.route]
 	var move := goal - body.position
 	move.y = 0.0
 	if move.length_squared() < 0.9 or bot.stuck > 0.65:
-		bot.route = (int(bot.route) + rng.randi_range(1,3)) % YARD.SOLO_PATROL.size()
+		bot.route = (int(bot.route) + rng.randi_range(1,3)) % yard.bot_waypoints.size()
 		bot.stuck = 0.0
 		bot.strafe_dir = -float(bot.strafe_dir)
-		goal = YARD.SOLO_PATROL[bot.route]
+		goal = yard.bot_waypoints[bot.route]
 		move = Vector3(goal.x-body.position.x,0,goal.z-body.position.z)
 	bot.reload -= delta
 	if bot.reload <= 0.0 and not is_instance_valid(bot.target):
@@ -365,8 +367,8 @@ func _flee_waypoint(bot: Dictionary, away_from: Vector3) -> void:
 	var body: CharacterBody3D = bot.body
 	var best_idx: int = bot.route
 	var best_dist := -1.0
-	for i in YARD.SOLO_PATROL.size():
-		var waypoint: Vector3 = YARD.SOLO_PATROL[i]
+	for i in yard.bot_waypoints.size():
+		var waypoint: Vector3 = yard.bot_waypoints[i]
 		var dist := waypoint.distance_squared_to(away_from)
 		if dist > best_dist and waypoint.distance_squared_to(body.position) > 9.0:
 			best_dist = dist

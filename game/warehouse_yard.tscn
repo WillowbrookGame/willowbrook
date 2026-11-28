@@ -28,4 +28,67 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.1, 1, 24.5)
 [node name="Forklift_C" parent="WarehouseModel/Yard_Crane_Props/Props" index="5"]
 transform = Transform3D(-0.9659257, 0, 0.2588191, 0, 1, 0, -0.2588191, 0, -0.9659257, 14.7, 1, 27.5)
 
+[node name="GameplayMarkers" type="Node3D" parent="."]
+
+[node name="SouthLobby" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-1.65, 0.04, 7.05)
+
+[node name="TownExit" type="Marker3D" parent="GameplayMarkers"]
+position = Vector3(-1.65, 0, 9.95)
+
+[node name="MatchSpawns" type="Node3D" parent="GameplayMarkers"]
+
+[node name="Slot01" type="Marker3D" parent="GameplayMarkers/MatchSpawns"]
+position = Vector3(-1.65, 0.04, 7.05)
+
+[node name="Slot02" type="Marker3D" parent="GameplayMarkers/MatchSpawns"]
+position = Vector3(-17.6, 0.08, 4.4)
+
+[node name="Slot03" type="Marker3D" parent="GameplayMarkers/MatchSpawns"]
+position = Vector3(13.8, 0.08, 5.2)
+
+[node name="Slot04" type="Marker3D" parent="GameplayMarkers/MatchSpawns"]
+position = Vector3(2.3, 0.08, -8)
+
+[node name="BotWaypoints" type="Node3D" parent="GameplayMarkers"]
+
+[node name="Waypoint01" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(-11.1, 0, -8.1)
+
+[node name="Waypoint02" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(-18.6, 0, 3.7)
+
+[node name="Waypoint03" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(-10.5, 0, 8.3)
+
+[node name="Waypoint04" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(5.6, 0, 8)
+
+[node name="Waypoint05" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(10.1, 0, 5.7)
+
+[node name="Waypoint06" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(19.2, 0, 5)
+
+[node name="Waypoint07" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(10, 0, -6)
+
+[node name="Waypoint08" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(4.2, 0, -8)
+
+[node name="Waypoint09" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(-8.9, 0, -9.3)
+
+[node name="Waypoint10" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(1.1, 0, -3.2)
+
+[node name="Waypoint11" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(6.8, 4.5, -3.2)
+
+[node name="Waypoint12" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(-1.1, 0, 3.2)
+
+[node name="Waypoint13" type="Marker3D" parent="GameplayMarkers/BotWaypoints"]
+position = Vector3(-6.8, 4.5, 3.2)
+
 [editable path="WarehouseModel"]
