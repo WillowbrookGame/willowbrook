@@ -38,10 +38,21 @@ func _run() -> void:
 	check(level.flight.position.is_equal_approx(launch), "Authored launch placement was ignored")
 
 	level._action()
+	var coast_frames := 0
+	var touchdown := Vector3.ZERO
+	var previous_speed := INF
 	for _i in 780:
-		if level.state != level.State.FLYING:
+		if level.state != level.State.FLYING and level.state != level.State.LANDING:
 			break
 		level.step_flight(FRAME, 0.0)
+		if level.state == level.State.LANDING:
+			if coast_frames == 0:
+				touchdown = level.flight.position
+				check(level.flight.speed > 8.0 and level.flight.speed < level.FLIGHT.SPEED - 3.0, "Approach should slow before touchdown without stopping")
+			coast_frames += 1
+			check(level.flight.speed <= previous_speed, "Landing runout must keep slowing down")
+			previous_speed = level.flight.speed
+	check(coast_frames > 45 and touchdown.distance_to(level.flight.position) > 5.0 and level.flight.speed == 0.0, "Landing should coast visibly before stopping")
 	check(level.state == level.State.MEADOW, "Hands-free route should land automatically")
 	var direct_z: float = level.flight.position.z
 	check(level.in_meadow(level.flight.position), "Direct route touched down outside the meadow")
@@ -54,7 +65,7 @@ func _run() -> void:
 	var crossed_ridge := false
 	var ridge_height := 0.0
 	for _i in 960:
-		if level.state != level.State.FLYING:
+		if level.state != level.State.FLYING and level.state != level.State.LANDING:
 			break
 		var p: Vector3 = level.flight.position
 		var aim_x := 25.0
@@ -76,12 +87,30 @@ func _run() -> void:
 	level.step_flight(FRAME, 1.0)
 	check_facing(level)
 	check(level.flight.heading < 0 and level.flight.bank < 0, "Right steering must turn and visibly bank right")
+	check(absf(level.flight.heading) < level.FLIGHT.TURN_RATE * FRAME * 0.2, "Steering should not jump to full rate on the first frame")
+	for _i in 18:
+		level.step_flight(FRAME, 1.0)
+	var prior_heading: float = level.flight.heading
+	level.step_flight(FRAME, 0.0)
+	check(level.flight.heading < prior_heading, "Releasing steering should ease out, not snap")
+	for _i in 42:
+		level.step_flight(FRAME, 0.0)
+	check(absf(level.flight.steering) < 0.03 and absf(level.flight.bank) < 0.03, "Released steering should settle quickly")
 	level._action()
 	check(level.state == level.State.DECK and level.flight.position == launch, "Return should work mid-air")
 	level._action()
 	level.flight.position = Vector3(106, 18, -25)
 	level.step_flight(FRAME, 0)
 	check(level.state == level.State.DECK, "Out-of-bounds glider was not recovered")
+
+	level._launch()
+	var near_edge: Vector3 = level.meadow.to_global(Vector3(0.0, level.GROUND_CLEARANCE, -level.landing_bounds.size.z * 0.5 + 2.0))
+	level._land(near_edge)
+	for _i in 90:
+		level.step_flight(FRAME, 1.0)
+	check(level.state == level.State.MEADOW and level.in_meadow(level.flight.position), "Short landing must stop inside the meadow")
+	check(absf(level.flight.position.distance_to(near_edge) - 1.5) < 0.02, "Runout must shorten at the edge without turning")
+	level._action()
 
 	for view in [Vector2i(360, 640), Vector2i(640, 360), Vector2i(1280, 720)]:
 		root.size = view
@@ -100,6 +129,6 @@ func _run() -> void:
 		check(level.touch_index == -1 and level.touch_steer == 0, "Touch release did not clear steering")
 		level._on_deck()
 	if failures == 0:
-		print("PASS Skyhill: default and waterfall routes, auto-land, relaunch, return, bounds and responsive touch")
+		print("PASS Skyhill: gentle steering, default and waterfall routes, landing runout, relaunch, return, bounds and responsive touch")
 	level.free()
 	quit(0 if failures == 0 else 1)

@@ -3,7 +3,7 @@ extends Node3D
 
 const FLIGHT := preload("res://game/skyhill/flight_model.gd")
 const AVATARS := preload("res://game/avatars/catalog.gd")
-enum State { DECK, FLYING, MEADOW }
+enum State { DECK, FLYING, LANDING, MEADOW }
 const GROUND_CLEARANCE := 0.85
 
 @onready var launch: Marker3D = $Course/Launch
@@ -80,7 +80,7 @@ func _clear_stick() -> void:
 func _action() -> void:
 	match state:
 		State.DECK: _launch()
-		State.FLYING, State.MEADOW: _on_deck()
+		State.FLYING, State.LANDING, State.MEADOW: _on_deck()
 
 func _on_deck() -> void:
 	state = State.DECK
@@ -95,11 +95,26 @@ func _launch() -> void:
 	_set_hud("Follow the windsocks to the meadow, or catch the rising wind.", "Return to deck (E)")
 
 func _land(where: Vector3) -> void:
-	state = State.MEADOW
-	flight.position = Vector3(where.x, meadow.global_position.y + GROUND_CLEARANCE, where.z)
-	flight.bank = 0.0
+	state = State.LANDING
+	var touchdown := Vector3(where.x, meadow.global_position.y + GROUND_CLEARANCE, where.z)
+	var direction := Vector3.FORWARD.rotated(Vector3.UP, flight.heading)
+	var distance := flight.speed * FLIGHT.RUNOUT_TIME * 0.5
+	# Leave room at the edge even when landing diagonally across the meadow.
+	var local := meadow.to_local(touchdown)
+	var local_direction := meadow.to_local(touchdown + direction) - local
+	for axis in [Vector3.AXIS_X, Vector3.AXIS_Z]:
+		var component: float = local_direction[axis]
+		if absf(component) > 0.0001:
+			var edge: float = signf(component) * landing_bounds.size[axis] * 0.5
+			distance = minf(distance, maxf(0.0, (edge - local[axis]) / component - 0.5))
+	if distance > 0.0:
+		var obstacle := get_world_3d().direct_space_state.intersect_ray(
+			PhysicsRayQueryParameters3D.create(touchdown, touchdown + direction * distance, 1))
+		if not obstacle.is_empty():
+			distance = maxf(0.0, touchdown.distance_to(obstacle.position) - 0.5)
+	flight.begin_runout(touchdown, distance)
 	_glider_pose()
-	_set_hud("Nice landing! Ready for another flight?", "Ride back up (E)")
+	_set_hud("Touching down...", "Return to deck (E)")
 
 func _set_hud(label_text: String, button_text: String) -> void:
 	_clear_stick()
@@ -120,23 +135,34 @@ func in_meadow(point: Vector3) -> bool:
 	return absf(local.x) <= landing_bounds.size.x * 0.5 and absf(local.z) <= landing_bounds.size.z * 0.5
 
 func _physics_process(delta: float) -> void:
-	if state != State.FLYING:
+	if state != State.FLYING and state != State.LANDING:
 		return
 	var keys := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
 	step_flight(delta, touch_steer if touch_index >= 0 else keys)
 
 func step_flight(delta: float, steer: float) -> void:
+	if state == State.LANDING:
+		var stopped: bool = flight.advance_runout(delta)
+		_glider_pose()
+		if stopped:
+			state = State.MEADOW
+			_set_hud("Nice landing! Ready for another flight?", "Ride back up (E)")
+		return
 	if state != State.FLYING:
 		return
 	var prev := flight.position
 	var wind := lift_at(prev)
-	var next := flight.advance(delta, steer, wind)
+	var floor_y := meadow.global_position.y + GROUND_CLEARANCE
+	var height := prev.y - floor_y if in_meadow(prev) else INF
+	var next := flight.advance(delta, steer, wind, height)
 	if wind > 0.10 and not _was_in_lift:
 		_cue.play()
 	_was_in_lift = wind > 0.10
-	if next.y <= meadow.global_position.y + GROUND_CLEARANCE and in_meadow(next):
-		_land(next)
-		return
+	if prev.y > floor_y and next.y <= floor_y:
+		var touchdown := prev.lerp(next, (prev.y - floor_y) / (prev.y - next.y))
+		if in_meadow(touchdown):
+			_land(touchdown)
+			return
 	var terrain := get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(prev, next, 1))
 	if not terrain.is_empty() or next.y < meadow.global_position.y - 1.5 or absf(next.x) > 105.0 or next.z < -195.0 or next.z > 65.0:
 		_on_deck()
