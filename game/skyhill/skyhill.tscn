@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://game/skyhill/ground_shadow.gd" id="ground_shadow"]
 [ext_resource type="PackedScene" path="res://game/skyhill/overlook.tscn" id="overlook"]
 [ext_resource type="Script" path="res://game/movement_thumbstick.gd" id="walk_stick"]
-[ext_resource type="PackedScene" path="res://game/skyhill/art/hang-glider.glb" id="glider"]
+[ext_resource type="PackedScene" path="res://game/skyhill/glider_view.tscn" id="glider"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/tree_pineDefaultA.glb" id="pine"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/rock_smallB.glb" id="rock"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/fence_simple.glb" id="fence"]
@@ -725,21 +725,8 @@ scale = Vector3(4.1, 4.1, 4.1)
 [node name="Overlook" parent="Scenery" instance=ExtResource("overlook")]
 position = Vector3(0, 23.17, 15.5)
 
-[node name="Glider" type="Node3D" parent="."]
+[node name="Glider" parent="." instance=ExtResource("glider")]
 position = Vector3(0, 24, 12)
-
-[node name="Sail" parent="Glider" instance=ExtResource("glider")]
-position = Vector3(0, -0.73, 0)
-rotation_degrees = Vector3(0, 180, 0)
-scale = Vector3(0.76, 0.76, 0.76)
-
-[node name="Nose" type="Marker3D" parent="Glider/Sail"]
-position = Vector3(0, 1.82, 1.6)
-
-[node name="RiderAnchor" type="Marker3D" parent="Glider"]
-position = Vector3(0, -0.27, -0.20)
-rotation_degrees = Vector3(-60, 180, 0)
-scale = Vector3(0.92, 0.92, 0.92)
 
 [node name="GroundShadow" type="MeshInstance3D" parent="." node_paths=PackedStringArray("subject")]
 visible = false

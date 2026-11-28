@@ -952,7 +952,7 @@ func _build_menu(hud: CanvasLayer) -> void:
 	_star_badge.text = "Stars: %s" % _stars
 	hud.add_child(_star_badge)
 	_star_badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT,Control.PRESET_MODE_MINSIZE)
-	_star_badge.offset_left = -140.0 if zone == "reef" else -440.0
+	_star_badge.offset_left = -140.0 if zone in ["reef",SKYHILL.ZONE] else -440.0
 	_star_badge.offset_right = -14.0
 	_star_badge.offset_top = 48.0
 	_star_badge.offset_bottom = 72.0
@@ -999,7 +999,7 @@ func _build_menu(hud: CanvasLayer) -> void:
 	_panel.hide()
 	_create_gate(hud)
 	_sync_gate()
-	if _network_zone(zone) and zone != "reef":
+	if _network_zone(zone) and zone not in ["reef",SKYHILL.ZONE]:
 		_hunt_view = HUNT.new()
 		_bound.add_child(_hunt_view)
 		_hunt_view.setup(self,_bound,_player,hud,zone)
@@ -1051,6 +1051,14 @@ func _bind_family_chat(window: JavaScriptObject) -> void:
 	_sync_family_chat()
 
 
+func set_skyhill_controls_available(host: Node3D, available: bool) -> void:
+	if _bound != host or zone != SKYHILL.ZONE:
+		return
+	super.set_skyhill_controls_available(host, available)
+	if _family_chat != null:
+		_family_chat.setOccluded(not available)
+
+
 func set_zone_book_open(host: Node3D, open: bool) -> void:
 	if _bound != host or zone != "reef":
 		return
@@ -1062,7 +1070,7 @@ func set_zone_book_open(host: Node3D, open: bool) -> void:
 
 
 func suspend_zone() -> void:
-	if zone == "reef" and _family_chat != null:
+	if zone in ["reef",SKYHILL.ZONE] and _family_chat != null:
 		_family_chat.setOccluded(false)
 	super.suspend_zone()
 

@@ -1,5 +1,5 @@
 # Skyhill Park: first flight
-Open game/skyhill/skyhill.tscn in Godot and run the current scene (F6) for a standalone flight with the default avatar. Run the project (F5), then visit the trailhead east of Town's playground for the solo round trip with the current player's avatar. Multiplayer flight is not part of this pass.
+Open game/skyhill/skyhill.tscn in Godot and run the current scene (F6) for a standalone flight with the default avatar. Run the project (F5), then visit the trailhead east of Town's playground for the round trip with the current player's avatar. Signed-in browser players and native LAN peers can see one another on the overlook and in flight. Standalone F6 stays offline. Edit `glider_view.tscn` to change the glider and rider placement for both local and remote views.
 
 - Press E or choose Launch. The glider moves forward on its own. A/D or Left/Right bank it; W or Up lowers the nose to descend, and S or Down raises it to climb. On touch, drag the same stick left/right to bank, up to descend, or down to climb. Keep straight for the easy approach, or steer right toward the Waterfall lift marker and blue wind ribbons. Climbing with the controls is limited; the waterfall still lifts you higher.
 - A level meadow landing eases into its approach and coasts to a stop. Holding a steep dive or hard bank into touchdown, or hitting solid terrain, causes a brief tumble and sends you back to the deck without a penalty. Ease off the controls before touchdown. Press E or choose the on-screen button to return early. Leaving the course without hitting anything still returns you directly.
@@ -17,3 +17,4 @@ Automated check:
 
     godot --headless --path . --script res://game/skyhill/test_skyhill_flight.gd
     godot --headless --path . --script res://game/skyhill/test_town_round_trip.gd
+    godot --headless --path . --script res://game/skyhill/test_skyhill_presence.gd

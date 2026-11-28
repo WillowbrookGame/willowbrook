@@ -5,6 +5,7 @@ signal roster_changed
 signal status_changed(message: String)
 const SCOOTER_RIDER = preload("res://game/vehicles/scooter_rider.gd")
 const AVATAR_CATALOG = preload("res://game/avatars/catalog.gd")
+const SKYHILL := preload("res://game/skyhill/presence.gd")
 const DIVER_VIEW := preload("res://game/scuba/diver_presentation.gd")
 const HOCKEY = preload("res://game/network/hockey_match.gd")
 const PORT := 24861
@@ -68,6 +69,11 @@ func bind_zone(zone_id: String, host: Node3D, player: CharacterBody3D, hud: Canv
 func set_zone_book_open(host: Node3D, open: bool) -> void:
 	if _bound == host and is_instance_valid(_zone_menu_button):
 		_zone_menu_button.visible = not open
+
+
+func set_skyhill_controls_available(host: Node3D, available: bool) -> void:
+	if zone == SKYHILL.ZONE and _bound == host and is_instance_valid(_zone_menu_button):
+		_zone_menu_button.visible = available
 
 
 func suspend_zone_for(host: Node3D) -> void:
@@ -206,7 +212,7 @@ func _valid_zone(candidate: String) -> bool:
 
 
 func _network_zone(candidate: String) -> bool:
-	return candidate in ["town","beach","arcade","bank","vet","salon","store","cafe","library","reef"]
+	return candidate in ["town","beach","arcade","bank","vet","salon","store","cafe","library","reef",SKYHILL.ZONE]
 
 
 func _new_entry(alias: String) -> Dictionary:
@@ -280,15 +286,17 @@ func _join_reply(accepted: bool, assigned_name: String) -> void:
 
 
 @rpc("any_peer", "call_remote", "unreliable_ordered", 1)
-func _pose(candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: bool) -> void:
+func _pose(candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: bool, details: Dictionary = {}) -> void:
 	if hosting:
-		_apply_pose(multiplayer.get_remote_sender_id(), candidate, pos, yaw, moving, grounded)
+		_apply_pose(multiplayer.get_remote_sender_id(), candidate, pos, yaw, moving, grounded, details)
 
 
-func _apply_pose(id: int, candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: bool) -> void:
+func _apply_pose(id: int, candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: bool, details: Dictionary = {}) -> void:
 	if not _entries.has(id) or (not candidate.is_empty() and not _network_zone(candidate)) or not pos.is_finite() or not is_finite(yaw):
 		return
-	if absf(pos.x) > 240 or absf(pos.z) > 240 or pos.y < (-22.0 if candidate == "reef" else -10.0) or pos.y > 25:
+	var min_y := SKYHILL.MIN_Y if candidate == SKYHILL.ZONE else (-22.0 if candidate == "reef" else -10.0)
+	var max_y := SKYHILL.MAX_Y if candidate == SKYHILL.ZONE else 25.0
+	if absf(pos.x) > 240 or absf(pos.z) > 240 or pos.y < min_y or pos.y > max_y:
 		return
 	var now := Time.get_ticks_msec()
 	var row: Dictionary = _entries[id]
@@ -297,6 +305,13 @@ func _apply_pose(id: int, candidate: String, pos: Vector3, yaw: float, moving: b
 	if row.zone == "arcade" and candidate != "arcade":
 		hockey.leave(id)
 	row.merge({"zone":candidate,"position":pos,"yaw":wrapf(yaw,-PI,PI),"moving":moving,"grounded":grounded,"seen":now,"pose_at":now}, true)
+	row.erase("skyhill")
+	if candidate == SKYHILL.ZONE:
+		row.skyhill = {"character":AVATAR_CATALOG.sanitize(details.get("character"))}
+		if SKYHILL.valid_glide(details.get("glide")):
+			row.skyhill.glide = details.glide
+		elif grounded and not moving and details.get("rest") == "sit" and SKYHILL.allows_seat(pos):
+			row.skyhill.rest = "sit"
 
 
 @rpc("authority", "call_remote", "unreliable_ordered", 1)
@@ -335,6 +350,7 @@ func _share(now: int) -> void:
 		match String(row.zone):
 			"beach": place = "At the beach"
 			"reef": place = "At the reef"
+			SKYHILL.ZONE: place = "At Skyhill Park"
 			"arcade": place = "At the arcade"
 			"town": pass
 			"": place = "In another activity"
@@ -347,7 +363,10 @@ func _share(now: int) -> void:
 			for id: int in _entries.keys():
 				var row: Dictionary = _entries[id]
 				if viewer != id and row.zone == viewer_zone:
-					visible.append({"id":id,"alias":row.alias,"zone":row.zone,"position":row.position,"yaw":row.yaw,"moving":row.moving,"grounded":row.grounded})
+					var pose := {"id":id,"alias":row.alias,"zone":row.zone,"position":row.position,"yaw":row.yaw,"moving":row.moving,"grounded":row.grounded}
+					if row.has("skyhill"):
+						pose.merge(row.skyhill)
+					visible.append(pose)
 		if hockey.side(viewer) >= 0:
 			if viewer == 1:
 				_set_hockey(hockey.state(viewer,_entries))
@@ -375,20 +394,17 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	if _elapsed >= PERIOD:
 		_elapsed = fmod(_elapsed, PERIOD)
-		if admitted and is_instance_valid(_player) and _network_zone(zone):
-			var p := _player.global_position
-			var motion := _presence_motion()
-			var y := motion.x
-			var walk := motion.y > .0225
+		if admitted and is_instance_valid(_player) and _player.is_inside_tree() and _network_zone(zone):
+			var sample := _presence_sample()
 			if hosting:
-				_apply_pose(1, zone, p, y, walk, _player.is_on_floor())
+				_apply_pose(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded, sample)
 			else:
-				_pose.rpc_id(1, zone, p, y, walk, _player.is_on_floor())
-		elif admitted and not _network_zone(zone):
+				_pose.rpc_id(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded, sample if zone == SKYHILL.ZONE else {})
+		elif admitted:
 			if hosting:
 				_apply_pose(1,"",Vector3.ZERO,0.0,false,true)
 			else:
-				_pose.rpc_id(1,"",Vector3.ZERO,0.0,false,true)
+				_pose.rpc_id(1,"",Vector3.ZERO,0.0,false,true,{})
 		if hosting:
 			_share(now)
 	_draw_ghosts(delta)
@@ -396,6 +412,13 @@ func _process(delta: float) -> void:
 
 const PET_CATALOG = preload("res://game/pets/catalog.gd")
 const PET_ACTORS = preload("res://game/pets/actors.gd")
+
+func _presence_sample() -> Dictionary:
+	if zone == SKYHILL.ZONE and is_instance_valid(_bound) and _bound.has_method("network_skyhill_pose"):
+		return _bound.network_skyhill_pose()
+	var motion := _presence_motion()
+	return {"position":_player.global_position,"yaw":motion.x,"moving":motion.y > .0225,"grounded":_player.is_on_floor()}
+
 
 func _presence_motion() -> Vector2:
 	if zone == "reef" and is_instance_valid(_bound) and _bound.has_method("network_presence_motion"):
@@ -421,23 +444,23 @@ func _draw_ghosts(delta: float) -> void:
 			_ghost_root.add_child(root)
 			root.global_position = row.position
 			root.rotation.y = row.yaw
-			var model := AVATAR_CATALOG.instantiate(character)
-			root.add_child(model)
-			model.rotation.y = PI
-			model.scale = Vector3.ONE * (2.9 if zone == "beach" else 2.5)
-			var label := Label3D.new()
-			label.text = row.alias
-			label.position.y = 2.12
-			label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-			label.pixel_size = 0.0065
-			label.modulate = Color("#fff9c9")
-			root.add_child(label)
-			var animation := AVATAR_CATALOG.animator(model)
-			if zone == "reef":
-				model.rotation.y = 0.0 # Reef yaw already describes the +Z-facing avatar.
-				animation = DIVER_VIEW.fit(model)
-			_ghosts[id] = {"node":root,"model":model,"animation":animation,"character":character,"companion":null,"kind":""}
+			if zone == SKYHILL.ZONE:
+				var sky_label := _make_visitor_label(root, row.alias)
+				_ghosts[id] = {"node":root,"character":character,"skyhill":SKYHILL.make_view(root, character, sky_label)}
+			else:
+				_make_land_or_reef_visitor(root, row, id, character)
 		var ghost: Node3D = _ghosts[id].node
+		if zone == SKYHILL.ZONE:
+			var sky_view: Dictionary = _ghosts[id].skyhill
+			var flying := SKYHILL.valid_glide(row.get("glide"))
+			var sitting: bool = row.get("rest") == "sit"
+			var snap: bool = sky_view.flying != flying or sky_view.get("sitting",false) != sitting or ghost.global_position.distance_to(row.position) > 8.0
+			var weight := 1.0 if snap else 1.0 - exp(-18.0 * delta)
+			ghost.global_position = ghost.global_position.lerp(row.position, weight)
+			ghost.rotation.y = lerp_angle(ghost.rotation.y, row.yaw, weight)
+			sky_view.sitting = sitting
+			SKYHILL.update_view(sky_view, row, delta, snap)
+			continue
 		if ghost.global_position.distance_to(row.position) > 8.0:
 			ghost.global_position = row.position
 		else:
@@ -486,6 +509,30 @@ func _draw_ghosts(delta: float) -> void:
 				var footprint := ghost.global_position
 				footprint.y = SCOOTER_RIDER.BODY_WORLD_Y+SCOOTER_RIDER.STAND.y
 				SCOOTER_RIDER.present(model,footprint+Vector3(0,0,SCOOTER_RIDER.STAND.z).rotated(Vector3.UP,ghost.rotation.y))
+
+
+func _make_visitor_label(root: Node3D, alias: String) -> Label3D:
+	var label := Label3D.new()
+	label.text = alias
+	label.position.y = 2.12
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.pixel_size = 0.0065
+	label.modulate = Color("#fff9c9")
+	root.add_child(label)
+	return label
+
+
+func _make_land_or_reef_visitor(root: Node3D, row: Dictionary, id: int, character: String) -> void:
+	var model := AVATAR_CATALOG.instantiate(character)
+	root.add_child(model)
+	model.rotation.y = PI
+	model.scale = Vector3.ONE * (2.9 if zone == "beach" else 2.5)
+	_make_visitor_label(root, row.alias)
+	var animation := AVATAR_CATALOG.animator(model)
+	if zone == "reef":
+		model.rotation.y = 0.0 # Reef yaw already describes the +Z-facing avatar.
+		animation = DIVER_VIEW.fit(model)
+	_ghosts[id] = {"node":root,"model":model,"animation":animation,"character":character,"companion":null,"kind":""}
 
 
 func _set_status(message: String) -> void:

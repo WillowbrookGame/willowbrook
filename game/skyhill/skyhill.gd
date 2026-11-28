@@ -3,6 +3,7 @@ extends Node3D
 
 const FLIGHT := preload("res://game/skyhill/flight_model.gd")
 const AVATARS := preload("res://game/avatars/catalog.gd")
+const PRESENCE := preload("res://game/skyhill/presence.gd")
 const TOWN_LINK := preload("res://game/skyhill/town_link.gd")
 enum State { DECK, FLYING, LANDING, MEADOW, CRASHED }
 const GROUND_CLEARANCE := 0.85
@@ -46,6 +47,9 @@ var _was_in_lift := false
 var _cue: AudioStreamPlayer
 var _elapsed := 0.0
 var _town_visit := false
+var _presence: Node
+var _avatar_id := ""
+var _network_modal := false
 var _returning_to_town := false
 var _crash_elapsed := 0.0
 var _crash_rotation := Vector3.ZERO
@@ -66,6 +70,7 @@ var _visibility_callback: JavaScriptObject
 func _ready() -> void:
 	var avatar := TOWN_LINK.take_arrival(get_tree())
 	_town_visit = not avatar.is_empty()
+	_avatar_id = avatar
 	var rider := AVATARS.instantiate(avatar)
 	$Glider/RiderAnchor.add_child(rider)
 	if _town_visit:
@@ -81,6 +86,12 @@ func _ready() -> void:
 	_pole_query.shape = _pole_wing
 	_pole_query.collision_mask = POLE_MASK
 	_on_deck()
+	if _town_visit:
+		_presence = get_node_or_null("/root/WillowbrookBrowserSession" if OS.has_feature("web") else "/root/WillowbrookSession")
+		if is_instance_valid(_presence):
+			_presence.bind_zone(PRESENCE.ZONE, self, walker, hud)
+			# Keep guidance below the multiplayer, wallet, and family-chat controls.
+			$HUD/Top.offset_top = 120.0
 
 	if OS.has_feature("web"):
 		_document = JavaScriptBridge.get_interface("document")
@@ -90,10 +101,31 @@ func _ready() -> void:
 			_visibility_changed([])
 
 func _exit_tree() -> void:
+	if is_instance_valid(_presence):
+		_presence.suspend_zone_for(self)
 	if _document != null and _visibility_callback != null:
 		_document.removeEventListener("visibilitychange", _visibility_callback)
 	_visibility_callback = null
 	_document = null
+
+func network_skyhill_pose() -> Dictionary:
+	if state == State.DECK:
+		var seated: bool = walker.is_seated()
+		var motion := walker.get_real_velocity()
+		return {"position":walker.global_position,"yaw":walker.body.global_rotation.y,
+			"moving":not seated and not _network_modal and not _app_unfocused and not _tab_hidden and Vector2(motion.x,motion.z).length_squared() > .0225,
+			"grounded":seated or walker.is_on_floor(),"rest":"sit" if seated else "","character":_avatar_id}
+	return {"position":glider.global_position,"yaw":glider.rotation.y,
+		"moving":not _paused and not _network_modal and state in [State.FLYING,State.LANDING],
+		"grounded":state != State.FLYING,"glide":[glider.rotation.x,glider.rotation.z],"character":_avatar_id}
+
+func can_open_network_menu() -> bool:
+	return _walking_deck() and not _returning_to_town and not _network_modal and not _tab_hidden and not _app_unfocused
+
+func set_zone_modal(value: bool) -> void:
+	_network_modal = value
+	_flight_keys.clear()
+	_clear_stick()
 
 func _visibility_changed(_arguments: Array) -> void:
 	_tab_hidden = bool(_document.hidden)
@@ -137,6 +169,8 @@ func _update_suspension() -> void:
 	town_return.disabled = unavailable
 
 func _input(event: InputEvent) -> void:
+	if _network_modal:
+		return
 	if event is InputEventKey and event.physical_keycode in FLIGHT_KEYS:
 		if not event.pressed:
 			_flight_keys.erase(event.physical_keycode)
@@ -225,6 +259,8 @@ func _clear_stick() -> void:
 		knob.position = _knob_center()
 
 func _action() -> void:
+	if _network_modal:
+		return
 	if _app_unfocused or _tab_hidden:
 		return
 	if _paused:
@@ -244,6 +280,8 @@ func _action() -> void:
 		State.FLYING, State.LANDING, State.MEADOW, State.CRASHED: _on_deck()
 
 func _return_to_town() -> void:
+	if _network_modal:
+		return
 	if not _town_visit or _returning_to_town or _paused or _tab_hidden or _app_unfocused:
 		return
 	if state != State.DECK:
@@ -323,6 +361,8 @@ func _step_crash(delta: float) -> void:
 	glider.rotation = _crash_rotation + Vector3(-0.28 * tip + wobble, 0.0, _crash_side * (1.0 * tip + wobble))
 
 func _set_hud(label_text: String, button_text: String) -> void:
+	if is_instance_valid(_presence):
+		_presence.set_skyhill_controls_available(self, state == State.DECK)
 	$GroundShadow.set_active(state != State.DECK)
 	_flight_keys.clear()
 	_clear_stick()
@@ -347,6 +387,8 @@ func in_meadow(point: Vector3) -> bool:
 	return absf(local.x) <= landing_bounds.size.x * 0.5 and absf(local.z) <= landing_bounds.size.z * 0.5
 
 func _physics_process(delta: float) -> void:
+	if _network_modal:
+		return
 	if _paused or _app_unfocused or _tab_hidden:
 		return
 	var keys := float(_flight_keys.has(KEY_D) or _flight_keys.has(KEY_RIGHT)) - float(_flight_keys.has(KEY_A) or _flight_keys.has(KEY_LEFT))

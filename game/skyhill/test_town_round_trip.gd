@@ -79,7 +79,7 @@ func _run() -> void:
 		quit(1)
 		return
 	check(park.get_node("Glider/RiderAnchor").get_child(0).get_meta("avatar_id") == "female-a", "Skyhill did not receive the selected avatar")
-	check(native.zone.is_empty() and not has_meta(LINK.ARRIVAL), "Solo Skyhill must suspend Town presence and consume arrival data")
+	check(native.zone == "skyhill" and not has_meta(LINK.ARRIVAL), "Skyhill must replace Town presence and consume arrival data")
 	check(park.town_return.visible and park.get_node("Scenery/Overlook/PicnicTable/Art").scene_file_path.ends_with(".gltf"), "Town entry should offer return and show the editable picnic scenery")
 	check(park.walker.get_node("Body").get_child(0).get_meta("avatar_id") == "female-a", "Walking should use the same selected avatar")
 	check(park.walker.visible and not park.get_node("Glider/RiderAnchor").visible and not park.action.visible, "Town entry should start on foot, away from the mount")

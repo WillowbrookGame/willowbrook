@@ -3,7 +3,8 @@ extends RefCounted
 ## Validate backend packets once, before they reach account views or the arcade relay.
 const MAX_PACKET_BYTES := 1048576
 const REEF_PHOTO_IDS := ["clownfish","bluetang","butterflyfish","coralgrouper","parrotfish","tuna","shark","sunfish"]
-const ZONES := ["town","beach","arcade","bank","vet","salon","store","cafe","library","reef","private"]
+const SKYHILL := preload("res://game/skyhill/presence.gd")
+const ZONES := ["town","beach","arcade","bank","vet","salon","store","cafe","library","reef",SKYHILL.ZONE,"private"]
 
 
 static func parse(packet: PackedByteArray) -> Dictionary:
@@ -46,7 +47,12 @@ static func _alias_row(v: Variant) -> bool:
 
 
 static func _pose(v: Variant) -> bool:
-	return v is Dictionary and v.get("zone") in ZONES and _whole(v.get("id"),1,2147483647) and _text(v.get("alias"),32) and _num(v.get("x"),-240,240) and _num(v.get("y"),-22 if v.get("zone") == "reef" else -10,25) and _num(v.get("z"),-240,240) and _num(v.get("yaw"),-7,7) and v.get("grounded") is bool and (not v.has("character") or _text(v.character,16)) and v.get("moving") is bool and v.get("rest","") in ["","sit"] and (not v.has("vehicleSeat") or _vehicle_seat(v.vehicleSeat))
+	if not v is Dictionary or v.get("zone") not in ZONES:
+		return false
+	var skyhill: bool = v.zone == SKYHILL.ZONE
+	if v.has("glide") and (not skyhill or v.get("rest","") != "" or not SKYHILL.valid_glide(v.glide)):
+		return false
+	return _whole(v.get("id"),1,2147483647) and _text(v.get("alias"),32) and _num(v.get("x"),-240,240) and _num(v.get("y"),SKYHILL.MIN_Y if skyhill else (-22 if v.zone == "reef" else -10),SKYHILL.MAX_Y if skyhill else 25) and _num(v.get("z"),-240,240) and _num(v.get("yaw"),-7,7) and v.get("grounded") is bool and (not v.has("character") or _text(v.character,16)) and v.get("moving") is bool and v.get("rest","") in ["","sit"] and (not v.has("vehicleSeat") or _vehicle_seat(v.vehicleSeat))
 
 
 static func _marker(v: Variant) -> bool:

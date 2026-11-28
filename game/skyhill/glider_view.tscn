@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/skyhill/art/hang-glider.glb" id="glider"]
+
+[node name="Glider" type="Node3D"]
+
+[node name="Sail" parent="." instance=ExtResource("glider")]
+position = Vector3(0, -0.73, 0)
+rotation_degrees = Vector3(0, 180, 0)
+scale = Vector3(0.76, 0.76, 0.76)
+
+[node name="Nose" type="Marker3D" parent="Sail"]
+position = Vector3(0, 1.82, 1.6)
+
+[node name="RiderAnchor" type="Marker3D" parent="."]
+position = Vector3(0, -0.27, -0.20)
+rotation_degrees = Vector3(-60, 180, 0)
+scale = Vector3(0.92, 0.92, 0.92)
