@@ -31,6 +31,20 @@
 [ext_resource type="PackedScene" path="res://game/skyhill/art/stylized-cliffs/dr-special/Cliff_L_Rock_RockGrass_B.gltf" id="ridgeB"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/stylized-cliffs/dr-special/Cliff_L_Rock_RockGrass_C.gltf" id="ridgeC"]
 
+[ext_resource type="PackedScene" path="res://game/skyhill/east_basin.tscn" id="east_basin"]
+[ext_resource type="Script" path="res://game/skyhill/wind_field.gd" id="wind"]
+
+[sub_resource type="BoxShape3D" id="FlightBounds"]
+size = Vector3(323, 1, 280)
+
+[sub_resource type="CylinderShape3D" id="WestLift"]
+height = 74.0
+radius = 36.0
+
+[sub_resource type="CylinderShape3D" id="RidgeLift"]
+height = 86.0
+radius = 47.0
+
 [sub_resource type="BoxShape3D" id="Landing"]
 size = Vector3(92, 2, 105)
 
@@ -102,8 +116,11 @@ monitorable = false
 [node name="LandingBounds" type="CollisionShape3D" parent="Course/MeadowCenter/LandingArea"]
 shape = SubResource("Landing")
 
-[node name="WaterfallLift" type="Marker3D" parent="Course"]
+[node name="WaterfallLift" type="Marker3D" parent="Course" node_paths=PackedStringArray("ribbons")]
 position = Vector3(23, 15, -33)
+script = ExtResource("wind")
+caption = "Waterfall lift"
+ribbons = NodePath("../../Scenery/UpdraftRibbons")
 
 [node name="LiftArea" type="Area3D" parent="Course/WaterfallLift"]
 collision_layer = 0
@@ -114,7 +131,99 @@ monitorable = false
 [node name="LiftBounds" type="CollisionShape3D" parent="Course/WaterfallLift/LiftArea"]
 shape = SubResource("Lift")
 
+[node name="RidgeLift" type="Marker3D" parent="Course" node_paths=PackedStringArray("ribbons")]
+position = Vector3(109, 34, -96)
+script = ExtResource("wind")
+caption = "East ridge lift"
+top_taper = 10.0
+ribbons = NodePath("../../Scenery/EastBasin/RidgeRibbons")
+
+[node name="LiftArea" type="Area3D" parent="Course/RidgeLift"]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+
+[node name="LiftBounds" type="CollisionShape3D" parent="Course/RidgeLift/LiftArea"]
+shape = SubResource("RidgeLift")
+
+[node name="WestLift" type="Marker3D" parent="Course" node_paths=PackedStringArray("ribbons")]
+position = Vector3(-66, 28, -112)
+script = ExtResource("wind")
+caption = "West ridge lift"
+top_taper = 10.0
+ribbons = NodePath("../../Scenery/WestRibbons")
+
+[node name="LiftArea" type="Area3D" parent="Course/WestLift"]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+
+[node name="LiftBounds" type="CollisionShape3D" parent="Course/WestLift/LiftArea"]
+shape = SubResource("WestLift")
+
+[node name="FlightBounds" type="Area3D" parent="Course"]
+position = Vector3(56.5, 0, -75)
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+
+[node name="HorizontalBounds" type="CollisionShape3D" parent="Course/FlightBounds"]
+shape = SubResource("FlightBounds")
+
 [node name="Scenery" type="Node3D" parent="."]
+
+[node name="EastBasin" parent="Scenery" instance=ExtResource("east_basin")]
+
+[node name="WestRibbons" type="Node3D" parent="Scenery"]
+position = Vector3(-66, 28, -112)
+
+[node name="WestCurl1" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-12, -13, 10)
+rotation_degrees = Vector3(0, 0, 0)
+scale = Vector3(1.45, 1.45, 1.45)
+
+[node name="WestCurl2" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(4, -8, 12)
+rotation_degrees = Vector3(0, 36, 0)
+scale = Vector3(1.45, 1.45, 1.45)
+
+[node name="WestCurl3" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(14, -3, 2)
+rotation_degrees = Vector3(0, 72, 0)
+scale = Vector3(1.45, 1.45, 1.45)
+
+[node name="WestCurl4" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(10, 3, -11)
+rotation_degrees = Vector3(0, 108, 0)
+scale = Vector3(1.45, 1.45, 1.45)
+
+[node name="WestCurl5" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-6, 8, -11)
+rotation_degrees = Vector3(0, 144, 0)
+scale = Vector3(1.45, 1.45, 1.45)
+
+[node name="WestCurl6" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-14, 13, -1)
+rotation_degrees = Vector3(0, 180, 0)
+scale = Vector3(1.45, 1.45, 1.45)
+
+[node name="WestCurl7" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-6, 18, 10)
+rotation_degrees = Vector3(0, 216, 0)
+scale = Vector3(1.45, 1.45, 1.45)
+
+[node name="WestCurl8" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(7, 22, 8)
+rotation_degrees = Vector3(0, 252, 0)
+scale = Vector3(1.45, 1.45, 1.45)
+
+[node name="WestCurl9" parent="Scenery/WestRibbons" instance=ExtResource("ribbon")]
+position = Vector3(12, 27, -4)
+rotation_degrees = Vector3(0, 288, 0)
+scale = Vector3(1.45, 1.45, 1.45)
 
 [node name="ValleyFloor" parent="Scenery" instance=ExtResource("valley")]
 position = Vector3(0, -3.5, -63)
@@ -737,7 +846,7 @@ subject = NodePath("../Glider")
 position = Vector3(0, 28.4, 23.3)
 current = true
 fov = 66.0
-far = 265.0
+far = 330.0
 
 [node name="HUD" type="CanvasLayer" parent="."]
 

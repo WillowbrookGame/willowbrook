@@ -137,12 +137,12 @@ if(process.argv[2]!=='--relocated-fixture'){
   b.send(reefPose(-16,5));
   await a.take(m=>m.type==='world'&&m.zone==='reef'&&m.players.some(p=>p.id===b.welcome.id&&p.x===5));
   console.log('PASS two browser protocol peers: deep Reef poses, roster, Beach/Town isolation, and re-entry');
-  const flight={...move('skyhill',23,-33),y:35.2,yaw:-.5,moving:true,grounded:false,glide:[.23,-.37]};
+  const flight={...move('skyhill',23,-33),y:74.2,yaw:-.5,moving:true,grounded:false,glide:[.23,-.37]};
   const deck={...move('skyhill',-.5,16),y:23.64,rest:'sit'};
   a.send(deck);b.send(flight);
-  await a.take(m=>m.type==='world'&&m.zone==='skyhill'&&m.players.some(p=>p.id===b.welcome.id&&p.y===35.2&&p.glide?.[1]===-.37));
+  await a.take(m=>m.type==='world'&&m.zone==='skyhill'&&m.players.some(p=>p.id===b.welcome.id&&p.y===74.2&&p.glide?.[1]===-.37));
   await b.take(m=>m.type==='world'&&m.zone==='skyhill'&&m.players.some(p=>p.id===a.welcome.id&&p.rest==='sit')&&m.presence.some(p=>p.place==='At Skyhill Park'));
-  b.send({...flight,x:24,y:43});
+  b.send({...flight,x:24,y:89});
   await a.take(m=>m.type==='world'&&m.zone==='skyhill'&&m.players.some(p=>p.id===b.welcome.id&&p.x===23));
   b.send({...deck,x:-1,z:-130});
   await a.take(m=>m.type==='world'&&m.zone==='skyhill'&&m.players.some(p=>p.id===b.welcome.id&&p.x===-1&&p.rest===''&&!p.glide));

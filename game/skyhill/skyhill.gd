@@ -1,6 +1,7 @@
 extends Node3D
 ## Standalone first-flight prototype. Open skyhill.tscn and run current scene.
 
+const WIND := preload("res://game/skyhill/wind_field.gd")
 const FLIGHT := preload("res://game/skyhill/flight_model.gd")
 const AVATARS := preload("res://game/avatars/catalog.gd")
 const PRESENCE := preload("res://game/skyhill/presence.gd")
@@ -21,8 +22,11 @@ const ROUTE_HINT := "\nGlide straight to land, or head right for waterfall lift.
 @onready var launch: Marker3D = $Course/Launch
 @onready var meadow: Marker3D = $Course/MeadowCenter
 @onready var landing_bounds: BoxShape3D = $Course/MeadowCenter/LandingArea/LandingBounds.shape
-@onready var lift_zone: Marker3D = $Course/WaterfallLift
-@onready var lift_bounds: CylinderShape3D = $Course/WaterfallLift/LiftArea/LiftBounds.shape
+@onready var lift_zone: WIND = $Course/WaterfallLift
+@onready var ridge_lift: WIND = $Course/RidgeLift
+@onready var west_lift: WIND = $Course/WestLift
+@onready var _wind_fields: Array[WIND] = [lift_zone, ridge_lift, west_lift]
+@onready var flight_boundary: CollisionShape3D = $Course/FlightBounds/HorizontalBounds
 @onready var glider: Node3D = $Glider
 @onready var camera: Camera3D = $Camera3D
 @onready var hud: CanvasLayer = $HUD
@@ -43,7 +47,8 @@ var touch_steer := 0.0
 var touch_pitch := 0.0
 var _walk_touch := Vector2.ZERO
 var _touch_seen := false
-var _was_in_lift := false
+var _active_lift: WIND
+var _last_lift: WIND
 var _cue: AudioStreamPlayer
 var _elapsed := 0.0
 var _town_visit := false
@@ -293,6 +298,7 @@ func _return_to_town() -> void:
 		push_error("Couldn't return to Town: %s" % error_string(result))
 
 func _on_deck() -> void:
+	_last_lift = null
 	state = State.DECK
 	flight.reset(launch.global_position, launch.global_rotation.y)
 	walker.set_walking(_town_visit)
@@ -305,6 +311,7 @@ func _on_deck() -> void:
 
 func _launch() -> void:
 	state = State.FLYING
+	_last_lift = null
 	walker.set_walking(false)
 	$Glider/RiderAnchor.show()
 	flight.reset(launch.global_position, launch.global_rotation.y)
@@ -366,7 +373,7 @@ func _set_hud(label_text: String, button_text: String) -> void:
 	$GroundShadow.set_active(state != State.DECK)
 	_flight_keys.clear()
 	_clear_stick()
-	_was_in_lift = false
+	_active_lift = null
 	prompt.text = label_text
 	action.text = button_text
 	action.show()
@@ -376,11 +383,15 @@ func _set_hud(label_text: String, button_text: String) -> void:
 	stick.visible = _touch_seen and state == State.FLYING
 
 func lift_at(point: Vector3) -> float:
-	var local := lift_zone.to_local(point)
-	if absf(local.y) > lift_bounds.height * 0.5:
-		return 0.0
-	var distance := Vector2(local.x, local.z).length() / lift_bounds.radius
-	return 1.0 - smoothstep(0.65, 1.0, distance)
+	var strength := 0.0
+	for field in _wind_fields:
+		strength = maxf(strength, field.weight_at(point))
+	return strength
+
+func _inside_flight_boundary(point: Vector3) -> bool:
+	var local := flight_boundary.to_local(point)
+	var extent := (flight_boundary.shape as BoxShape3D).size * 0.5
+	return absf(local.x) <= extent.x and absf(local.z) <= extent.z and point.y < PRESENCE.MAX_Y - 1.0
 
 func in_meadow(point: Vector3) -> bool:
 	var local := meadow.to_local(point)
@@ -420,14 +431,27 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 	var prev_pitch: float = flight.pitch
 	var prev_bank: float = flight.bank
 	var prev_heading: float = flight.heading
-	var wind := lift_at(prev)
+	var wind := 0.0
+	var strongest: WIND
+	for field in _wind_fields:
+		var strength := field.weight_at(prev)
+		if strength > wind:
+			wind = strength
+			strongest = field
 	var floor_y := meadow.global_position.y + GROUND_CLEARANCE
 	var height := prev.y - floor_y if in_meadow(prev) else INF
 	var climb_room := 1.0 - smoothstep(launch.global_position.y, launch.global_position.y + CLIMB_ABOVE_LAUNCH, prev.y)
 	var next := flight.advance(delta, steer, wind, height, pitch_input, climb_room)
-	if wind > 0.10 and not _was_in_lift:
+	# Hysteresis keeps the audible cue from repeating as a pilot grazes the edge.
+	var rising: WIND = strongest if wind > (0.06 if strongest == _active_lift else 0.14) else null
+	if rising != _active_lift and rising != null:
 		_cue.play()
-	_was_in_lift = wind > 0.10
+	_active_lift = rising
+	if wind > 0.45 and strongest != _last_lift:
+		_last_lift = strongest
+		var next_lift := _next_wind_field()
+		var hint := TOUCH_HINT if _touch_seen else KEY_HINT
+		prompt.text = hint + "\nNext: %s. Follow the windsocks to land anytime." % next_lift.caption
 	var space := get_world_3d().direct_space_state
 	var terrain := space.intersect_ray(PhysicsRayQueryParameters3D.create(prev, next, COURSE_MASK | POLE_MASK))
 	var pole_fraction := _pole_wing_contact(space, prev, next, Vector3(prev_pitch, prev_heading, prev_bank))
@@ -452,7 +476,7 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 		var message := "Windsock hit! Give the poles a little room." if terrain.collider.collision_layer == POLE_MASK else "Bump! Keep clear of the cliffs and land in the meadow."
 		_crash(terrain.position + (prev - next).normalized() * 0.35, message, terrain.normal)
 		return
-	if next.y < meadow.global_position.y - 1.5 or absf(next.x) > 105.0 or next.z < -195.0 or next.z > 65.0:
+	if next.y < meadow.global_position.y - 1.5 or not _inside_flight_boundary(next):
 		_on_deck()
 		prompt.text = "Back at the deck. Follow the windsocks for an easy flight."
 		return
@@ -478,23 +502,25 @@ func _process(delta: float) -> void:
 	if _paused or _app_unfocused or _tab_hidden:
 		return
 	_elapsed += delta
-	var ribbons := $Scenery/UpdraftRibbons
-	ribbons.position = lift_zone.position
-	for marker: Node3D in ribbons.get_children():
-		var initial: float = float(marker.get_meta("base_y", marker.position.y))
-		marker.set_meta("base_y", initial)
-		marker.position.y = initial + sin(_elapsed * 2.2 + initial * 0.3) * 0.65
+	for field in _wind_fields:
+		field.animate_ribbons(_elapsed)
 	$Scenery/Waterfall/Foam.position.y = -7.35 + sin(_elapsed * 3.0) * 0.06
 	_camera_pose(1.0 - exp(-5.0 * delta))
 	_update_route_guide()
 
+func _next_wind_field() -> WIND:
+	var index := _wind_fields.find(_last_lift)
+	return _wind_fields[(index + 1) % _wind_fields.size()]
+
 # Anchor to the course marker, not to fixed screen pixels. Keep the guide clear
-# of the instructions and controls even if the waterfall is outside the view.
+# of the instructions and controls even if the target lift is outside the view.
 func _update_route_guide() -> void:
 	if _walking_deck():
 		guide.hide()
 		return
-	var marker := lift_zone.global_position + Vector3.UP * 7.0
+	var target := _active_lift if _active_lift != null else _next_wind_field()
+	var marker := target.global_position + Vector3.UP * 7.0
+	var lift_label := target.caption
 	var ahead := (marker - flight.position).dot(Vector3.FORWARD.rotated(Vector3.UP, flight.heading))
 	var rising := state == State.FLYING and flight.lift > 0.10
 	guide.visible = (state == State.DECK or state == State.FLYING) and (rising or (ahead > 1.0 and not camera.is_position_behind(marker)))
@@ -504,11 +530,11 @@ func _update_route_guide() -> void:
 	var projected := camera.unproject_position(marker) if not rising else Vector2(screen.x * 0.5, 104.0)
 	var outer := 14.0
 	var width := guide.custom_minimum_size.x
-	var caption := "Rising air!" if rising else "Waterfall lift"
+	var caption := "Rising air!" if rising else lift_label
 	if not rising and projected.x + width * 0.5 > screen.x - outer:
-		caption = "Waterfall lift >"
+		caption = lift_label + " >"
 	elif not rising and projected.x - width * 0.5 < outer:
-		caption = "< Waterfall lift"
+		caption = "< " + lift_label
 	if guide_label.text != caption:
 		guide_label.text = caption
 	var guide_size := guide.get_combined_minimum_size()

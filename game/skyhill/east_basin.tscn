@@ -1,0 +1,114 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/skyhill/art/tree_pineDefaultA.glb" id="pine"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/stylized-cliffs/avramania/mdvl_nature_cliff_01.glb" id="cliff1"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/stylized-cliffs/avramania/mdvl_nature_cliff_02.glb" id="cliff2"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/curling-wind-ribbon.glb" id="ribbon"]
+
+[node name="EastBasin" type="Node3D"]
+
+[node name="PineGroves" type="Node3D" parent="."]
+
+[node name="PineNorth1" parent="PineGroves" instance=ExtResource("pine")]
+position = Vector3(160, -0.03, -132)
+scale = Vector3(3.0, 3.0, 3.0)
+
+[node name="PineNorth2" parent="PineGroves" instance=ExtResource("pine")]
+position = Vector3(169, 0.88, -138)
+scale = Vector3(4.2, 4.2, 4.2)
+
+[node name="PineNorth3" parent="PineGroves" instance=ExtResource("pine")]
+position = Vector3(175, 2.10, -128)
+scale = Vector3(3.5, 3.5, 3.5)
+
+[node name="PineSouth1" parent="PineGroves" instance=ExtResource("pine")]
+position = Vector3(148, 0.68, -46)
+scale = Vector3(3.0, 3.0, 3.0)
+
+[node name="PineSouth2" parent="PineGroves" instance=ExtResource("pine")]
+position = Vector3(158, 0.32, -37)
+scale = Vector3(3.8, 3.8, 3.8)
+
+[node name="PineSouth3" parent="PineGroves" instance=ExtResource("pine")]
+position = Vector3(166, 0.60, -40)
+scale = Vector3(3.0, 3.0, 3.0)
+
+[node name="FarRidge" type="Node3D" parent="."]
+
+[node name="CrestSouth" parent="FarRidge" instance=ExtResource("cliff1")]
+position = Vector3(191, 1.0, -66)
+rotation_degrees = Vector3(0, -18, 0)
+scale = Vector3(6.0, 3.25, 7.0)
+
+[node name="CrestCenter" parent="FarRidge" instance=ExtResource("cliff2")]
+position = Vector3(195, 2.0, -88)
+rotation_degrees = Vector3(0, 32, 0)
+scale = Vector3(7.0, 5.0, 8.5)
+
+[node name="CrestNorth" parent="FarRidge" instance=ExtResource("cliff1")]
+position = Vector3(188, 1.0, -115)
+rotation_degrees = Vector3(0, 59, 0)
+scale = Vector3(5.6, 3.75, 7.5)
+
+[node name="RidgeRibbons" type="Node3D" parent="."]
+position = Vector3(109, 34, -96)
+
+[node name="Curl1" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-13, 1, 12)
+rotation_degrees = Vector3(0, 0, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl2" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(0, 5, 16)
+rotation_degrees = Vector3(0, 33, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl3" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(14, 10, 12)
+rotation_degrees = Vector3(0, 66, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl4" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(18, 15, 0)
+rotation_degrees = Vector3(0, 99, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl5" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(10, 20, -16)
+rotation_degrees = Vector3(0, 132, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl6" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-4, 24, -17)
+rotation_degrees = Vector3(0, 165, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl7" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-15, 29, -9)
+rotation_degrees = Vector3(0, 198, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl8" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-16, 34, 5)
+rotation_degrees = Vector3(0, 231, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl9" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(-8, 39, 15)
+rotation_degrees = Vector3(0, 264, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl10" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(7, 44, 14)
+rotation_degrees = Vector3(0, 297, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl11" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(16, 49, 4)
+rotation_degrees = Vector3(0, 330, 0)
+scale = Vector3(1.6, 1.6, 1.6)
+
+[node name="Curl12" parent="RidgeRibbons" instance=ExtResource("ribbon")]
+position = Vector3(12, 54, -8)
+rotation_degrees = Vector3(0, 3, 0)
+scale = Vector3(1.6, 1.6, 1.6)

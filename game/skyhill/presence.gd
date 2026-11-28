@@ -1,9 +1,9 @@
 extends RefCounted
 ## Skyhill wire limits and collision-free remote presentation.
 const ZONE := "skyhill"
-# The lift tops out at y=35; leave room for momentum. The course recovers at y=-1.5.
+# The ridge lift ends at y=77; allow momentum and crash presentation.
 const MIN_Y := -4.0
-const MAX_Y := 42.0
+const MAX_Y := 88.0
 const MAX_PITCH := 0.7
 const MAX_BANK := 1.6
 const AVATARS := preload("res://game/avatars/catalog.gd")
