@@ -7,6 +7,9 @@ enum State { DECK, FLYING, LANDING, MEADOW, CRASHED }
 const GROUND_CLEARANCE := 0.85
 const CRASH_TUMBLE_TIME := 0.65
 const CRASH_HOLD_TIME := 2.0
+const COURSE_MASK := 1
+const POLE_MASK := 2
+const WING_OFFSET := Vector3(0.0, 0.65, 0.75)
 const CLIMB_ABOVE_LAUNCH := 4.0
 const KEY_HINT := "A / D or ← / → to steer. W to descend, S to climb."
 const TOUCH_HINT := "Drag left/right to steer, up to descend, down to climb."
@@ -40,6 +43,8 @@ var _crash_elapsed := 0.0
 var _crash_rotation := Vector3.ZERO
 var _crash_side := 1.0
 var _crash_normal := Vector3.UP
+var _pole_wing := BoxShape3D.new()
+var _pole_query := PhysicsShapeQueryParameters3D.new()
 
 func _ready() -> void:
 	var rider := AVATARS.instantiate(AVATARS.DEFAULT)
@@ -50,6 +55,9 @@ func _ready() -> void:
 	add_child(_cue)
 	_cue.volume_db = -14.0
 	_cue.stream = _make_lift_cue()
+	_pole_wing.size = Vector3(7.2, 0.36, 0.48)
+	_pole_query.shape = _pole_wing
+	_pole_query.collision_mask = POLE_MASK
 	_on_deck()
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -132,7 +140,7 @@ func _land(where: Vector3) -> void:
 			distance = minf(distance, maxf(0.0, (edge - local[axis]) / component - 0.5))
 	if distance > 0.0:
 		var obstacle := get_world_3d().direct_space_state.intersect_ray(
-			PhysicsRayQueryParameters3D.create(touchdown, touchdown + direction * distance, 1))
+			PhysicsRayQueryParameters3D.create(touchdown, touchdown + direction * distance, COURSE_MASK | POLE_MASK))
 		if not obstacle.is_empty():
 			distance = maxf(0.0, touchdown.distance_to(obstacle.position) - 0.5)
 	flight.begin_runout(touchdown, distance)
@@ -207,6 +215,7 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 	var prev := flight.position
 	var prev_pitch: float = flight.pitch
 	var prev_bank: float = flight.bank
+	var prev_heading: float = flight.heading
 	var wind := lift_at(prev)
 	var floor_y := meadow.global_position.y + GROUND_CLEARANCE
 	var height := prev.y - floor_y if in_meadow(prev) else INF
@@ -215,12 +224,15 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 	if wind > 0.10 and not _was_in_lift:
 		_cue.play()
 	_was_in_lift = wind > 0.10
-	var terrain := get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(prev, next, 1))
+	var space := get_world_3d().direct_space_state
+	var terrain := space.intersect_ray(PhysicsRayQueryParameters3D.create(prev, next, COURSE_MASK | POLE_MASK))
+	var pole_fraction := _pole_wing_contact(space, prev, next, Vector3(prev_pitch, prev_heading, prev_bank))
+	var solid_fraction := 1.0 if terrain.is_empty() else prev.distance_to(terrain.position) / prev.distance_to(next)
 	if prev.y >= floor_y and next.y <= floor_y and next.y < prev.y:
 		var fraction := (prev.y - floor_y) / (prev.y - next.y)
 		var touchdown := prev.lerp(next, fraction)
 		# A solid object reached before the landing plane takes priority.
-		var meadow_first := terrain.is_empty() or prev.distance_squared_to(touchdown) <= prev.distance_squared_to(terrain.position)
+		var meadow_first := fraction <= solid_fraction and (pole_fraction < 0.0 or fraction <= pole_fraction)
 		if in_meadow(touchdown) and meadow_first:
 			var contact := FLIGHT.classify_touchdown((prev.y - next.y) / delta,
 				lerpf(prev_pitch, flight.pitch, fraction), lerpf(prev_bank, flight.bank, fraction))
@@ -229,14 +241,34 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 				FLIGHT.Touchdown.TILTED: _crash(touchdown, "Wingtip down! Level the glider before touching down.")
 				_: _land(touchdown)
 			return
+	if pole_fraction >= 0.0 and pole_fraction <= solid_fraction:
+		_crash(prev.lerp(next, pole_fraction), "Windsock hit! Give the poles a little room.", (prev - next).normalized())
+		return
 	if not terrain.is_empty():
-		_crash(terrain.position + (prev - next).normalized() * 0.35, "Bump! Keep clear of the cliffs and land in the meadow.", terrain.normal)
+		var message := "Windsock hit! Give the poles a little room." if terrain.collider.collision_layer == POLE_MASK else "Bump! Keep clear of the cliffs and land in the meadow."
+		_crash(terrain.position + (prev - next).normalized() * 0.35, message, terrain.normal)
 		return
 	if next.y < meadow.global_position.y - 1.5 or absf(next.x) > 105.0 or next.z < -195.0 or next.z > 65.0:
 		_on_deck()
 		prompt.text = "Back at the deck. Follow the windsocks for an easy flight."
 		return
 	_glider_pose()
+
+func _pole_wing_contact(space: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3, old_rotation: Vector3) -> float:
+	# Check the narrow spar as well as the center ray, so a low wing can hit a pole.
+	# Restrict this to poles so the ground and meadow still use the existing landing model.
+	var old_basis := Basis.from_euler(old_rotation)
+	_pole_query.transform = Transform3D(old_basis, from + old_basis * WING_OFFSET)
+	var end_basis := Basis.from_euler(Vector3(flight.pitch, flight.heading, flight.bank))
+	var end_transform := Transform3D(end_basis, to + end_basis * WING_OFFSET)
+	_pole_query.motion = end_transform.origin - _pole_query.transform.origin
+	var fractions := space.cast_motion(_pole_query)
+	if fractions.size() == 2 and fractions[0] < 1.0:
+		return fractions[0]
+	# The sweep translates the old pose; the final overlap also accounts for banking into the post.
+	_pole_query.motion = Vector3.ZERO
+	_pole_query.transform = end_transform
+	return 1.0 if not space.intersect_shape(_pole_query, 1).is_empty() else -1.0
 
 func _process(delta: float) -> void:
 	_elapsed += delta
@@ -283,11 +315,13 @@ func _glider_pose() -> void:
 	glider.rotation = Vector3(flight.pitch, flight.heading, flight.bank)
 
 func _camera_pose(weight: float) -> void:
-	var offset := Vector3(0.0, 4.0, 9.4)
-	var focus := Vector3(0.0, 0.8, -6.5)
+	var offset := Vector3(0.0, 3.25, 6.8)
+	var focus := Vector3(0.0, 0.8, -5.2)
 	if state == State.DECK:
 		offset = Vector3(7.8, 8.0, 11.8)
 		focus = Vector3(0.0, 0.7, -3.5)
+	elif state == State.CRASHED:
+		focus = Vector3(0.0, 0.7, 0.0)
 	var target := flight.position + offset.rotated(Vector3.UP, flight.heading)
 	camera.global_position = camera.global_position.lerp(target, weight)
 	camera.look_at(flight.position + focus.rotated(Vector3.UP, flight.heading), Vector3.UP)

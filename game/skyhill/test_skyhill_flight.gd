@@ -118,6 +118,43 @@ func check_crashes(level: Node3D, cliff_point: Vector3) -> void:
 	check(level.state == level.State.FLYING and level.flight.pitch == 0.0 and level.flight.bank == 0.0, "Relaunch after a crash must reset flight state")
 	level._action()
 
+func check_windsocks(level: Node3D) -> void:
+	var space := level.get_world_3d().direct_space_state
+	var group := level.get_node("Scenery/RouteWindsocks")
+	check(group.get_child_count() == 6, "Course should have six windsocks")
+	for pole: Node3D in group.get_children():
+		var center := pole.to_global(Vector3(0, 2.75, 0))
+		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(
+			center + Vector3.BACK, center + Vector3.FORWARD, level.POLE_MASK))
+		check(not hit.is_empty() and hit.collider == pole, "Missing pole collision on %s" % pole.name)
+		var cloth := center + Vector3(0.9, 2.3, 0)
+		var cloth_hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(
+			cloth + Vector3.BACK, cloth + Vector3.FORWARD, level.POLE_MASK))
+		check(cloth_hit.is_empty(), "The fabric should not be solid")
+	var first: Node3D = group.get_child(0)
+	for offset in [0.0, -2.7, 2.7, 4.5]:
+		level._launch()
+		level.flight.position = first.to_global(Vector3(offset, 3.0, 1.7))
+		level.flight.heading = 0.0
+		for _i in 14:
+			level.step_flight(FRAME, 0.0)
+			if level.state != level.State.FLYING:
+				break
+		if absf(offset) < 4.0:
+			check(level.state == level.State.CRASHED and level.prompt.text.begins_with("Windsock hit!"), "Pole should crash the glider for a body or wing hit")
+		else:
+			check(level.state == level.State.FLYING, "A clear pass beside a windsock should not crash")
+		level._on_deck()
+
+func check_camera(level: Node3D) -> void:
+	level._camera_pose(1.0)
+	check(level.camera.global_position.distance_to(level.flight.position) > 13.0, "Keep the wide deck view")
+	level._launch()
+	level._camera_pose(1.0)
+	check(level.camera.global_position.distance_to(level.flight.position) < 8.0, "Flight camera should be closer to the glider")
+	check(not level.camera.is_position_behind(level.flight.position), "The closer flight camera should still see the rider")
+	level._on_deck()
+
 func _run() -> void:
 	var level := SKYHILL.instantiate()
 	root.add_child(level)
@@ -143,6 +180,8 @@ func _run() -> void:
 	var launch: Vector3 = level.launch.global_position
 	check(level.flight.position.is_equal_approx(launch), "Authored launch placement was ignored")
 	check_pitch_controls(level)
+	check_camera(level)
+	check_windsocks(level)
 	if not wall.is_empty():
 		check_crashes(level, wall.position)
 

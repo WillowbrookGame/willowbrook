@@ -13,7 +13,7 @@
 [ext_resource type="PackedScene" path="res://game/skyhill/art/cascade-spray.glb" id="spray"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/cascade-pool.glb" id="pool"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/curling-wind-ribbon.glb" id="ribbon"]
-[ext_resource type="PackedScene" path="res://game/skyhill/art/canvas-windsock.glb" id="sock"]
+[ext_resource type="PackedScene" path="res://game/skyhill/windsock.tscn" id="sock"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/distant-ridges.glb" id="skyline"]
 
 [ext_resource type="PackedScene" path="res://game/skyhill/art/grass_leafsLarge.glb" id="bankgrass"]

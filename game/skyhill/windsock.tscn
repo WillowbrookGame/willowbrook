@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/skyhill/art/canvas-windsock.glb" id="art"]
+
+[sub_resource type="BoxShape3D" id="PoleShape"]
+size = Vector3(0.15, 5.5, 0.15)
+
+[sub_resource type="BoxShape3D" id="CapShape"]
+size = Vector3(0.27, 0.16, 0.27)
+
+[node name="Windsock" type="StaticBody3D"]
+collision_layer = 2
+collision_mask = 0
+
+[node name="Art" parent="." instance=ExtResource("art")]
+
+[node name="Pole" type="CollisionShape3D" parent="."]
+position = Vector3(0, 2.75, 0)
+shape = SubResource("PoleShape")
+
+[node name="Cap" type="CollisionShape3D" parent="."]
+position = Vector3(0, 5.46, 0)
+shape = SubResource("CapShape")

@@ -6,6 +6,7 @@ Open game/skyhill/skyhill.tscn in Godot and run the current scene (F6). This pro
 - In the editor, Course/Launch sets the start and facing. Course/WaterfallLift and its LiftBounds set the updraft center and size. Course/MeadowCenter and LandingBounds set the touchdown target; keep them aligned with Scenery/LandingMeadow. Move any rail, tree, or prop in Scenery. Move solid course geometry by its StaticBody3D so its collision comes with it.
 - Scenery uses instanced GLB assets (original Skyhill terrain, deck, waterfall, and flight markers, plus the selected Kenney props). Select each instance or its parent in Godot to move it. The valley terrain asset imports its own triangle collision from the same geometry, so the rolling shoulders stay solid when moved. The gray cliffs and mossy scenic ridge also import collision with their meshes. Move individual cliff sections or the group root. The landing surface and deck keep separate simple collision shapes; preserve their fit when swapping art. Move Creek, Woodland, and BanksAndWildflowers independently in the scene. Original models can also be opened in Blender or rebuilt with `python game/skyhill/art/build_skyhill_art.py`.
 - The lift sound is an original, local cue. Visible ribbons and the climb carry the mechanic with sound off. Positional waterfall ambience is deferred until browser and device testing.
+- Each route windsock instances `windsock.tscn`. Move the whole instance so its solid post and cap follow the visual; the fabric has no collision.
 
 Automated check:
 
