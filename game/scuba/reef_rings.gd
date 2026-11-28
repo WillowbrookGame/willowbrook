@@ -9,17 +9,8 @@ const RESET_DELAY := 4.0
 const RATE := 22050
 # C5, D5, E5, F5, G5, A5, B5, C6
 const SCALE_FREQS := [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50]
-const RING_SPOTS: Array[Dictionary] = [
-	{"pos": Vector3(3.6, -4.0, 9.0), "yaw": 0.15},
-	{"pos": Vector3(4.5, -5.2, 4.2), "yaw": -0.35},
-	{"pos": Vector3(1.8, -6.8, -0.5), "yaw": -0.35},
-	{"pos": Vector3(0.0, -8.0, -5.7), "yaw": 0.0},
-	{"pos": Vector3(-4.5, -10.5, -10.0), "yaw": 0.45},
-	{"pos": Vector3(-3.0, -13.2, -15.5), "yaw": -0.35},
-	{"pos": Vector3(1.5, -14.0, -18.5), "yaw": -0.85},
-	{"pos": Vector3(6.5, -13.2, -21.0), "yaw": -1.1},
-]
 
+var placements: Node3D
 var rings: Array[Dictionary] = []
 var passed_count := 0
 var _elapsed := 0.0
@@ -36,16 +27,16 @@ static var _note_cache: Dictionary = {}
 
 func _ready() -> void:
 	_ensure_shared_meshes()
-	for i in RING_SPOTS.size():
-		var spec: Dictionary = RING_SPOTS[i]
-		var node := _build_ring_node(spec)
+	var reef := get_parent() as Node3D
+	for marker: Marker3D in placements.find_children("*", "Marker3D", false):
+		var placement := reef.global_transform.affine_inverse() * marker.global_transform
+		var node := _build_ring_node(placement.orthonormalized())
 		add_child(node)
 		rings.append({
-			"base": spec.pos as Vector3,
-			"yaw": float(spec.yaw),
+			"base": node.position,
 			"node": node,
 			"hoop": node.get_node("Hoop") as MeshInstance3D,
-			"phase": float(i) * 0.85,
+			"phase": float(rings.size()) * 0.85,
 			"passed": false,
 		})
 
@@ -139,10 +130,9 @@ static func _ensure_shared_meshes() -> void:
 	_passed_mat.albedo_color = Color(1.0, 0.94, 0.62, 0.22)
 
 
-func _build_ring_node(spec: Dictionary) -> Node3D:
+func _build_ring_node(placement: Transform3D) -> Node3D:
 	var root := Node3D.new()
-	root.position = spec.pos as Vector3
-	root.rotation.y = float(spec.yaw)
+	root.transform = placement
 
 	var hoop := MeshInstance3D.new()
 	hoop.name = "Hoop"

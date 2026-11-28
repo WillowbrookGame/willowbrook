@@ -32,7 +32,7 @@ func _run() -> void:
 	var inside := Vector3(g0_base.x, g0_base.y + 3.0, g0_base.z)
 	var lift_normal: float = float(geysers.updraft_at(inside, false))
 	var lift_sink: float = float(geysers.updraft_at(inside, true))
-	var lift_spawn: float = float(geysers.updraft_at(reef.SPAWN, false))
+	var lift_spawn: float = float(geysers.updraft_at(reef.spawn_position, false))
 	if not _require(lift_normal > 2.0 and lift_sink == 0.0 and lift_spawn == 0.0, "Unexpected geyser updraft values: normal=%s sink=%s spawn=%s" % [lift_normal, lift_sink, lift_spawn]):
 		return
 	# Swimming passively inside a geyser should lift the diver upward.

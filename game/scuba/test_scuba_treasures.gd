@@ -19,9 +19,9 @@ func _run() -> void:
 	var treasures: Node3D = reef.treasures
 	if not _require(treasures != null and treasures.total_count() == 6 and treasures.found_count == 0, "Reef should start with 6 uncollected treasures"):
 		return
-	# Verify ALL candidate spots in ZONE_POOLS are reachable and cover all 5 zones.
+	# Verify ALL candidate spots in the scene are reachable and cover all 5 zones.
 	var all_zones := {}
-	for pool_entry: Dictionary in treasures.ZONE_POOLS:
+	for pool_entry: Dictionary in treasures.candidate_pools():
 		for spec: Dictionary in pool_entry.spots:
 			var pos: Vector3 = spec.pos
 			var floor_y: float = reef.art.floor_at(pos)
@@ -41,7 +41,7 @@ func _run() -> void:
 		return
 	# First treasure should be in plain sight ahead of entry in Sunbeam Shallows.
 	var first_pos: Vector3 = treasures.items[0].base
-	if not _require(absf(first_pos.x - reef.SPAWN.x) <= 3.2 and first_pos.z < reef.SPAWN.z and reef.SPAWN.distance_to(first_pos) < 8.0 and reef.art.landmark(first_pos) == "Sunbeam Shallows", "First treasure should be in plain sight ahead of entry"):
+	if not _require(absf(first_pos.x - reef.spawn_position.x) <= 3.2 and first_pos.z < reef.spawn_position.z and reef.spawn_position.distance_to(first_pos) < 8.0 and reef.art.landmark(first_pos) == "Sunbeam Shallows", "First treasure should be in plain sight ahead of entry"):
 		return
 	# Free swimmers see no treasure clutter before collecting one.
 	await physics_frame

@@ -6,12 +6,8 @@ const GEYSER_RADIUS := 2.15
 const LIFT_SPEED := 4.2
 const BUBBLES_PER_GEYSER := 10
 const RATE := 22050
-const SPOTS: Array[Dictionary] = [
-	{"id": "wreck_center_geyser", "base": Vector3(-0.5, -17.4, -18.5), "top_y": -4.0},
-	{"id": "wreck_east_geyser", "base": Vector3(10.5, -17.4, -20.5), "top_y": -4.5},
-	{"id": "overhang_geyser", "base": Vector3(-14.5, -17.4, -19.5), "top_y": -4.5},
-]
 
+var placements: Node3D
 var geysers: Array[Dictionary] = []
 var _elapsed := 0.0
 var _in_geyser := false
@@ -27,12 +23,13 @@ static var _whoosh_stream: AudioStreamWAV
 
 func _ready() -> void:
 	_ensure_shared()
-	for idx in SPOTS.size():
-		var spec: Dictionary = SPOTS[idx]
-		var base: Vector3 = spec.base
-		var top_y: float = float(spec.top_y)
+	var reef := get_parent() as Node3D
+	for marker: Marker3D in placements.find_children("*", "Marker3D", false):
+		var top := marker.get_node("Top") as Marker3D
+		var base := reef.to_local(marker.global_position)
+		var top_y := reef.to_local(top.global_position).y
 		var root := Node3D.new()
-		root.name = String(spec.id)
+		root.name = String(marker.name)
 		root.position = base
 		add_child(root)
 
@@ -60,11 +57,11 @@ func _ready() -> void:
 			bubbles.append(b)
 
 		geysers.append({
-			"id": String(spec.id),
+			"id": String(marker.name),
 			"base": base,
 			"top_y": top_y,
 			"height": maxf(2.0, top_y - base.y),
-			"phase": float(idx) * 1.7,
+			"phase": float(geysers.size()) * 1.7,
 			"bubbles": bubbles,
 		})
 	_update_bubbles()

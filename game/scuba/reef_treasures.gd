@@ -6,54 +6,10 @@ signal treasure_found(title: String, found: int, total: int)
 
 const PICKUP_RADIUS := 2.2
 const RATE := 22050
-const ZONE_POOLS: Array[Dictionary] = [
-	{
-		"pick": 1,
-		"spots": [
-			{"id": "sunbeam_pearl", "title": "Sunbeam Pearl", "pos": Vector3(0.0, -3.4, 7.6), "color": Color("#fff3b0")},
-			{"id": "sunbeam_west", "title": "Sunbeam Pearl", "pos": Vector3(-2.6, -3.6, 8.2), "color": Color("#fff3b0")},
-			{"id": "sunbeam_east", "title": "Sunbeam Pearl", "pos": Vector3(2.8, -3.5, 8.4), "color": Color("#fff3b0")},
-		],
-	},
-	{
-		"pick": 1,
-		"spots": [
-			{"id": "fan_west_shallows", "title": "Fan Garden Shell", "pos": Vector3(-7.6, -6.2, 3.2), "color": Color("#ff9ebb")},
-			{"id": "fan_east_shallows", "title": "Fan Garden Shell", "pos": Vector3(6.8, -5.8, 4.4), "color": Color("#ff9ebb")},
-			{"id": "fan_west_deep", "title": "Fan Garden Shell", "pos": Vector3(-9.2, -9.2, -1.6), "color": Color("#ff9ebb")},
-			{"id": "sponge_east", "title": "Sponge Pearl", "pos": Vector3(4.6, -10.2, -3.2), "color": Color("#ff9ebb")},
-		],
-	},
-	{
-		"pick": 1,
-		"spots": [
-			{"id": "arch_crystal", "title": "Coral Gate Crystal", "pos": Vector3(0.0, -8.3, -5.7), "color": Color("#7bf1ff")},
-			{"id": "gate_fan_east", "title": "Coral Gate Crystal", "pos": Vector3(9.4, -11.4, -6.4), "color": Color("#7bf1ff")},
-			{"id": "gate_west_rock", "title": "Coral Gate Crystal", "pos": Vector3(-7.6, -14.2, -11.6), "color": Color("#7bf1ff")},
-		],
-	},
-	{
-		"pick": 2,
-		"spots": [
-			{"id": "wing_jewel", "title": "Sunken Wing Jewel", "pos": Vector3(-2.6, -15.4, -22.2), "color": Color("#8dffb0")},
-			{"id": "wreck_compass", "title": "Cockpit Compass", "pos": Vector3(4.2, -14.2, -17.2), "color": Color("#ffd166")},
-			{"id": "east_deep_rock", "title": "Deep Reef Relic", "pos": Vector3(9.8, -15.4, -15.4), "color": Color("#ffd166")},
-			{"id": "east_overhang_gem", "title": "Bluewater Gem", "pos": Vector3(11.4, -15.2, -22.4), "color": Color("#8dffb0")},
-			{"id": "deep_wall_locket", "title": "Sunken Locket", "pos": Vector3(17.5, -15.0, -21.0), "color": Color("#ffd166")},
-		],
-	},
-	{
-		"pick": 1,
-		"spots": [
-			{"id": "overhang_star", "title": "Overhang Star", "pos": Vector3(-21.5, -14.8, -20.5), "color": Color("#c8b6ff")},
-			{"id": "deep_sponge_star", "title": "Overhang Star", "pos": Vector3(-9.2, -15.2, -19.8), "color": Color("#c8b6ff")},
-			{"id": "west_corner_star", "title": "Overhang Star", "pos": Vector3(-15.6, -15.0, -20.6), "color": Color("#c8b6ff")},
-		],
-	},
-]
 const CHIME_FREQS := [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5]
 const TOTAL_TREASURES := 6
 
+var placements: Node3D
 var items: Array[Dictionary] = []
 var found_count := 0
 var _elapsed := 0.0
@@ -86,10 +42,26 @@ func _ready() -> void:
 		})
 
 
+func candidate_pools() -> Array[Dictionary]:
+	var reef := get_parent() as Node3D
+	var pools: Array[Dictionary] = []
+	for pool in placements.get_children():
+		var spots: Array[Dictionary] = []
+		for marker: Marker3D in pool.find_children("*", "Marker3D", false):
+			spots.append({
+				"id": String(marker.name),
+				"title": String(marker.get_meta("title", marker.name)),
+				"pos": reef.to_local(marker.global_position),
+				"color": marker.get_meta("color", Color.WHITE),
+			})
+		pools.append({"pick": int(pool.get_meta("pick", 1)), "spots": spots})
+	return pools
+
+
 func _select_dive_spots() -> Array[Dictionary]:
 	var selected: Array[Dictionary] = []
-	for pool_entry: Dictionary in ZONE_POOLS:
-		var candidates: Array = (pool_entry.spots as Array).duplicate()
+	for pool_entry: Dictionary in candidate_pools():
+		var candidates: Array = pool_entry.spots
 		for i in range(candidates.size() - 1, 0, -1):
 			var j := _rng.randi_range(0, i)
 			var swap: Variant = candidates[i]
