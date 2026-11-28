@@ -32,13 +32,13 @@
 **No PowerShell, Godot, or Node.js installation is needed on the host.**
 Use a 64-bit Intel or AMD Linux machine with Docker Engine and Docker Compose.
 
-1. From [Early Alpha 3](https://github.com/WillowbrookGame/willowbrook/releases/tag/v0.1.0-alpha.3), download the [Linux x86-64 Docker bundle](https://github.com/WillowbrookGame/willowbrook/releases/download/v0.1.0-alpha.3/willowbrook-linux-x86_64-alpha.3.tar.gz) and its [SHA-256 checksum file](https://github.com/WillowbrookGame/willowbrook/releases/download/v0.1.0-alpha.3/willowbrook-linux-x86_64-alpha.3.tar.gz.sha256) into the same directory. The automatically generated source archives are not install bundles.
-2. In the download directory, run `sha256sum -c willowbrook-linux-x86_64-alpha.3.tar.gz.sha256` before extracting. Once it reports `OK`, extract the bundle to a fresh directory, open a terminal in the extracted `willowbrook/` folder, and run `sha256sum -c SHA256SUMS` to verify the extracted files.
-3. Follow the [first-start instructions](https://github.com/WillowbrookGame/willowbrook/blob/v0.1.0-alpha.3/deploy/DOCKER.md#first-start) to create your owner account, start Willowbrook, and invite players from Parent Desk. If you're upgrading, [back up your saves first](https://github.com/WillowbrookGame/willowbrook/blob/v0.1.0-alpha.3/deploy/DOCKER.md#updates-and-backups).
+1. From [Early Alpha 4](https://github.com/WillowbrookGame/willowbrook/releases/tag/v0.1.0-alpha.4), download the [Linux x86-64 Docker bundle](https://github.com/WillowbrookGame/willowbrook/releases/download/v0.1.0-alpha.4/willowbrook-linux-x86_64-alpha.4.tar.gz) and its [SHA-256 checksum file](https://github.com/WillowbrookGame/willowbrook/releases/download/v0.1.0-alpha.4/willowbrook-linux-x86_64-alpha.4.tar.gz.sha256) into the same directory. The automatically generated source archives are not install bundles.
+2. In the download directory, run `sha256sum -c willowbrook-linux-x86_64-alpha.4.tar.gz.sha256` before extracting. Once it reports `OK`, extract the bundle to a fresh directory, open a terminal in the extracted `willowbrook/` folder, and run `sha256sum -c SHA256SUMS` to verify the extracted files.
+3. Follow the [first-start instructions](https://github.com/WillowbrookGame/willowbrook/blob/v0.1.0-alpha.4/deploy/DOCKER.md#first-start) to create your owner account, start Willowbrook, and invite players from Parent Desk. If you're upgrading, [back up your saves first](https://github.com/WillowbrookGame/willowbrook/blob/v0.1.0-alpha.4/deploy/DOCKER.md#updates-and-backups).
 
 Players only need a web browser. The default setup is reachable only on the
 Linux host. To play on other devices in your household, follow the
-[private LAN HTTPS instructions](https://github.com/WillowbrookGame/willowbrook/blob/v0.1.0-alpha.3/deploy/DOCKER.md#optional-private-lan-https-for-a-second-device).
+[private LAN HTTPS instructions](https://github.com/WillowbrookGame/willowbrook/blob/v0.1.0-alpha.4/deploy/DOCKER.md#optional-private-lan-https-for-a-second-device).
 
 ## Developer setup
 
