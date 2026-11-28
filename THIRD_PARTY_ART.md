@@ -79,3 +79,10 @@ The owner-retained Collectible Run GLB has 1,761,132 bytes and SHA-256 `f5edf3fa
 3. Ship this notice and applicable license text alongside both source and compiled releases. The current export excludes Markdown and its packed art does not itself supply a complete notice set. Validate notices are visible and included in the exact archive and download; a file in the development tree alone is not enough.
 4. Complete separate audio, dependency, secret, player-data and history gates. This inventory covers art only.
 
+
+## Skyhill Park prototype assets
+
+| Included files | Source and license |
+| --- | --- |
+| `game/skyhill/art/hang-glider.glb` | [Hang Glider by Vinish.dev](https://vinish.dev/free-3d-models/airships-and-gliders#hang-glider), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The original GLB is unmodified; the instance is scaled and positioned, with a separate Willowbrook rider added in the Godot scene. |
+| `game/skyhill/art/{tree_pineDefaultA,rock_smallB,fence_simple}.glb` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) 2.1, CC0. Selected unmodified GLBs; the kit's original notice is included. |
