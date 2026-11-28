@@ -1,6 +1,7 @@
 extends SceneTree
 
 const SKY := preload("res://game/skyhill/presence.gd")
+const ACCOUNT := preload("res://game/network/browser/account_session.gd")
 const SCHEMA := preload("res://game/network/browser/message_schema.gd")
 const LINK := preload("res://game/skyhill/town_link.gd")
 const PARK := "res://game/skyhill/skyhill.tscn"
@@ -88,6 +89,20 @@ func local_checks() -> void:
 		var menu: Control=net._zone_menu_button
 		check(not menu.get_global_rect().intersects(park.prompt.get_global_rect()),"Multiplayer does not obscure instructions")
 		check(root.get_visible_rect().encloses(park.town_return.get_global_rect()),"Town return fits viewport")
+	var account := ACCOUNT.new()
+	root.add_child(account)
+	account.bind_zone("skyhill",park,park.walker,park.hud)
+	for size in [Vector2i(360,640),Vector2i(640,360)]:
+		root.size=size
+		await process_frame
+		await process_frame
+		var prompt_rect: Rect2 = park.prompt.get_global_rect()
+		check(not account._star_badge.get_global_rect().intersects(prompt_rect),"Browser wallet does not obscure instructions")
+		check(not account._zone_menu_button.get_global_rect().intersects(prompt_rect),"Browser menu does not obscure instructions")
+		check(account._hunt_view==null,"Skyhill does not mount Town scavenger controls")
+	account.suspend_zone_for(park)
+	account.queue_free()
+	park.set_zone_modal(false)
 	park._launch()
 	check(not net._zone_menu_button.visible,"Flight hides the deck-only Multiplayer button")
 	park._app_unfocused=true

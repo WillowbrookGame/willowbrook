@@ -398,13 +398,16 @@ func _process(delta: float) -> void:
 			var sample := _presence_sample()
 			if hosting:
 				_apply_pose(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded, sample)
+			elif zone == SKYHILL.ZONE:
+				_pose.rpc_id(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded, sample)
 			else:
-				_pose.rpc_id(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded, sample if zone == SKYHILL.ZONE else {})
+				# Leave the existing wire shape intact outside the new zone.
+				_pose.rpc_id(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded)
 		elif admitted:
 			if hosting:
 				_apply_pose(1,"",Vector3.ZERO,0.0,false,true)
 			else:
-				_pose.rpc_id(1,"",Vector3.ZERO,0.0,false,true,{})
+				_pose.rpc_id(1,"",Vector3.ZERO,0.0,false,true)
 		if hosting:
 			_share(now)
 	_draw_ghosts(delta)
