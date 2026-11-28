@@ -547,6 +547,7 @@ autowrap_mode = 3
 
 [node name="WaterfallGuide" type="PanelContainer" parent="HUD"]
 visible = false
+custom_minimum_size = Vector2(146, 0)
 mouse_filter = 2
 theme_override_styles/panel = SubResource("Style_WaterfallGuide")
 
@@ -555,6 +556,7 @@ mouse_filter = 2
 theme_override_colors/font_color = Color(0.79, 0.99, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "Waterfall lift"
+horizontal_alignment = 1
 
 [node name="Action" type="Button" parent="HUD"]
 anchors_preset = 3

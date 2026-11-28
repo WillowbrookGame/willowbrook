@@ -123,6 +123,19 @@ func _run() -> void:
 		check(level.guide.visible, "Waterfall guide should appear ahead at %s" % view)
 		check(root.get_visible_rect().encloses(guide_rect), "Guide escapes viewport at %s" % view)
 		check(not guide_rect.intersects(level.prompt.get_global_rect()) and not guide_rect.intersects(level.stick.get_global_rect()) and not guide_rect.intersects(level.action.get_global_rect()), "Guide overlaps instructions or controls at %s" % view)
+		var lift_position: Vector3 = level.lift_zone.position
+		level._camera_pose(1.0)
+		for side in [-1.0, 1.0]:
+			level.lift_zone.position.x = 300.0 * side
+			level._update_route_guide()
+			var expected := "< Waterfall lift" if side < 0 else "Waterfall lift >"
+			check(level.guide.visible and level.guide_label.text == expected, "Offscreen cue should point toward the waterfall")
+			var edge_rect: Rect2 = level.guide.get_global_rect()
+			for _i in 5:
+				level._update_route_guide()
+			check(level.guide_label.text == expected and level.guide.get_global_rect().is_equal_approx(edge_rect), "Offscreen cue should stay steady on repeated updates")
+			check(root.get_visible_rect().encloses(edge_rect) and is_equal_approx(edge_rect.size.x, guide_rect.size.x), "Arrow variant should fit without changing guide width")
+		level.lift_zone.position = lift_position
 		level.flight.lift = 0.5
 		level._update_route_guide()
 		check(level.guide_label.text == "Rising air!", "Guide confirms caught lift")

@@ -196,14 +196,18 @@ func _update_route_guide() -> void:
 		return
 	var screen := get_viewport().get_visible_rect().size
 	var projected := camera.unproject_position(marker) if not rising else Vector2(screen.x * 0.5, 104.0)
-	guide_label.text = "Rising air!" if rising else "Waterfall lift"
 	var outer := 14.0
-	var width := guide.get_combined_minimum_size().x
+	var width := guide.custom_minimum_size.x
+	var caption := "Rising air!" if rising else "Waterfall lift"
 	if not rising and projected.x + width * 0.5 > screen.x - outer:
-		guide_label.text = "Waterfall lift >"
+		caption = "Waterfall lift >"
 	elif not rising and projected.x - width * 0.5 < outer:
-		guide_label.text = "< Waterfall lift"
-	guide.size = guide.get_combined_minimum_size()
+		caption = "< Waterfall lift"
+	if guide_label.text != caption:
+		guide_label.text = caption
+	var guide_size := guide.get_combined_minimum_size()
+	if guide.size != guide_size:
+		guide.size = guide_size
 	var x := clampf(projected.x - guide.size.x * 0.5, outer, maxf(outer, screen.x - guide.size.x - outer))
 	var top := prompt.get_global_rect().end.y + 12.0
 	var bottom := maxf(top, minf(stick.position.y, action.position.y) - guide.size.y - 8.0)
