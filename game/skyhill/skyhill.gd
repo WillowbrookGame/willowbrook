@@ -1,6 +1,7 @@
 extends Node3D
 ## Standalone first-flight prototype. Open skyhill.tscn and run current scene.
 
+const GOALS := preload("res://game/skyhill/flight_goals.gd")
 const WIND := preload("res://game/skyhill/wind_field.gd")
 const FLIGHT := preload("res://game/skyhill/flight_model.gd")
 const AVATARS := preload("res://game/avatars/catalog.gd")
@@ -17,7 +18,7 @@ const FLIGHT_KEYS := [KEY_A, KEY_D, KEY_LEFT, KEY_RIGHT, KEY_W, KEY_S, KEY_UP, K
 const CLIMB_ABOVE_LAUNCH := 4.0
 const KEY_HINT := "A/D or Left/Right to steer. W descends, S climbs."
 const TOUCH_HINT := "Drag left/right to steer, up to descend, down to climb."
-const ROUTE_HINT := "\nGlide straight to land, or head right for waterfall lift."
+const ROUTE_HINT := "\nFollow the teal rings to the meadow, or gold toward the lifts."
 
 @onready var launch: Marker3D = $Course/Launch
 @onready var meadow: Marker3D = $Course/MeadowCenter
@@ -26,6 +27,9 @@ const ROUTE_HINT := "\nGlide straight to land, or head right for waterfall lift.
 @onready var ridge_lift: WIND = $Course/RidgeLift
 @onready var west_lift: WIND = $Course/WestLift
 @onready var _wind_fields: Array[WIND] = [lift_zone, ridge_lift, west_lift]
+@onready var goals: GOALS = $Course/FlightGoals
+@onready var landing_target: Marker3D = $Course/MeadowCenter/LandingTarget
+@onready var goal_status: Label = $HUD/Top/GoalStatus
 @onready var flight_boundary: CollisionShape3D = $Course/FlightBounds/HorizontalBounds
 @onready var glider: Node3D = $Glider
 @onready var camera: Camera3D = $Camera3D
@@ -298,6 +302,8 @@ func _return_to_town() -> void:
 		push_error("Couldn't return to Town: %s" % error_string(result))
 
 func _on_deck() -> void:
+	goals.reset_flight()
+	goal_status.hide()
 	_last_lift = null
 	state = State.DECK
 	flight.reset(launch.global_position, launch.global_rotation.y)
@@ -310,6 +316,8 @@ func _on_deck() -> void:
 		_refresh_deck_hud()
 
 func _launch() -> void:
+	goals.reset_flight()
+	goal_status.hide()
 	state = State.FLYING
 	_last_lift = null
 	walker.set_walking(false)
@@ -320,6 +328,7 @@ func _launch() -> void:
 func _land(where: Vector3) -> void:
 	state = State.LANDING
 	var touchdown := Vector3(where.x, meadow.global_position.y + GROUND_CLEARANCE, where.z)
+	goals.score_touchdown(touchdown, landing_target.global_position)
 	var direction := Vector3.FORWARD.rotated(Vector3.UP, flight.heading)
 	var distance := flight.speed * FLIGHT.RUNOUT_TIME * 0.5
 	# Leave room at the edge even when landing diagonally across the meadow.
@@ -341,6 +350,7 @@ func _land(where: Vector3) -> void:
 
 func _crash(at_rest: Vector3, message: String, normal := Vector3.UP) -> void:
 	state = State.CRASHED
+	goal_status.hide()
 	_crash_elapsed = 0.0
 	_crash_rotation = Vector3(flight.pitch, flight.heading, flight.bank)
 	_crash_side = -1.0 if flight.bank < 0.0 else 1.0
@@ -422,7 +432,7 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 		_glider_pose()
 		if stopped:
 			state = State.MEADOW
-			_set_hud("Nice landing! Ready for another flight?", "Ride back up (E)")
+			_set_hud(goals.landing_text + " Ready for another flight?", "Ride back up (E)")
 		return
 	if state != State.FLYING:
 		return
@@ -464,7 +474,9 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 			match contact:
 				FLIGHT.Touchdown.HARD: _crash(touchdown, "Hard landing! Ease off the dive before touching down.")
 				FLIGHT.Touchdown.TILTED: _crash(touchdown, "Wingtip down! Level the glider before touching down.")
-				_: _land(touchdown)
+				_:
+					_track_goals(prev, touchdown)
+					_land(touchdown)
 			return
 	if pole_fraction >= 0.0 and pole_fraction <= solid_fraction:
 		_crash(prev.lerp(next, pole_fraction), "Windsock hit! Give the poles a little room.", (prev - next).normalized())
@@ -477,7 +489,13 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 		_on_deck()
 		prompt.text = "Back at the deck. Follow the windsocks for an easy flight."
 		return
+	_track_goals(prev, next)
 	_glider_pose()
+
+func _track_goals(from: Vector3, to: Vector3) -> void:
+	if goals.step_segment(from, to):
+		goal_status.text = goals.progress_line()
+		goal_status.show()
 
 func _pole_wing_contact(space: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3, old_rotation: Vector3) -> float:
 	# Check the narrow spar as well as the center ray, so a low wing can hit a pole.
@@ -555,7 +573,7 @@ func _update_route_guide() -> void:
 	if guide.size != guide_size:
 		guide.size = guide_size
 	var x := clampf(projected.x - guide.size.x * 0.5, outer, maxf(outer, screen.x - guide.size.x - outer))
-	var top := prompt.get_global_rect().end.y + 12.0
+	var top := (goal_status if goal_status.visible else prompt).get_global_rect().end.y + 12.0
 	var controls_top := minf(stick.position.y, action.position.y)
 	if town_return.visible:
 		controls_top = minf(controls_top, town_return.position.y)

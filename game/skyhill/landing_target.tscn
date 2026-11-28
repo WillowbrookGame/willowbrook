@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="White"]
+shading_mode = 0
+albedo_color = Color(1, 0.96, 0.79, 1)
+
+[sub_resource type="StandardMaterial3D" id="Coral"]
+shading_mode = 0
+albedo_color = Color(0.97, 0.38, 0.24, 1)
+
+[sub_resource type="CylinderMesh" id="Center"]
+top_radius = 1.8
+bottom_radius = 1.8
+height = 0.018
+radial_segments = 32
+rings = 1
+
+[sub_resource type="TorusMesh" id="Inner"]
+inner_radius = 3.7
+outer_radius = 4.3
+rings = 32
+ring_segments = 8
+
+[sub_resource type="TorusMesh" id="Middle"]
+inner_radius = 8.5
+outer_radius = 9.5
+rings = 32
+ring_segments = 8
+
+[node name="LandingTarget" type="Marker3D"]
+
+[node name="Center" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.028, 0)
+cast_shadow = 0
+material_override = SubResource("Coral")
+mesh = SubResource("Center")
+
+[node name="BullseyeBand" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.035, 0)
+scale = Vector3(1, 0.065, 1)
+cast_shadow = 0
+material_override = SubResource("White")
+mesh = SubResource("Inner")
+
+[node name="OuterBand" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.04, 0)
+scale = Vector3(1, 0.065, 1)
+cast_shadow = 0
+material_override = SubResource("Coral")
+mesh = SubResource("Middle")
