@@ -25,6 +25,51 @@ func check_facing(level: Node3D) -> void:
 	check(nose_forward.normalized().dot(heading) > 0.95, "The sail nose faces away from flight")
 	check(rider_forward.normalized().dot(heading) > 0.95, "The rider faces away from flight")
 
+func keyboard_event(key: Key, pressed: bool) -> void:
+	var event := InputEventKey.new()
+	event.physical_keycode = key
+	event.pressed = pressed
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+func check_pitch_controls(level: Node3D) -> void:
+	var start: Vector3 = level.launch.global_position
+	for pair in [[KEY_W, -1], [KEY_S, 1], [KEY_UP, -1], [KEY_DOWN, 1]]:
+		level._launch()
+		keyboard_event(pair[0], true)
+		for _i in 36:
+			level._physics_process(FRAME)
+		keyboard_event(pair[0], false)
+		check(level.state == level.State.FLYING, "Pitch input should leave the glider flying")
+		var pitch: float = level.flight.pitch
+		check(pitch * pair[1] > 0.15, "Wrong visual pitch for key %s" % pair[0])
+		check((level.flight.position.y - start.y) * pair[1] > 0.06, "Wrong vertical travel for key %s" % pair[0])
+		check(is_equal_approx(level.get_node("Glider").rotation.x, pitch), "Flight pitch was not shown on the glider")
+		level._physics_process(FRAME)
+		check(absf(level.flight.pitch) < absf(pitch) and absf(level.flight.pitch) > 0.1, "Released pitch should ease back")
+		level._on_deck()
+		check(level.flight.pitch == 0.0, "Returning to deck should reset pitch")
+	level._launch()
+	keyboard_event(KEY_W, true)
+	keyboard_event(KEY_S, true)
+	level._physics_process(FRAME)
+	keyboard_event(KEY_W, false)
+	keyboard_event(KEY_S, false)
+	check(level.flight.pitch == 0.0 and level.flight.climb < 0.0, "Opposing pitch keys should cancel")
+	level._on_deck()
+
+	var flight = level.FLIGHT.new()
+	flight.reset(Vector3.ZERO, 0.0)
+	for _i in 180:
+		flight.advance(FRAME, 0.0, 0.0, INF, 1.0, 0.0)
+	check(flight.climb < 0.0, "Manual pitch must not climb past the course ceiling")
+	for _i in 90:
+		flight.advance(FRAME, 0.0, 1.0, INF, 1.0, 0.0)
+	check(flight.climb > 4.0, "Waterfall lift must still work above the manual climb ceiling")
+	for _i in 90:
+		flight.advance(FRAME, 0.0, 0.0, 0.01, -1.0)
+	check(flight.speed < 10.1 and flight.climb > -1.0, "Holding dive near the meadow should not defeat the landing flare")
+
 func _run() -> void:
 	var level := SKYHILL.instantiate()
 	root.add_child(level)
@@ -49,6 +94,7 @@ func _run() -> void:
 	check(level.get_node("Glider/RiderAnchor").get_child_count() == 1, "Rider did not load")
 	var launch: Vector3 = level.launch.global_position
 	check(level.flight.position.is_equal_approx(launch), "Authored launch placement was ignored")
+	check_pitch_controls(level)
 
 	level._action()
 	var coast_frames := 0
@@ -120,7 +166,7 @@ func _run() -> void:
 	var near_edge: Vector3 = level.meadow.to_global(Vector3(0.0, level.GROUND_CLEARANCE, -level.landing_bounds.size.z * 0.5 + 2.0))
 	level._land(near_edge)
 	for _i in 90:
-		level.step_flight(FRAME, 1.0)
+		level.step_flight(FRAME, 1.0, -1.0)
 	check(level.state == level.State.MEADOW and level.in_meadow(level.flight.position), "Short landing must stop inside the meadow")
 	check(absf(level.flight.position.distance_to(near_edge) - 1.5) < 0.02, "Runout must shorten at the edge without turning")
 	level._action()
@@ -162,23 +208,30 @@ func _run() -> void:
 		touch.index = 3
 		touch.position = level.stick.get_global_rect().get_center() + Vector2(25, 0)
 		level._input(touch)
-		check(level.touch_index == 3 and level.touch_steer > .5, "Touch steering did not accept press")
+		check(level.touch_index == 3 and level.touch_steer > .5 and level.touch_pitch == 0.0, "Horizontal touch input should only steer")
 		var drag := InputEventScreenDrag.new()
-		drag.position = level.stick.get_global_rect().get_center() + Vector2(-90, 0)
+		drag.position = level.stick.get_global_rect().get_center() + Vector2(-90, -90)
 		drag.index = 7
 		level._input(drag)
-		check(level.touch_steer > .5, "Second finger stole the steering stick")
+		check(level.touch_steer > .5 and level.touch_pitch == 0.0, "Second finger stole the flight stick")
 		drag.index = touch.index
 		level._input(drag)
-		check(level.touch_steer == -1.0, "Touch should track outside the stick")
-		drag.position = level.stick.get_global_rect().get_center() + Vector2(3.0, 0)
+		check(level.touch_steer == -1.0 and level.touch_pitch == -1.0, "Diagonal touch should steer and descend outside the stick")
+		drag.position = level.stick.get_global_rect().get_center() + Vector2(0, 90)
 		level._input(drag)
-		check(level.touch_steer == 0.0, "Stick should ignore minor center jitter")
+		var touch_start: Vector3 = level.flight.position
+		for _i in 36:
+			level._physics_process(FRAME)
+		check(level.touch_steer == 0.0 and level.touch_pitch == 1.0 and level.flight.position.y > touch_start.y, "Touch down should climb without steering")
+		drag.position = level.stick.get_global_rect().get_center() + Vector2(3.0, -3.0)
+		level._input(drag)
+		check(level.touch_steer == 0.0 and level.touch_pitch == 0.0, "Stick should ignore minor center jitter")
 		touch.pressed = false
 		level._input(touch)
-		check(level.touch_index == -1 and level.touch_steer == 0, "Touch release did not clear steering")
+		check(level.touch_index == -1 and level.touch_steer == 0.0 and level.touch_pitch == 0.0, "Touch release did not clear flight inputs")
+		check(level.knob.get_global_rect().get_center().is_equal_approx(level.stick.get_global_rect().get_center()), "Released touch knob did not return to center")
 		level._on_deck()
 	if failures == 0:
-		print("PASS Skyhill: gentle steering, default and waterfall routes, landing runout, relaunch, return, bounds, waterfall cues and responsive touch")
+		print("PASS Skyhill: keyboard and touch pitch, gentle steering, default and waterfall routes, landing runout, relaunch, return, bounds, and waterfall cues")
 	level.free()
 	quit(0 if failures == 0 else 1)

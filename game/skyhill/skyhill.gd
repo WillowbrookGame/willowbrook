@@ -5,6 +5,10 @@ const FLIGHT := preload("res://game/skyhill/flight_model.gd")
 const AVATARS := preload("res://game/avatars/catalog.gd")
 enum State { DECK, FLYING, LANDING, MEADOW }
 const GROUND_CLEARANCE := 0.85
+const CLIMB_ABOVE_LAUNCH := 4.0
+const KEY_HINT := "A / D or ← / → to steer. W to descend, S to climb."
+const TOUCH_HINT := "Drag left/right to steer, up to descend, down to climb."
+const ROUTE_HINT := "\nGlide straight to land, or head right for waterfall lift."
 
 @onready var launch: Marker3D = $Course/Launch
 @onready var meadow: Marker3D = $Course/MeadowCenter
@@ -25,6 +29,7 @@ var state := State.DECK
 var flight := FLIGHT.new()
 var touch_index := -1
 var touch_steer := 0.0
+var touch_pitch := 0.0
 var _touch_seen := false
 var _was_in_lift := false
 var _cue: AudioStreamPlayer
@@ -56,6 +61,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch and event.pressed and not _touch_seen:
 		_touch_seen = true
 		stick.show()
+		prompt.text = TOUCH_HINT + ROUTE_HINT
 	if event is InputEventScreenTouch:
 		if event.pressed and touch_index < 0 and stick.get_global_rect().has_point(event.position):
 			touch_index = event.index
@@ -69,16 +75,23 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _set_touch(point: Vector2) -> void:
-	var center := stick.get_global_rect().get_center()
-	var travel := clampf((point.x - center.x) / 40.0, -1.0, 1.0)
-	touch_steer = signf(travel) * remap(maxf(absf(travel), 0.10), 0.10, 1.0, 0.0, 1.0)
-	knob.position.x = 38.0 + touch_steer * 35.0
+	var travel := (point - stick.get_global_rect().get_center()) / 40.0
+	touch_steer = _stick_axis(travel.x)
+	touch_pitch = _stick_axis(travel.y)
+	knob.position = _knob_center() + Vector2(touch_steer * 35.0, touch_pitch * 28.0)
+
+func _stick_axis(value: float) -> float:
+	return signf(value) * remap(clampf(absf(value), 0.10, 1.0), 0.10, 1.0, 0.0, 1.0)
+
+func _knob_center() -> Vector2:
+	return (stick.size - knob.size) * 0.5
 
 func _clear_stick() -> void:
 	touch_index = -1
 	touch_steer = 0.0
-	if is_instance_valid(knob):
-		knob.position.x = 38.0
+	touch_pitch = 0.0
+	if is_instance_valid(stick) and is_instance_valid(knob):
+		knob.position = _knob_center()
 
 func _action() -> void:
 	match state:
@@ -90,12 +103,13 @@ func _on_deck() -> void:
 	flight.reset(launch.global_position, launch.global_rotation.y)
 	_glider_pose()
 	_camera_pose(1.0)
-	_set_hud("Drag the stick to steer." if _touch_seen else "A / D or arrow keys to steer.", "Launch" if _touch_seen else "Launch (E)")
+	_set_hud(TOUCH_HINT if _touch_seen else KEY_HINT, "Launch" if _touch_seen else "Launch (E)")
 
 func _launch() -> void:
 	state = State.FLYING
 	flight.reset(launch.global_position, launch.global_rotation.y)
-	_set_hud("Glide straight to land, or steer right toward the waterfall for a lift.", "Return to deck (E)")
+	var hint := TOUCH_HINT if _touch_seen else KEY_HINT
+	_set_hud(hint + ROUTE_HINT, "Return to deck (E)")
 
 func _land(where: Vector3) -> void:
 	state = State.LANDING
@@ -141,9 +155,10 @@ func _physics_process(delta: float) -> void:
 	if state != State.FLYING and state != State.LANDING:
 		return
 	var keys := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
-	step_flight(delta, touch_steer if touch_index >= 0 else keys)
+	var pitch_keys := float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN)) - float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))
+	step_flight(delta, touch_steer if touch_index >= 0 else keys, touch_pitch if touch_index >= 0 else pitch_keys)
 
-func step_flight(delta: float, steer: float) -> void:
+func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 	if state == State.LANDING:
 		var stopped: bool = flight.advance_runout(delta)
 		_glider_pose()
@@ -157,7 +172,8 @@ func step_flight(delta: float, steer: float) -> void:
 	var wind := lift_at(prev)
 	var floor_y := meadow.global_position.y + GROUND_CLEARANCE
 	var height := prev.y - floor_y if in_meadow(prev) else INF
-	var next := flight.advance(delta, steer, wind, height)
+	var climb_room := 1.0 - smoothstep(launch.global_position.y, launch.global_position.y + CLIMB_ABOVE_LAUNCH, prev.y)
+	var next := flight.advance(delta, steer, wind, height, pitch_input, climb_room)
 	if wind > 0.10 and not _was_in_lift:
 		_cue.play()
 	_was_in_lift = wind > 0.10
@@ -215,7 +231,7 @@ func _update_route_guide() -> void:
 
 func _glider_pose() -> void:
 	glider.global_position = flight.position
-	glider.rotation = Vector3(0.0, flight.heading, flight.bank)
+	glider.rotation = Vector3(flight.pitch, flight.heading, flight.bank)
 
 func _camera_pose(weight: float) -> void:
 	var offset := Vector3(0.0, 4.0, 9.4)
