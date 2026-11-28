@@ -85,14 +85,26 @@ func _run() -> void:
 	check(park.walker.visible and not park.get_node("Glider/RiderAnchor").visible and not park.action.visible, "Town entry should start on foot, away from the mount")
 	press(KEY_E)
 	check(park.state == park.State.DECK, "E from the overlook should not auto-launch")
-	var seats := ["PicnicTable/ValleySeat", "PicnicTable/TrailSeat", "Bench/Seat"]
+	var table: Node3D = park.get_node("Scenery/Overlook/PicnicTable")
+	park.walker.global_position = table.to_global(Vector3(0.0, 0.08, 1.25))
+	for _i in 14:
+		await physics_frame
+	press(KEY_E)
+	check(not park.walker.is_seated() and not park.action.visible, "The short end of the picnic table has no seat")
+	var seats := ["PicnicTable/EastSeat", "PicnicTable/WestSeat", "Bench/Seat"]
 	for index in seats.size():
 		var seat: Marker3D = park.get_node("Scenery/Overlook/" + seats[index])
 		var approach: Marker3D = seat.get_node("Approach")
 		# Move close, then walk toward the furniture using normal physics/input.
 		var outside := (approach.global_position - seat.global_position).slide(Vector3.UP).normalized()
-		park.walker.global_position = approach.global_position + outside * 0.35 + Vector3.UP * 0.08
+		park.walker.global_position = approach.global_position + outside * 0.22 + Vector3.UP * 0.08
 		var key := KEY_S if outside.z < 0.0 else KEY_W
+		if index < 2:
+			key = KEY_A if outside.x > 0.0 else KEY_D
+			var local := seat.position
+			# Scaled upper faces of the imported picnic plank, not the short ends.
+			check(absf(local.x) >= 0.45 * 1.01 and absf(local.x) <= 0.95 * 1.01 and absf(local.z) <= 0.95 * 0.82 and is_equal_approx(local.y, 0.60 * 0.78), "Picnic seat must be on the modeled plank")
+			check(seat.basis.z.dot(Vector3(-signf(local.x), 0.0, 0.0)) > 0.99, "Picnic seat must face the table")
 		key_event(key, true)
 		for _i in 12:
 			await physics_frame

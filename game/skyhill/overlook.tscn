@@ -58,18 +58,19 @@ scale = Vector3(1.01, 0.78, 0.82)
 position = Vector3(0, 0.39, 0)
 shape = SubResource("TableBounds")
 
-[node name="ValleySeat" type="Marker3D" parent="PicnicTable" groups=["skyhill_overlook_seat"]]
-position = Vector3(0, 0.468, 0.86)
-rotation_degrees = Vector3(0, 180, 0)
+[node name="EastSeat" type="Marker3D" parent="PicnicTable" groups=["skyhill_overlook_seat"]]
+position = Vector3(0.86, 0.468, 0)
+rotation_degrees = Vector3(0, -90, 0)
 
-[node name="Approach" type="Marker3D" parent="PicnicTable/ValleySeat"]
-position = Vector3(0, -0.468, -0.40)
+[node name="Approach" type="Marker3D" parent="PicnicTable/EastSeat"]
+position = Vector3(0, -0.468, -0.54)
 
-[node name="TrailSeat" type="Marker3D" parent="PicnicTable" groups=["skyhill_overlook_seat"]]
-position = Vector3(0, 0.468, -0.86)
+[node name="WestSeat" type="Marker3D" parent="PicnicTable" groups=["skyhill_overlook_seat"]]
+position = Vector3(-0.86, 0.468, 0)
+rotation_degrees = Vector3(0, 90, 0)
 
-[node name="Approach" type="Marker3D" parent="PicnicTable/TrailSeat"]
-position = Vector3(0, -0.468, -0.40)
+[node name="Approach" type="Marker3D" parent="PicnicTable/WestSeat"]
+position = Vector3(0, -0.468, -0.54)
 
 [node name="Bench" type="StaticBody3D" parent="."]
 position = Vector3(-4.7, 0, -1.3)
