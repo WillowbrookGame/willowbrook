@@ -5,54 +5,19 @@
 [ext_resource type="PackedScene" path="res://game/skyhill/art/tree_pineDefaultA.glb" id="pine"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/rock_smallB.glb" id="rock"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/fence_simple.glb" id="fence"]
-
-[sub_resource type="StandardMaterial3D" id="Mat_terrain"]
-albedo_color = Color(0.22, 0.43, 0.23, 1)
-roughness = 1.0
-
-[sub_resource type="StandardMaterial3D" id="Mat_meadow"]
-albedo_color = Color(0.42, 0.67, 0.3, 1)
-roughness = 1.0
-
-[sub_resource type="StandardMaterial3D" id="Mat_rock"]
-albedo_color = Color(0.45, 0.52, 0.51, 1)
-roughness = 1.0
-
-[sub_resource type="StandardMaterial3D" id="Mat_wood"]
-albedo_color = Color(0.48, 0.28, 0.14, 1)
-roughness = 1.0
-
-[sub_resource type="StandardMaterial3D" id="Mat_water"]
-albedo_color = Color(0.33, 0.8, 0.9, 1)
-roughness = 1.0
-emission_enabled = true
-emission = Color(0.33, 0.8, 0.9, 1)
-emission_energy_multiplier = 0.22
-
-[sub_resource type="StandardMaterial3D" id="Mat_foam"]
-albedo_color = Color(0.76, 0.97, 1, 1)
-roughness = 1.0
-emission_enabled = true
-emission = Color(0.76, 0.97, 1, 1)
-emission_energy_multiplier = 0.22
-
-[sub_resource type="StandardMaterial3D" id="Mat_lift"]
-albedo_color = Color(0.68, 0.95, 1, 1)
-roughness = 1.0
-emission_enabled = true
-emission = Color(0.68, 0.95, 1, 1)
-emission_energy_multiplier = 0.22
-
-[sub_resource type="StandardMaterial3D" id="Mat_guide"]
-albedo_color = Color(1, 0.72, 0.23, 1)
-roughness = 1.0
-emission_enabled = true
-emission = Color(1, 0.72, 0.23, 1)
-emission_energy_multiplier = 0.22
-
-[sub_resource type="StandardMaterial3D" id="Mat_white"]
-albedo_color = Color(0.97, 0.95, 0.81, 1)
-roughness = 1.0
+[ext_resource type="PackedScene" path="res://game/skyhill/art/valley-grass.glb" id="valley"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/landing-field.glb" id="field"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/launch-bluff.glb" id="bluff"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/west-cliffs.glb" id="west"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/east-cliffs.glb" id="east"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/scenic-ridge.glb" id="ridge"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/cedar-launch-deck.glb" id="cedar"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/cascade-water.glb" id="falls"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/cascade-spray.glb" id="spray"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/cascade-pool.glb" id="pool"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/curling-wind-ribbon.glb" id="ribbon"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/canvas-windsock.glb" id="sock"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/distant-ridges.glb" id="skyline"]
 
 [sub_resource type="BoxShape3D" id="Landing"]
 size = Vector3(92, 2, 105)
@@ -77,193 +42,29 @@ ambient_light_source = 2
 ambient_light_color = Color(0.89, 0.93, 1, 1)
 ambient_light_energy = 0.8
 
-[sub_resource type="BoxMesh" id="Mesh_ValleyFloor"]
-material = SubResource("Mat_terrain")
-size = Vector3(220, 5, 230)
-
 [sub_resource type="BoxShape3D" id="Shape_ValleyFloor"]
 size = Vector3(220, 5, 230)
-
-[sub_resource type="BoxMesh" id="Mesh_LandingMeadow"]
-material = SubResource("Mat_meadow")
-size = Vector3(94, 0.7, 107)
 
 [sub_resource type="BoxShape3D" id="Shape_LandingMeadow"]
 size = Vector3(94, 0.7, 107)
 
-[sub_resource type="BoxMesh" id="Mesh_LaunchHill"]
-material = SubResource("Mat_rock")
-size = Vector3(27, 26, 26)
-
 [sub_resource type="BoxShape3D" id="Shape_LaunchHill"]
 size = Vector3(27, 26, 26)
-
-[sub_resource type="BoxMesh" id="Mesh_Deck"]
-material = SubResource("Mat_wood")
-size = Vector3(13, 1, 12)
 
 [sub_resource type="BoxShape3D" id="Shape_Deck"]
 size = Vector3(13, 1, 12)
 
-[sub_resource type="BoxMesh" id="Mesh_WestWall"]
-material = SubResource("Mat_rock")
-size = Vector3(28, 13, 67)
-
 [sub_resource type="BoxShape3D" id="Shape_WestWall"]
 size = Vector3(28, 13, 67)
-
-[sub_resource type="BoxMesh" id="Mesh_EastWall"]
-material = SubResource("Mat_rock")
-size = Vector3(14, 23, 72)
 
 [sub_resource type="BoxShape3D" id="Shape_EastWall"]
 size = Vector3(14, 23, 72)
 
-[sub_resource type="BoxMesh" id="Mesh_ScenicRidge"]
-material = SubResource("Mat_rock")
-size = Vector3(19, 13.5, 12)
-
 [sub_resource type="BoxShape3D" id="Shape_ScenicRidge"]
 size = Vector3(19, 13.5, 12)
 
-[sub_resource type="BoxMesh" id="Mesh_ScenicRidgeTop"]
-material = SubResource("Mat_terrain")
-size = Vector3(19, 0.45, 12)
-
 [sub_resource type="BoxShape3D" id="Shape_ScenicRidgeTop"]
 size = Vector3(19, 0.45, 12)
-
-[sub_resource type="BoxMesh" id="Mesh_WaterSheet"]
-material = SubResource("Mat_water")
-size = Vector3(7.2, 17, 0.55)
-
-[sub_resource type="BoxMesh" id="Mesh_Foam"]
-material = SubResource("Mat_foam")
-size = Vector3(7, 0.44, 9)
-
-[sub_resource type="BoxMesh" id="Mesh_Pool"]
-material = SubResource("Mat_water")
-size = Vector3(10, 0.24, 13)
-
-[sub_resource type="BoxMesh" id="Mesh_WindRibbon0"]
-material = SubResource("Mat_lift")
-size = Vector3(0.24, 3.7, 0.2)
-
-[sub_resource type="BoxMesh" id="Mesh_WindRibbon1"]
-material = SubResource("Mat_lift")
-size = Vector3(0.24, 3.7, 0.2)
-
-[sub_resource type="BoxMesh" id="Mesh_WindRibbon2"]
-material = SubResource("Mat_lift")
-size = Vector3(0.24, 3.7, 0.2)
-
-[sub_resource type="BoxMesh" id="Mesh_WindRibbon3"]
-material = SubResource("Mat_lift")
-size = Vector3(0.24, 3.7, 0.2)
-
-[sub_resource type="BoxMesh" id="Mesh_WindRibbon4"]
-material = SubResource("Mat_lift")
-size = Vector3(0.24, 3.7, 0.2)
-
-[sub_resource type="BoxMesh" id="Mesh_WindRibbon5"]
-material = SubResource("Mat_lift")
-size = Vector3(0.24, 3.7, 0.2)
-
-[sub_resource type="BoxMesh" id="Mesh_WindRibbon6"]
-material = SubResource("Mat_lift")
-size = Vector3(0.24, 3.7, 0.2)
-
-[sub_resource type="BoxMesh" id="Mesh_Pole0"]
-material = SubResource("Mat_wood")
-size = Vector3(0.13, 5.8, 0.13)
-
-[sub_resource type="BoxMesh" id="Mesh_Sock0"]
-material = SubResource("Mat_guide")
-size = Vector3(0.84, 0.36, 0.28)
-
-[sub_resource type="BoxMesh" id="Mesh_Pole1"]
-material = SubResource("Mat_wood")
-size = Vector3(0.13, 5.8, 0.13)
-
-[sub_resource type="BoxMesh" id="Mesh_Sock1"]
-material = SubResource("Mat_guide")
-size = Vector3(0.84, 0.36, 0.28)
-
-[sub_resource type="BoxMesh" id="Mesh_Pole2"]
-material = SubResource("Mat_wood")
-size = Vector3(0.13, 5.8, 0.13)
-
-[sub_resource type="BoxMesh" id="Mesh_Sock2"]
-material = SubResource("Mat_guide")
-size = Vector3(0.84, 0.36, 0.28)
-
-[sub_resource type="BoxMesh" id="Mesh_Pole3"]
-material = SubResource("Mat_wood")
-size = Vector3(0.13, 5.8, 0.13)
-
-[sub_resource type="BoxMesh" id="Mesh_Sock3"]
-material = SubResource("Mat_guide")
-size = Vector3(0.84, 0.36, 0.28)
-
-[sub_resource type="BoxMesh" id="Mesh_Pole4"]
-material = SubResource("Mat_wood")
-size = Vector3(0.13, 5.8, 0.13)
-
-[sub_resource type="BoxMesh" id="Mesh_Sock4"]
-material = SubResource("Mat_guide")
-size = Vector3(0.84, 0.36, 0.28)
-
-[sub_resource type="BoxMesh" id="Mesh_Pole5"]
-material = SubResource("Mat_wood")
-size = Vector3(0.13, 5.8, 0.13)
-
-[sub_resource type="BoxMesh" id="Mesh_Sock5"]
-material = SubResource("Mat_guide")
-size = Vector3(0.84, 0.36, 0.28)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine0"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine1"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine2"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine3"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine4"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine5"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine6"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine7"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine8"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_MeadowLine9"]
-material = SubResource("Mat_white")
-size = Vector3(0.56, 0.04, 2.8)
-
-[sub_resource type="BoxMesh" id="Mesh_DeckSlat"]
-material = SubResource("Mat_wood")
-size = Vector3(12.8, 0.10, 1.21)
 
 [node name="Skyhill" type="Node3D"]
 script = ExtResource("logic")
@@ -309,8 +110,7 @@ shape = SubResource("Lift")
 [node name="ValleyFloor" type="StaticBody3D" parent="Scenery"]
 position = Vector3(0, -3.5, -63)
 
-[node name="Mesh" type="MeshInstance3D" parent="Scenery/ValleyFloor"]
-mesh = SubResource("Mesh_ValleyFloor")
+[node name="Art" parent="Scenery/ValleyFloor" instance=ExtResource("valley")]
 
 [node name="Collision" type="CollisionShape3D" parent="Scenery/ValleyFloor"]
 shape = SubResource("Shape_ValleyFloor")
@@ -318,8 +118,7 @@ shape = SubResource("Shape_ValleyFloor")
 [node name="LandingMeadow" type="StaticBody3D" parent="Scenery"]
 position = Vector3(0, -0.35, -125)
 
-[node name="Mesh" type="MeshInstance3D" parent="Scenery/LandingMeadow"]
-mesh = SubResource("Mesh_LandingMeadow")
+[node name="Art" parent="Scenery/LandingMeadow" instance=ExtResource("field")]
 
 [node name="Collision" type="CollisionShape3D" parent="Scenery/LandingMeadow"]
 shape = SubResource("Shape_LandingMeadow")
@@ -327,8 +126,7 @@ shape = SubResource("Shape_LandingMeadow")
 [node name="LaunchHill" type="StaticBody3D" parent="Scenery"]
 position = Vector3(0, 9, 22)
 
-[node name="Mesh" type="MeshInstance3D" parent="Scenery/LaunchHill"]
-mesh = SubResource("Mesh_LaunchHill")
+[node name="Art" parent="Scenery/LaunchHill" instance=ExtResource("bluff")]
 
 [node name="Collision" type="CollisionShape3D" parent="Scenery/LaunchHill"]
 shape = SubResource("Shape_LaunchHill")
@@ -336,48 +134,11 @@ shape = SubResource("Shape_LaunchHill")
 [node name="Deck" type="StaticBody3D" parent="Scenery"]
 position = Vector3(0, 22.6, 16)
 
-[node name="Mesh" type="MeshInstance3D" parent="Scenery/Deck"]
-mesh = SubResource("Mesh_Deck")
+[node name="Art" parent="Scenery/Deck" instance=ExtResource("cedar")]
 
 [node name="Collision" type="CollisionShape3D" parent="Scenery/Deck"]
 shape = SubResource("Shape_Deck")
 
-
-[node name="DeckSlat1" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 10.50)
-mesh = SubResource("Mesh_DeckSlat")
-
-[node name="DeckSlat2" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 11.83)
-mesh = SubResource("Mesh_DeckSlat")
-
-[node name="DeckSlat3" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 13.16)
-mesh = SubResource("Mesh_DeckSlat")
-
-[node name="DeckSlat4" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 14.49)
-mesh = SubResource("Mesh_DeckSlat")
-
-[node name="DeckSlat5" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 15.82)
-mesh = SubResource("Mesh_DeckSlat")
-
-[node name="DeckSlat6" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 17.15)
-mesh = SubResource("Mesh_DeckSlat")
-
-[node name="DeckSlat7" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 18.48)
-mesh = SubResource("Mesh_DeckSlat")
-
-[node name="DeckSlat8" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 19.81)
-mesh = SubResource("Mesh_DeckSlat")
-
-[node name="DeckSlat9" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(0, 23.14, 21.14)
-mesh = SubResource("Mesh_DeckSlat")
 
 [node name="DeckRail0" parent="Scenery" instance=ExtResource("fence")]
 position = Vector3(-4.5, 23.1, 21.9)
@@ -399,8 +160,7 @@ scale = Vector3(1.1, 1.5, 1.1)
 position = Vector3(-40, 3, -24)
 rotation = Vector3(0, -0.2, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="Scenery/WestWall"]
-mesh = SubResource("Mesh_WestWall")
+[node name="Art" parent="Scenery/WestWall" instance=ExtResource("west")]
 
 [node name="Collision" type="CollisionShape3D" parent="Scenery/WestWall"]
 shape = SubResource("Shape_WestWall")
@@ -409,8 +169,7 @@ shape = SubResource("Shape_WestWall")
 position = Vector3(44, 5, -33)
 rotation = Vector3(0, -0.1, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="Scenery/EastWall"]
-mesh = SubResource("Mesh_EastWall")
+[node name="Art" parent="Scenery/EastWall" instance=ExtResource("east")]
 
 [node name="Collision" type="CollisionShape3D" parent="Scenery/EastWall"]
 shape = SubResource("Shape_EastWall")
@@ -419,8 +178,7 @@ shape = SubResource("Shape_EastWall")
 position = Vector3(24, 4.5, -75)
 rotation = Vector3(0, -0.14, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="Scenery/ScenicRidge"]
-mesh = SubResource("Mesh_ScenicRidge")
+[node name="Art" parent="Scenery/ScenicRidge" instance=ExtResource("ridge")]
 
 [node name="Collision" type="CollisionShape3D" parent="Scenery/ScenicRidge"]
 shape = SubResource("Shape_ScenicRidge")
@@ -429,193 +187,70 @@ shape = SubResource("Shape_ScenicRidge")
 position = Vector3(24, 11.25, -75)
 rotation = Vector3(0, -0.14, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="Scenery/ScenicRidgeTop"]
-mesh = SubResource("Mesh_ScenicRidgeTop")
-
 [node name="Collision" type="CollisionShape3D" parent="Scenery/ScenicRidgeTop"]
 shape = SubResource("Shape_ScenicRidgeTop")
 
 [node name="Waterfall" type="Node3D" parent="Scenery"]
-position = Vector3(33, 7.5, -32)
+position = Vector3(34, 7.5, -32)
 
-[node name="WaterSheet" type="MeshInstance3D" parent="Scenery/Waterfall"]
-position = Vector3(-0.6, 0, 0)
-rotation = Vector3(0, -0.43, 0)
-mesh = SubResource("Mesh_WaterSheet")
-cast_shadow = 0
+[node name="Cascade" parent="Scenery/Waterfall" instance=ExtResource("falls")]
 
-[node name="Foam" type="MeshInstance3D" parent="Scenery/Waterfall"]
-position = Vector3(-1.8, -7.35, 0)
-mesh = SubResource("Mesh_Foam")
-cast_shadow = 0
+[node name="Foam" parent="Scenery/Waterfall" instance=ExtResource("spray")]
+position = Vector3(-1.05, -7.35, 0)
 
-[node name="Pool" type="MeshInstance3D" parent="Scenery/Waterfall"]
-position = Vector3(-3.2, -7.9, 0)
-mesh = SubResource("Mesh_Pool")
-cast_shadow = 0
+[node name="Pool" parent="Scenery/Waterfall" instance=ExtResource("pool")]
+position = Vector3(-3.80, -8.46, 0)
 
 [node name="UpdraftRibbons" type="Node3D" parent="Scenery"]
 position = Vector3(23, 15, -33)
 
-[node name="WindRibbon0" type="MeshInstance3D" parent="Scenery/UpdraftRibbons"]
+[node name="WindRibbon0" parent="Scenery/UpdraftRibbons" instance=ExtResource("ribbon")]
 position = Vector3(-5, -5, -2)
 rotation = Vector3(0.18, 0, -0.35)
-mesh = SubResource("Mesh_WindRibbon0")
-cast_shadow = 0
 
-[node name="WindRibbon1" type="MeshInstance3D" parent="Scenery/UpdraftRibbons"]
+[node name="WindRibbon1" parent="Scenery/UpdraftRibbons" instance=ExtResource("ribbon")]
 position = Vector3(-2, -3, 5)
 rotation = Vector3(0.18, 0, -0.22999999999999998)
-mesh = SubResource("Mesh_WindRibbon1")
-cast_shadow = 0
 
-[node name="WindRibbon2" type="MeshInstance3D" parent="Scenery/UpdraftRibbons"]
+[node name="WindRibbon2" parent="Scenery/UpdraftRibbons" instance=ExtResource("ribbon")]
 position = Vector3(3, -1, 0)
 rotation = Vector3(0.18, 0, -0.10999999999999999)
-mesh = SubResource("Mesh_WindRibbon2")
-cast_shadow = 0
 
-[node name="WindRibbon3" type="MeshInstance3D" parent="Scenery/UpdraftRibbons"]
+[node name="WindRibbon3" parent="Scenery/UpdraftRibbons" instance=ExtResource("ribbon")]
 position = Vector3(-3, 2, -5)
 rotation = Vector3(0.18, 0, 0.010000000000000009)
-mesh = SubResource("Mesh_WindRibbon3")
-cast_shadow = 0
 
-[node name="WindRibbon4" type="MeshInstance3D" parent="Scenery/UpdraftRibbons"]
+[node name="WindRibbon4" parent="Scenery/UpdraftRibbons" instance=ExtResource("ribbon")]
 position = Vector3(4, 5, 1)
 rotation = Vector3(0.18, 0, 0.13)
-mesh = SubResource("Mesh_WindRibbon4")
-cast_shadow = 0
 
-[node name="WindRibbon5" type="MeshInstance3D" parent="Scenery/UpdraftRibbons"]
+[node name="WindRibbon5" parent="Scenery/UpdraftRibbons" instance=ExtResource("ribbon")]
 position = Vector3(-2, 7, 3)
 rotation = Vector3(0.18, 0, 0.25)
-mesh = SubResource("Mesh_WindRibbon5")
-cast_shadow = 0
 
-[node name="WindRibbon6" type="MeshInstance3D" parent="Scenery/UpdraftRibbons"]
+[node name="WindRibbon6" parent="Scenery/UpdraftRibbons" instance=ExtResource("ribbon")]
 position = Vector3(1, 9, -3)
 rotation = Vector3(0.18, 0, 0.37)
-mesh = SubResource("Mesh_WindRibbon6")
-cast_shadow = 0
 
 [node name="RouteWindsocks" type="Node3D" parent="Scenery"]
 
-[node name="Pole0" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(-7.5, 1.9, -8)
-mesh = SubResource("Mesh_Pole0")
-cast_shadow = 0
+[node name="Windsock0" parent="Scenery/RouteWindsocks" instance=ExtResource("sock")]
+position = Vector3(-7.5, -1, -8)
 
-[node name="Sock0" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(-7.16, 4.6, -8)
-rotation = Vector3(0, 0, -0.4)
-mesh = SubResource("Mesh_Sock0")
-cast_shadow = 0
+[node name="Windsock1" parent="Scenery/RouteWindsocks" instance=ExtResource("sock")]
+position = Vector3(7.5, -1, -22)
 
-[node name="Pole1" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(7.5, 1.9, -22)
-mesh = SubResource("Mesh_Pole1")
-cast_shadow = 0
+[node name="Windsock2" parent="Scenery/RouteWindsocks" instance=ExtResource("sock")]
+position = Vector3(-7.5, -1, -36)
 
-[node name="Sock1" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(7.84, 4.6, -22)
-rotation = Vector3(0, 0, -0.4)
-mesh = SubResource("Mesh_Sock1")
-cast_shadow = 0
+[node name="Windsock3" parent="Scenery/RouteWindsocks" instance=ExtResource("sock")]
+position = Vector3(7.5, -1, -50)
 
-[node name="Pole2" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(-7.5, 1.9, -36)
-mesh = SubResource("Mesh_Pole2")
-cast_shadow = 0
+[node name="Windsock4" parent="Scenery/RouteWindsocks" instance=ExtResource("sock")]
+position = Vector3(-7.5, -1, -64)
 
-[node name="Sock2" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(-7.16, 4.6, -36)
-rotation = Vector3(0, 0, -0.4)
-mesh = SubResource("Mesh_Sock2")
-cast_shadow = 0
-
-[node name="Pole3" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(7.5, 1.9, -50)
-mesh = SubResource("Mesh_Pole3")
-cast_shadow = 0
-
-[node name="Sock3" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(7.84, 4.6, -50)
-rotation = Vector3(0, 0, -0.4)
-mesh = SubResource("Mesh_Sock3")
-cast_shadow = 0
-
-[node name="Pole4" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(-7.5, 1.9, -64)
-mesh = SubResource("Mesh_Pole4")
-cast_shadow = 0
-
-[node name="Sock4" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(-7.16, 4.6, -64)
-rotation = Vector3(0, 0, -0.4)
-mesh = SubResource("Mesh_Sock4")
-cast_shadow = 0
-
-[node name="Pole5" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(7.5, 1.9, -78)
-mesh = SubResource("Mesh_Pole5")
-cast_shadow = 0
-
-[node name="Sock5" type="MeshInstance3D" parent="Scenery/RouteWindsocks"]
-position = Vector3(7.84, 4.6, -78)
-rotation = Vector3(0, 0, -0.4)
-mesh = SubResource("Mesh_Sock5")
-cast_shadow = 0
-
-[node name="MeadowLine0" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -85)
-mesh = SubResource("Mesh_MeadowLine0")
-cast_shadow = 0
-
-[node name="MeadowLine1" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -92)
-mesh = SubResource("Mesh_MeadowLine1")
-cast_shadow = 0
-
-[node name="MeadowLine2" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -99)
-mesh = SubResource("Mesh_MeadowLine2")
-cast_shadow = 0
-
-[node name="MeadowLine3" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -106)
-mesh = SubResource("Mesh_MeadowLine3")
-cast_shadow = 0
-
-[node name="MeadowLine4" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -113)
-mesh = SubResource("Mesh_MeadowLine4")
-cast_shadow = 0
-
-[node name="MeadowLine5" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -120)
-mesh = SubResource("Mesh_MeadowLine5")
-cast_shadow = 0
-
-[node name="MeadowLine6" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -127)
-mesh = SubResource("Mesh_MeadowLine6")
-cast_shadow = 0
-
-[node name="MeadowLine7" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -134)
-mesh = SubResource("Mesh_MeadowLine7")
-cast_shadow = 0
-
-[node name="MeadowLine8" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -141)
-mesh = SubResource("Mesh_MeadowLine8")
-cast_shadow = 0
-
-[node name="MeadowLine9" type="MeshInstance3D" parent="Scenery"]
-position = Vector3(-18, 0.035, -148)
-mesh = SubResource("Mesh_MeadowLine9")
-cast_shadow = 0
+[node name="Windsock5" parent="Scenery/RouteWindsocks" instance=ExtResource("sock")]
+position = Vector3(7.5, -1, -78)
 
 [node name="Pine0" parent="Scenery" instance=ExtResource("pine")]
 position = Vector3(-32, 0.02, -89)
@@ -708,6 +343,150 @@ scale = Vector3(5, 5, 5)
 [node name="Rock6" parent="Scenery" instance=ExtResource("rock")]
 position = Vector3(33.8, -0.2, -66)
 scale = Vector3(5, 5, 5)
+
+[node name="DistantRidges" parent="Scenery" instance=ExtResource("skyline")]
+
+[node name="Woodland" type="Node3D" parent="Scenery"]
+
+[node name="Pine00" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-67, -1, -104)
+rotation = Vector3(0, 1.95, 0)
+scale = Vector3(5.08, 5.08, 5.08)
+
+[node name="Pine01" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-57, -1, -119)
+rotation = Vector3(0, -2.95, 0)
+scale = Vector3(4.26, 4.26, 4.26)
+
+[node name="Pine02" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-71, -1, -128)
+rotation = Vector3(0, -0.50, 0)
+scale = Vector3(5.73, 5.73, 5.73)
+
+[node name="Pine03" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-54, -1, -146)
+rotation = Vector3(0, -2.53, 0)
+scale = Vector3(4.92, 4.92, 4.92)
+
+[node name="Pine04" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-62, -1, -152)
+rotation = Vector3(0, 2.55, 0)
+scale = Vector3(4.72, 4.72, 4.72)
+
+[node name="Pine05" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-80, -1, -133)
+rotation = Vector3(0, 2.92, 0)
+scale = Vector3(5.40, 5.40, 5.40)
+
+[node name="Pine06" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-65, -1, -165)
+rotation = Vector3(0, 1.77, 0)
+scale = Vector3(5.71, 5.71, 5.71)
+
+[node name="Pine07" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(53, -1, -117)
+rotation = Vector3(0, 2.60, 0)
+scale = Vector3(3.81, 3.81, 3.81)
+
+[node name="Pine08" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(60, -1, -125)
+rotation = Vector3(0, 1.75, 0)
+scale = Vector3(4.73, 4.73, 4.73)
+
+[node name="Pine09" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(69, -1, -154)
+rotation = Vector3(0, -0.74, 0)
+scale = Vector3(5.93, 5.93, 5.93)
+
+[node name="Pine10" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(57, -1, -140)
+rotation = Vector3(0, -0.37, 0)
+scale = Vector3(4.87, 4.87, 4.87)
+
+[node name="Pine11" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(76, -1, -148)
+rotation = Vector3(0, -3.00, 0)
+scale = Vector3(4.17, 4.17, 4.17)
+
+[node name="Pine12" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(57, -1, -167)
+rotation = Vector3(0, 0.44, 0)
+scale = Vector3(5.97, 5.97, 5.97)
+
+[node name="Pine13" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-22, 0, -168)
+rotation = Vector3(0, 2.35, 0)
+scale = Vector3(5.06, 5.06, 5.06)
+
+[node name="Pine14" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-18, 0, -173)
+rotation = Vector3(0, 1.29, 0)
+scale = Vector3(5.05, 5.05, 5.05)
+
+[node name="Pine15" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(14, 0, -168)
+rotation = Vector3(0, 2.40, 0)
+scale = Vector3(5.15, 5.15, 5.15)
+
+[node name="Pine16" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(20, 0, -174)
+rotation = Vector3(0, -0.87, 0)
+scale = Vector3(3.77, 3.77, 3.77)
+
+[node name="Pine17" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(25, 0, -163)
+rotation = Vector3(0, 1.82, 0)
+scale = Vector3(4.53, 4.53, 4.53)
+
+[node name="Pine18" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(33, 0, -170)
+rotation = Vector3(0, -1.64, 0)
+scale = Vector3(4.42, 4.42, 4.42)
+
+[node name="Pine19" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-27, 0, -164)
+rotation = Vector3(0, 0.67, 0)
+scale = Vector3(4.84, 4.84, 4.84)
+
+[node name="Pine20" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-37, 9.5, -38)
+rotation = Vector3(0, 2.22, 0)
+scale = Vector3(3.82, 3.82, 3.82)
+
+[node name="Pine21" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-47, 9.5, -49)
+rotation = Vector3(0, -2.24, 0)
+scale = Vector3(5.09, 5.09, 5.09)
+
+[node name="Pine22" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-49, 9.5, -11)
+rotation = Vector3(0, 1.83, 0)
+scale = Vector3(5.67, 5.67, 5.67)
+
+[node name="Pine23" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(-39, 9.5, -14)
+rotation = Vector3(0, -2.67, 0)
+scale = Vector3(4.67, 4.67, 4.67)
+
+[node name="Pine24" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(43, 16.5, -52)
+rotation = Vector3(0, -1.43, 0)
+scale = Vector3(4.39, 4.39, 4.39)
+
+[node name="Pine25" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(46, 16.5, -43)
+rotation = Vector3(0, 2.23, 0)
+scale = Vector3(5.70, 5.70, 5.70)
+
+[node name="Pine26" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(43, 16.5, -23)
+rotation = Vector3(0, -1.26, 0)
+scale = Vector3(4.11, 4.11, 4.11)
+
+[node name="Pine27" parent="Scenery/Woodland" instance=ExtResource("pine")]
+position = Vector3(47, 16.5, -15)
+rotation = Vector3(0, 0.55, 0)
+scale = Vector3(4.26, 4.26, 4.26)
 
 [node name="Glider" type="Node3D" parent="."]
 position = Vector3(0, 24, 12)
