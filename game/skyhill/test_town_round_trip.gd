@@ -25,6 +25,21 @@ func press(key: Key) -> void:
 	key_event(key, true)
 	key_event(key, false)
 
+func click(button: Button) -> void:
+	var point := button.get_global_rect().get_center()
+	var move := InputEventMouseMotion.new()
+	move.position = point
+	move.global_position = point
+	root.push_input(move, true)
+	for down in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.position = point
+		event.global_position = point
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if down else 0
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = down
+		root.push_input(event, true)
+
 func _expect_scene(path: String) -> Node:
 	for _i in 30:
 		await process_frame
@@ -65,11 +80,53 @@ func _run() -> void:
 		return
 	check(park.get_node("Glider/RiderAnchor").get_child(0).get_meta("avatar_id") == "female-a", "Skyhill did not receive the selected avatar")
 	check(native.zone.is_empty() and not has_meta(LINK.ARRIVAL), "Solo Skyhill must suspend Town presence and consume arrival data")
-	check(park.town_return.visible and park.get_node("Scenery/Overlook/PicnicTable").scene_file_path.ends_with(".gltf"), "Town entry should offer return and show the editable picnic scenery")
+	check(park.town_return.visible and park.get_node("Scenery/Overlook/PicnicTable/Art").scene_file_path.ends_with(".gltf"), "Town entry should offer return and show the editable picnic scenery")
 	check(park.walker.get_node("Body").get_child(0).get_meta("avatar_id") == "female-a", "Walking should use the same selected avatar")
 	check(park.walker.visible and not park.get_node("Glider/RiderAnchor").visible and not park.action.visible, "Town entry should start on foot, away from the mount")
 	press(KEY_E)
 	check(park.state == park.State.DECK, "E from the overlook should not auto-launch")
+	var seats := ["PicnicTable/ValleySeat", "PicnicTable/TrailSeat", "Bench/Seat"]
+	for index in seats.size():
+		var seat: Marker3D = park.get_node("Scenery/Overlook/" + seats[index])
+		var approach: Marker3D = seat.get_node("Approach")
+		# Move close, then walk toward the furniture using normal physics/input.
+		var outside := (approach.global_position - seat.global_position).slide(Vector3.UP).normalized()
+		park.walker.global_position = approach.global_position + outside * 0.35 + Vector3.UP * 0.08
+		var key := KEY_S if outside.z < 0.0 else KEY_W
+		key_event(key, true)
+		for _i in 12:
+			await physics_frame
+		key_event(key, false)
+		park._refresh_deck_hud()
+		check(park.walker.nearby_seat() == seat and park.action.text.begins_with("Sit") and park.action.visible, "Walking up should offer Sit at " + seats[index])
+		if index == 2:
+			park._touch_seen = true
+			park._refresh_deck_hud()
+			check(park.action.text == "Sit", "Touch Sit should omit the keyboard hint")
+			await process_frame
+		var approach_position: Vector3 = park.walker.global_position
+		if index == 2:
+			click(park.action)
+		else:
+			press(KEY_E)
+		check(park.walker.is_seated() and park.walker.global_position.is_equal_approx(seat.global_position), "Sit should place the walker on " + seats[index])
+		check(absf(angle_difference(park.walker.body.global_rotation.y, seat.global_rotation.y)) < 0.001 and park.walker._animation.current_animation == "sit", "Sit should face the authored direction and play the sitting animation")
+		check(park.action.text.begins_with("Stand up") and not park.walk_stick.visible and not park.walker.can_mount(), "Seated action must stand up, not launch")
+		key_event(KEY_W, true)
+		for _i in 4:
+			await physics_frame
+		key_event(KEY_W, false)
+		check(park.walker.global_position.is_equal_approx(seat.global_position), "Movement must not dislodge a seated player")
+		if index == 2:
+			click(park.action)
+		else:
+			press(KEY_E)
+		check(not park.walker.is_seated() and park.walker.global_position.is_equal_approx(approach_position), "Stand should return to the walk-up point")
+		check(park.walker.body.position.is_zero_approx() and park.walker._animation.current_animation == "idle", "Standing should reset the visual offset and pose")
+		for _i in 4:
+			await physics_frame
+		check(park.walker.is_on_floor(), "Standing up should leave the walker grounded")
+	park._on_deck()
 	var arrival_on_deck: Vector3 = park.walker.global_position
 	key_event(KEY_D, true)
 	for _i in 135:
@@ -143,5 +200,5 @@ func _run() -> void:
 	if park != null:
 		check(park.get_node("Glider/RiderAnchor").get_child(0).get_meta("avatar_id") == AVATARS.DEFAULT and not park.town_return.visible, "Standalone opens with the default rider and no Town return")
 	if failures == 0:
-		print("PASS Town/Skyhill round trip: selected avatar, keyboard/touch deck walking, edge guards, deliberate launch, landing/crash recovery, and Town/standalone return")
+		print("PASS Town/Skyhill round trip: selected avatar, keyboard/touch deck walking, all three seats, edge guards, deliberate launch, landing/crash recovery, and Town/standalone return")
 	quit(0 if failures == 0 else 1)

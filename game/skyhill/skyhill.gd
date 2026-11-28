@@ -170,7 +170,7 @@ func _handle_deck_touch(event: InputEvent) -> void:
 		if event.pressed and not _touch_seen:
 			_touch_seen = true
 			_refresh_deck_hud()
-		if event.pressed and touch_index < 0 and walk_stick.contains_point(event.position):
+		if event.pressed and walk_stick.visible and touch_index < 0 and walk_stick.contains_point(event.position):
 			touch_index = event.index
 			_walk_touch = walk_stick.aim_at(event.position)
 			get_viewport().set_input_as_handled()
@@ -186,11 +186,18 @@ func _walking_deck() -> bool:
 
 func _refresh_deck_hud() -> void:
 	var can_launch: bool = walker.can_mount()
-	action.visible = can_launch
-	action.text = "Launch" if _touch_seen else "Launch (E)"
+	var is_seated: bool = walker.is_seated()
+	var can_sit: bool = not can_launch and walker.nearby_seat() != null
+	var verb := "Stand up" if is_seated else ("Sit" if can_sit else "Launch")
+	action.visible = can_launch or is_seated or can_sit
+	action.text = verb if _touch_seen else verb + " (E)"
 	town_return.text = "Back to Town" if _touch_seen else "Back to Town (R)"
-	walk_stick.visible = _touch_seen
-	if can_launch:
+	walk_stick.visible = _touch_seen and not is_seated
+	if is_seated:
+		prompt.text = "Enjoy the view. Stand up when you’re ready to walk."
+	elif can_sit:
+		prompt.text = "Take a seat and enjoy the view."
+	elif can_launch:
 		prompt.text = "In flight: " + (TOUCH_HINT if _touch_seen else KEY_HINT)
 	else:
 		prompt.text = "Use the stick to walk over to the glider." if _touch_seen else "Use WASD or the arrow keys to walk over to the glider."
@@ -230,6 +237,10 @@ func _action() -> void:
 		State.DECK:
 			if not _walking_deck() or walker.can_mount():
 				_launch()
+			elif walker.toggle_sitting():
+				_flight_keys.clear()
+				_clear_stick()
+				_refresh_deck_hud()
 		State.FLYING, State.LANDING, State.MEADOW, State.CRASHED: _on_deck()
 
 func _return_to_town() -> void:
