@@ -43,7 +43,7 @@ function cleanPose(m){
  if(typeof m.zone!=='string'||!publicZones.has(m.zone)&&m.zone!=='private')return null;
  if(m.zone==='private')return {zone:'private',x:0,y:0,z:0,yaw:0,grounded:true,moving:false,rest:'',glide:null};
  const skyhill=m.zone==='skyhill';
- if(![m.x,m.y,m.z,m.yaw].every(Number.isFinite)||Math.abs(m.x)>240||Math.abs(m.z)>240||m.y<(skyhill?-4:m.zone==='reef'?-22:-10)||m.y>(skyhill?42:25)||Math.abs(m.yaw)>Math.PI*2)return null;
+ if(![m.x,m.y,m.z,m.yaw].every(Number.isFinite)||Math.abs(m.x)>240||Math.abs(m.z)>240||m.y<(skyhill?-4:m.zone==='reef'?-22:-10)||m.y>(skyhill?88:25)||Math.abs(m.yaw)>Math.PI*2)return null;
  // Match the Godot Skyhill presence contract; never forward its fields in other zones.
  const glide=skyhill&&Array.isArray(m.glide)&&m.glide.length===2&&m.glide.every(Number.isFinite)&&Math.abs(m.glide[0])<=.7&&Math.abs(m.glide[1])<=1.6?m.glide:null;
  const maySit=skyhill?!glide&&m.grounded===true&&Math.abs(m.x)<=6.25&&m.y>=23&&m.y<=24.2&&m.z>=10.5&&m.z<=21.5:Math.abs(m.y)<1.5&&['bank','vet','salon','store','cafe','library'].includes(m.zone);

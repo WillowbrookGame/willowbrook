@@ -235,12 +235,16 @@ func _run() -> void:
 	await physics_frame
 	await physics_frame
 	var terrain_space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
-	var shoulder := terrain_space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(75, 35, -130), Vector3(75, -8, -130), 1))
+	var shoulder := terrain_space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(-82, 35, -130), Vector3(-82, -8, -130), 1))
 	check(not shoulder.is_empty() and shoulder.position.y > 2.0, "Sloped valley terrain should carry its collision")
+	for pine: Node3D in level.get_node("Scenery/EastBasin/PineGroves").get_children():
+		var above := pine.global_position + Vector3.UP * 12.0
+		var footing := terrain_space.intersect_ray(PhysicsRayQueryParameters3D.create(above, above + Vector3.DOWN * 25.0, 1))
+		check(not footing.is_empty() and absf(footing.position.y-pine.global_position.y)<.12, "Basin tree must sit on the ground: " + String(pine.name))
 	var basin := terrain_space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(30, 4, -30), Vector3(30, -8, -30), 1))
 	check(not basin.is_empty() and absf(basin.position.y + 1.0) < 0.05, "Creek basin must stay below the course")
 	check(level.get_node("Scenery/Creek").scene_file_path.ends_with(".glb"), "Creek should be an independently editable art asset")
-	for cliff_group in ["LaunchBluff", "WestCliffs", "EastCliffs", "ScenicRidge"]:
+	for cliff_group in ["LaunchBluff", "WestCliffs", "EastCliffs", "ScenicRidge", "EastBasin/FarRidge"]:
 		var cliff: Node3D = level.get_node("Scenery/" + cliff_group)
 		for piece in cliff.get_children():
 			check(not piece.find_children("*", "CollisionShape3D", true, false).is_empty(), "Missing mesh collision on %s" % piece.name)
@@ -322,7 +326,7 @@ func _run() -> void:
 	level._action()
 	check(level.state == level.State.DECK and level.flight.position == launch, "Return should work mid-air")
 	level._action()
-	level.flight.position = Vector3(106, 18, -25)
+	level.flight.position = Vector3(219, 18, -25)
 	level.step_flight(FRAME, 0)
 	check(level.state == level.State.DECK, "Out-of-bounds glider was not recovered")
 
@@ -365,7 +369,18 @@ func _run() -> void:
 		level.flight.lift = 0.0
 		level.flight.heading = PI
 		level._update_route_guide()
-		check(not level.guide.visible, "Guide should hide after passing or turning away")
+		check(not level.guide.visible, "First-flight guide should hide when turning away")
+		level._last_lift = level.ridge_lift
+		level.flight.heading = -PI * 0.5
+		level._camera_pose(1.0)
+		level._update_route_guide()
+		var next_rect: Rect2 = level.guide.get_global_rect()
+		check(level.guide.visible and level.guide_label.text.contains("West ridge lift"), "Scenic guide should point to the west ridge even while the pilot faces east")
+		check(root.get_visible_rect().encloses(next_rect) and not next_rect.intersects(level.prompt.get_global_rect()) and not next_rect.intersects(level.stick.get_global_rect()) and not next_rect.intersects(level.action.get_global_rect()), "Scenic guide must stay clear of HUD controls at %s" % view)
+		check(level._flight_instructions().contains("Circle to climb"), "Flight instructions should explain circling")
+		level._last_lift = level.west_lift
+		check(level._flight_instructions().contains("descend toward the waterfall"), "Flight instructions should explain returning to the lower lift")
+		level._last_lift = null
 		level.flight.heading = 0.0
 		var touch := InputEventScreenTouch.new()
 		touch.pressed = true

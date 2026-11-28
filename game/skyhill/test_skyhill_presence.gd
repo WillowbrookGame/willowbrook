@@ -43,10 +43,10 @@ func _run() -> void:
 	quit(1 if failures else 0)
 
 func local_checks() -> void:
-	var row := {"id":2,"alias":"Pilot","zone":"skyhill","x":23,"y":35.2,"z":-33,"yaw":1,"moving":true,"grounded":false,"glide":[.23,-.4]}
+	var row := {"id":2,"alias":"Pilot","zone":"skyhill","x":23,"y":74.2,"z":-33,"yaw":1,"moving":true,"grounded":false,"glide":[.23,-.4]}
 	var world := {"type":"world","zone":"skyhill","players":[row],"presence":[{"alias":"Pilot","place":"At Skyhill Park"}]}
 	check(not SCHEMA.parse(JSON.stringify(world).to_utf8_buffer()).is_empty(),"World accepts Skyhill flight above old limit")
-	row.y=42.1
+	row.y=88.1
 	check(not SCHEMA.valid(world),"World rejects out-of-course height")
 	row.y=35
 	row.glide=[0,1.7]

@@ -124,14 +124,15 @@ def valley_landscape():
     m = Mesh()
     # Coordinates match the world course; the mesh origin remains on ValleyFloor.
     # Keep the approach, windsock bases, waterfall pool, and touchdown lane level.
-    xs = [-132,-112,-94,-77,-63,-52,-46,-39,-30,-20,-10,0,10,20,30,39,46,52,63,77,94,112,132]
+    xs = [-132,-112,-94,-77,-63,-52,-46,-39,-30,-20,-10,0,10,20,30,39,46,52,63,77,94,112,132,148,160,169,175,190,207,226,250]
     zs = [-225,-204,-190,-178.5,-166,-151,-135,-119,-103,-87,-71.5,-62,-52,-42,-32,-22,-12,0,15,32,54,75]
     palette = ("72994f","72964d","77994f","69924b","6f984b")
     high = ("507a40","5c8243","648947","567d42")
     apron = ("89a753","87a451","89a653","86a451")
-    grid = []
+    grid, old_grid = [], []
+    east_rng = random.Random(1582)
     for z in zs:
-        row = []
+        row, old_row = [], []
         for x in xs:
             # Low shoulders give the valley a gradual edge without raising either flight route.
             shoulder = max(0.0, (abs(x)-51)/63)
@@ -145,14 +146,30 @@ def valley_landscape():
             # Align the creek's landing basin with the existing water level.
             if 19<=x<=43 and -46<=z<=-19:
                 height=0.0
+            old_row.append(height + 2.5)
+            if x > 63:
+                # Blend the old valley into an open basin and raise the outer foothills.
+                t = min(1.0, (x-63)/28)
+                blend_east = t*t*(3-2*t)
+                foothill = max(0.0, (x-150)/90)
+                basin = 1.15 + .65*math.sin(.043*z+.07*x) + foothill*foothill*22
+                height += (basin-height)*blend_east
             row.append((x, 2.5+height, z+63))
         grid.append(row)
+        old_grid.append(old_row)
     for j,z in enumerate(zs[:-1]):
         for i,x in enumerate(xs[:-1]):
             corners = (grid[j][i],grid[j+1][i],grid[j+1][i+1],grid[j][i+1])
-            elev = sum(v[1] for v in corners)/4
-            colors = high if elev>7 else apron if elev>2.95 and abs(x)<59 and z<-65 else palette
-            m.quad(*corners,rng.choice(colors),(0,1,0),rng.choice(colors))
+            if x < 132:
+                # Keep the original color stream (including the following creek mesh).
+                old_elev = (old_grid[j][i]+old_grid[j+1][i]+old_grid[j+1][i+1]+old_grid[j][i+1])/4
+                old_colors = high if old_elev>7 else apron if old_elev>2.95 and abs(x)<59 and z<-65 else palette
+                colors = rng.choice(old_colors), rng.choice(old_colors)
+            if x >= 63:
+                elev = sum(v[1] for v in corners)/4
+                basin_colors = high if elev > 7 else palette
+                colors = east_rng.choice(basin_colors), east_rng.choice(basin_colors)
+            m.quad(*corners,colors[0],(0,1,0),colors[1])
     m.save("valley-grass",collision=True)
 
 def creek_landscape():
@@ -255,7 +272,7 @@ def water():
 
 def skyline():
     m=Mesh()
-    for x,z,h,w,d in ((-91,-265,47,130,110),(3,-301,63,150,120),(109,-270,51,140,114),(155,-222,42,150,120),(-151,-188,32,118,109)):
+    for x,z,h,w,d in ((-91,-265,47,130,110),(3,-301,63,150,120),(109,-270,51,140,114),(219,-263,42,150,120),(-151,-188,32,118,109)):
         rows=[]
         for j,(frac,y) in enumerate(((1,-13),(.80,h*.42),(.50,h*.78),(.17,h))):
             rows.append([(x+math.cos(i*math.tau/10)*(w/2)*frac+rng.uniform(-4,4),y+rng.uniform(-4,4),z+math.sin(i*math.tau/10)*(d/2)*frac+rng.uniform(-4,4)) for i in range(10)])
