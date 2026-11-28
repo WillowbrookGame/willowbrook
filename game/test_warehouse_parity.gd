@@ -12,6 +12,7 @@ const ORIGINAL_PATROL := [
 	Vector3(-11.1,0,-8.1), Vector3(-18.6,0,3.7), Vector3(-10.5,0,8.3),
 	Vector3(5.6,0,8.0), Vector3(10.1,0,5.7), Vector3(19.2,0,5.0),
 	Vector3(10.0,0,-6.0), Vector3(4.2,0,-8.0), Vector3(-8.9,0,-9.3),
+	Vector3(1.1,0,-3.2), Vector3(6.8,4.5,-3.2), Vector3(-1.1,0,3.2), Vector3(-6.8,4.5,3.2),
 ]
 
 func _initialize() -> void:
@@ -27,7 +28,21 @@ func _ray(world: Node3D, start: Vector3, end: Vector3, mask: int) -> Dictionary:
 	return world.get_world_3d().direct_space_state.intersect_ray(
 		PhysicsRayQueryParameters3D.create(start, end, mask))
 
-func _check_yard(yard: Node3D, label: String) -> bool:
+func _check_yard(yard: YARD, label: String) -> bool:
+	if not _require(yard.match_spawns.size() == ORIGINAL_SPAWNS.size()
+			and yard.bot_waypoints.size() == ORIGINAL_PATROL.size()
+			and yard.south_lobby.is_equal_approx(ORIGINAL_SPAWNS[0])
+			and yard.town_exit.is_equal_approx(Vector3(-1.65,0,9.95)),
+			label + ": original placement data is missing or incomplete"):
+		return false
+	for i in ORIGINAL_SPAWNS.size():
+		if not _require(yard.match_spawns[i].is_equal_approx(ORIGINAL_SPAWNS[i]),
+				label + ": original spawn order or placement changed"):
+			return false
+	for i in ORIGINAL_PATROL.size():
+		if not _require(yard.bot_waypoints[i].is_equal_approx(ORIGINAL_PATROL[i]),
+				label + ": original waypoint order or placement changed"):
+			return false
 	var model := yard.get_node("WarehouseModel") as Node3D
 	var solid := yard.get_node("YardCollision") as StaticBody3D
 	var guards := yard.get_node("BarrelPocketGuards") as StaticBody3D
@@ -77,16 +92,13 @@ func _walk_catwalk(body: CharacterBody3D, label: String) -> bool:
 	return _require(body.position.x > 6.2,label + " actor was blocked on the catwalk")
 
 func _run() -> void:
-	if not _require(YARD.SPAWNS == ORIGINAL_SPAWNS and YARD.PATROL == ORIGINAL_PATROL,
-			"Original spawn order or patrol route changed"):
-		return
 	if not _require(change_scene_to_file("res://game/arena.tscn") == OK, "Client arena failed to load"):
 		return
 	await scene_changed
 	await physics_frame
 	await physics_frame
 	var client := current_scene
-	var client_yard := client.get_node("WarehouseYard") as Node3D
+	var client_yard := client.get_node("WarehouseYard") as YARD
 	if not _check_yard(client_yard,"client"):
 		return
 	var solid_faces := _shape_faces(client_yard,"YardCollision")
@@ -113,7 +125,7 @@ func _run() -> void:
 	root.add_child(authority)
 	await physics_frame
 	await physics_frame
-	var worker_yard := authority.arena.get_node("WarehouseYard") as Node3D
+	var worker_yard := authority.arena.get_node("WarehouseYard") as YARD
 	if not _check_yard(worker_yard,"worker"):
 		return
 	if not _require(_shape_faces(worker_yard,"YardCollision") == solid_faces

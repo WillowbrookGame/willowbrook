@@ -23,6 +23,7 @@ var host_slot := ""
 var rules := RULES.new()
 var next_events: Array[Dictionary] = []
 var arena: Node3D
+var yard: YARD
 var _spawns: Array[String] = []
 var _room_time := 0
 var _event_id := 0
@@ -33,14 +34,15 @@ func _ready() -> void:
 	# Share only the yard; the client scene owns its own HUD, camera and exit.
 	arena = Node3D.new()
 	arena.name = "PaintballArena"
-	arena.add_child(YARD_SCENE.instantiate())
+	yard = YARD_SCENE.instantiate() as YARD
+	arena.add_child(yard)
 	add_child(arena)
 	var exit_collision := StaticBody3D.new()
 	var mask := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = Vector3(2.65,3,.24)
 	mask.shape = shape
-	exit_collision.position = YARD.TOWN_EXIT+Vector3(0,1.5,.34)
+	exit_collision.position = yard.town_exit+Vector3(0,1.5,.34)
 	exit_collision.add_child(mask)
 	arena.add_child(exit_collision)
 
@@ -95,7 +97,7 @@ func _add_slot(id: String, alias: String, bot: bool, avatar_id := AVATARS.DEFAUL
 	body.set_physics_process(false)
 	var idx := _spawns.size()
 	_spawns.append(id)
-	body.position = YARD.SPAWNS[idx]
+	body.position = yard.match_spawns[idx]
 	var strafe := 1.0 if idx % 2 == 1 else -1.0
 	slots[id] = {"id":id,"alias":alias,"bot":bot,"avatar":avatar_id,"body":body,"connected":true,"ready":bot,"hold":0,"retired":false,"last_input":-1,"last_at":-1,"axis":Vector2.ZERO,"pitch":0.0,"jump":false,"paint":false,"next_paint":0,"immune_until":0,"flee_at":0,"flee_from":Vector3.ZERO,"strafe_dir":strafe,"route":idx*3,"ticks_blocked":0}
 	rules.points[id] = 0
@@ -137,7 +139,7 @@ func _begin_round(now: int) -> void:
 	for i in _spawns.size():
 		var s: Dictionary=slots[_spawns[i]]
 		var body: PLAYER=s.body
-		body.position=YARD.SPAWNS[i]
+		body.position=yard.match_spawns[i]
 		body.velocity=Vector3.ZERO
 		body.touch_motion=Vector2.ZERO
 		body.movement_locked=true
@@ -309,10 +311,10 @@ func _finish_round() -> void:
 
 func _flee_waypoint(s: Dictionary, away_from: Vector3) -> void:
 	var body: PLAYER=s.body
-	var best_idx: int=int(s.route)%YARD.SOLO_PATROL.size()
+	var best_idx: int=int(s.route)%yard.bot_waypoints.size()
 	var best_dist:=-1.0
-	for i in YARD.SOLO_PATROL.size():
-		var waypoint: Vector3=YARD.SOLO_PATROL[i]
+	for i in yard.bot_waypoints.size():
+		var waypoint: Vector3=yard.bot_waypoints[i]
 		var dist:=waypoint.distance_squared_to(away_from)
 		if dist>best_dist and waypoint.distance_squared_to(body.position)>9.0:
 			best_dist=dist
@@ -325,11 +327,11 @@ func _bot(s: Dictionary, dt: float, now: int) -> void:
 	if int(s.flee_at)>0 and now>=int(s.flee_at):
 		s.flee_at=0
 		_flee_waypoint(s,s.flee_from)
-	var goal: Vector3=YARD.SOLO_PATROL[int(s.route)%YARD.SOLO_PATROL.size()]
+	var goal: Vector3=yard.bot_waypoints[int(s.route)%yard.bot_waypoints.size()]
 	var offset:=goal-body.position
 	offset.y=0
 	if offset.length_squared()<1.2 or int(s.ticks_blocked)>48:
-		s.route=(int(s.route)+_rng.randi_range(1,3))%YARD.SOLO_PATROL.size()
+		s.route=(int(s.route)+_rng.randi_range(1,3))%yard.bot_waypoints.size()
 		s.ticks_blocked=0
 		s.strafe_dir=-float(s.strafe_dir)
 	var nearest: PLAYER

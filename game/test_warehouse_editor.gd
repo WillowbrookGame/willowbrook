@@ -1,5 +1,8 @@
 extends SceneTree
 
+const YARD_SCRIPT := preload("res://game/warehouse_yard.gd")
+const SPAWN := "GameplayMarkers/MatchSpawns/Slot01"
+const WAYPOINT := "GameplayMarkers/BotWaypoints/Waypoint13"
 const YARD := preload("res://game/warehouse_yard.tscn")
 const PROP := "WarehouseModel/Yard_Containers/Containers/Container_SW2"
 
@@ -30,16 +33,25 @@ func run() -> void:
 	await physics_frame
 
 	# Pack and reopen the editor's changed scene before either gameplay entry point uses it.
-	var authored := YARD.instantiate() as Node3D
+	var authored := YARD.instantiate() as YARD_SCRIPT
 	var moved := authored.get_node(PROP) as MeshInstance3D
 	moved.position.y += 4.0
+	var spawn := authored.get_node(SPAWN) as Marker3D
+	var waypoint := authored.get_node(WAYPOINT) as Marker3D
+	spawn.position += Vector3(1,0,0)
+	waypoint.position += Vector3(0,0,1)
+	var edited_spawn := spawn.position
+	var edited_waypoint := waypoint.position
 	var packed := PackedScene.new()
 	if not expect(packed.pack(authored) == OK,"Could not pack the edited scene"): return
 	authored.free()
-	var reopened := packed.instantiate() as Node3D
+	var reopened := packed.instantiate() as YARD_SCRIPT
 	root.add_child(reopened)
 	await physics_frame
 	await physics_frame
+	if not expect(reopened.match_spawns[0].is_equal_approx(edited_spawn)
+			and reopened.bot_waypoints[12].is_equal_approx(edited_waypoint),
+			"Editor changes to the first spawn and last route marker were not preserved for runtime"): return
 	moved = reopened.get_node(PROP) as MeshInstance3D
 	var lift := Vector3.UP * 1.8
 	if not expect(moved.global_position.is_equal_approx(probe+lift),"The editor's prop move was not preserved on reopen"): return
@@ -53,7 +65,7 @@ func run() -> void:
 	if not expect(changed == moved.mesh.get_faces().size(),"Exactly the moved prop's collision triangles should follow the edit"): return
 	hit = roof_hit(reopened,probe)
 	if not expect(hit.get("collider") == reopened.get_node("YardCollision") and absf(hit.position.y - (base_height+lift.y)) < .002,"Physics did not pick up the moved roof in the edited scene"): return
-	print("PASS: individual Warehouse Yard prop edit persisted and moved exactly its collision triangles.")
+	print("PASS: Warehouse Yard prop and gameplay marker edits persisted; only edited prop collision moved.")
 	quit(0)
 
 func triangles(yard: Node3D) -> PackedVector3Array:

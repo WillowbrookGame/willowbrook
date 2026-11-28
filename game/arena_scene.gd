@@ -93,12 +93,12 @@ var _mouse_holding_fire := false
 
 
 func _build_zone_geometry() -> void:
-	door_position = WAREHOUSE_YARD.TOWN_EXIT
+	door_position = yard.town_exit
 	ZONE_GEOMETRY.build_arena_exit(self, door_position)
 
 
 func _setup_zone_player() -> void:
-	player.position = WAREHOUSE_YARD.SOUTH_LOBBY
+	player.position = yard.south_lobby
 	player.world_bounds = WAREHOUSE_YARD.WORLD_BOUNDS
 	player.arena_movement = true
 	player.collision_mask = 3
@@ -219,7 +219,7 @@ func _setup_zone(hud: CanvasLayer) -> void:
 		arena_match.round_started.connect(_reset_arena_round_view)
 		arena_match.player_scored_tag.connect(flash_hitmarker)
 		arena_match.player_was_tagged.connect(flash_tagged)
-		arena_match.setup(player, marker_preview, hud, profile)
+		arena_match.setup(player, marker_preview, hud, yard, profile)
 
 
 func _reset_arena_round_view() -> void:
