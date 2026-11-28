@@ -85,5 +85,5 @@ The owner-retained Collectible Run GLB has 1,761,132 bytes and SHA-256 `f5edf3fa
 | Included files | Source and license |
 | --- | --- |
 | `game/skyhill/art/hang-glider.glb` | [Hang Glider by Vinish.dev](https://vinish.dev/free-3d-models/airships-and-gliders#hang-glider), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The original GLB is unmodified; the instance is scaled and positioned, with a separate Willowbrook rider added in the Godot scene. |
-| `game/skyhill/art/{tree_pineDefaultA,rock_smallB,fence_simple}.glb` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) 2.1, CC0. Selected unmodified GLBs; the kit's original notice is included. |
+| `game/skyhill/art/{tree_pineDefaultA,rock_smallB,fence_simple,grass_leafsLarge,flower_yellowA,plant_bushDetailed}.glb` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) 2.1, CC0. Selected unmodified GLBs; the kit's original notice is included. |
 | Other GLBs in `game/skyhill/art/` | Original low-poly scenery created for Willowbrook, including terrain, deck, waterfall, windsock and wind cues. Reproducible from the adjacent `build_skyhill_art.py` source; no additional third-party art. |

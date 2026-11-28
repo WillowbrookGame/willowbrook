@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://game/skyhill/art/rock_smallB.glb" id="rock"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/fence_simple.glb" id="fence"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/valley-grass.glb" id="valley"]
+[ext_resource type="PackedScene" path="res://game/skyhill/art/skyhill-creek.glb" id="creek"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/landing-field.glb" id="field"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/launch-bluff.glb" id="bluff"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/west-cliffs.glb" id="west"]
@@ -18,6 +19,12 @@
 [ext_resource type="PackedScene" path="res://game/skyhill/art/curling-wind-ribbon.glb" id="ribbon"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/canvas-windsock.glb" id="sock"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/distant-ridges.glb" id="skyline"]
+
+[ext_resource type="PackedScene" path="res://game/skyhill/art/grass_leafsLarge.glb" id="bankgrass"]
+
+[ext_resource type="PackedScene" path="res://game/skyhill/art/flower_yellowA.glb" id="wildflower"]
+
+[ext_resource type="PackedScene" path="res://game/skyhill/art/plant_bushDetailed.glb" id="bush"]
 
 [sub_resource type="BoxShape3D" id="Landing"]
 size = Vector3(92, 2, 105)
@@ -41,9 +48,10 @@ sky = SubResource("Sky")
 ambient_light_source = 2
 ambient_light_color = Color(0.89, 0.93, 1, 1)
 ambient_light_energy = 0.8
-
-[sub_resource type="BoxShape3D" id="Shape_ValleyFloor"]
-size = Vector3(220, 5, 230)
+fog_enabled = true
+fog_light_color = Color(0.67, 0.81, 0.89, 1)
+fog_density = 0.00165
+fog_sky_affect = 0.32
 
 [sub_resource type="BoxShape3D" id="Shape_LandingMeadow"]
 size = Vector3(94, 0.7, 107)
@@ -118,13 +126,10 @@ shape = SubResource("Lift")
 
 [node name="Scenery" type="Node3D" parent="."]
 
-[node name="ValleyFloor" type="StaticBody3D" parent="Scenery"]
+[node name="ValleyFloor" parent="Scenery" instance=ExtResource("valley")]
 position = Vector3(0, -3.5, -63)
 
-[node name="Art" parent="Scenery/ValleyFloor" instance=ExtResource("valley")]
-
-[node name="Collision" type="CollisionShape3D" parent="Scenery/ValleyFloor"]
-shape = SubResource("Shape_ValleyFloor")
+[node name="Creek" parent="Scenery" instance=ExtResource("creek")]
 
 [node name="LandingMeadow" type="StaticBody3D" parent="Scenery"]
 position = Vector3(0, -0.35, -125)
@@ -360,67 +365,67 @@ scale = Vector3(5, 5, 5)
 [node name="Woodland" type="Node3D" parent="Scenery"]
 
 [node name="Pine00" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(-67, -1, -104)
+position = Vector3(-67, 1.514, -104)
 rotation = Vector3(0, 1.95, 0)
 scale = Vector3(5.08, 5.08, 5.08)
 
 [node name="Pine01" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(-57, -1, -119)
+position = Vector3(-57, 0.107, -119)
 rotation = Vector3(0, -2.95, 0)
 scale = Vector3(4.26, 4.26, 4.26)
 
 [node name="Pine02" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(-71, -1, -128)
+position = Vector3(-71, 2.157, -128)
 rotation = Vector3(0, -0.50, 0)
 scale = Vector3(5.73, 5.73, 5.73)
 
 [node name="Pine03" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(-54, -1, -146)
+position = Vector3(-54, -0.315, -146)
 rotation = Vector3(0, -2.53, 0)
 scale = Vector3(4.92, 4.92, 4.92)
 
 [node name="Pine04" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(-62, -1, -152)
+position = Vector3(-62, 0.12, -152)
 rotation = Vector3(0, 2.55, 0)
 scale = Vector3(4.72, 4.72, 4.72)
 
 [node name="Pine05" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(-80, -1, -133)
+position = Vector3(-80, 4.103, -133)
 rotation = Vector3(0, 2.92, 0)
 scale = Vector3(5.40, 5.40, 5.40)
 
 [node name="Pine06" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(-65, -1, -165)
+position = Vector3(-65, 0.171, -165)
 rotation = Vector3(0, 1.77, 0)
 scale = Vector3(5.71, 5.71, 5.71)
 
 [node name="Pine07" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(53, -1, -117)
+position = Vector3(53, -0.357, -117)
 rotation = Vector3(0, 2.60, 0)
 scale = Vector3(3.81, 3.81, 3.81)
 
 [node name="Pine08" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(60, -1, -125)
+position = Vector3(60, 0.154, -125)
 rotation = Vector3(0, 1.75, 0)
 scale = Vector3(4.73, 4.73, 4.73)
 
 [node name="Pine09" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(69, -1, -154)
+position = Vector3(69, 1.275, -154)
 rotation = Vector3(0, -0.74, 0)
 scale = Vector3(5.93, 5.93, 5.93)
 
 [node name="Pine10" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(57, -1, -140)
+position = Vector3(57, -0.093, -140)
 rotation = Vector3(0, -0.37, 0)
 scale = Vector3(4.87, 4.87, 4.87)
 
 [node name="Pine11" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(76, -1, -148)
+position = Vector3(76, 2.912, -148)
 rotation = Vector3(0, -3.00, 0)
 scale = Vector3(4.17, 4.17, 4.17)
 
 [node name="Pine12" parent="Scenery/Woodland" instance=ExtResource("pine")]
-position = Vector3(57, -1, -167)
+position = Vector3(57, -0.263, -167)
 rotation = Vector3(0, 0.44, 0)
 scale = Vector3(5.97, 5.97, 5.97)
 
@@ -498,6 +503,158 @@ scale = Vector3(4.11, 4.11, 4.11)
 position = Vector3(47, 16.5, -15)
 rotation = Vector3(0, 0.55, 0)
 scale = Vector3(4.26, 4.26, 4.26)
+
+[node name="BanksAndWildflowers" type="Node3D" parent="Scenery"]
+
+[node name="Prop00" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(31.5, -1, -23)
+rotation = Vector3(0, -0.329, 0)
+scale = Vector3(3.8, 3.8, 3.8)
+
+[node name="Prop01" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(25.3, -1, -26)
+rotation = Vector3(0, -1.235, 0)
+scale = Vector3(2.7, 2.7, 2.7)
+
+[node name="Prop02" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bush")]
+position = Vector3(33.8, -1, -23.4)
+rotation = Vector3(0, 2.457, 0)
+scale = Vector3(2.3, 2.3, 2.3)
+
+[node name="Prop03" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(29.6, -1, -17)
+rotation = Vector3(0, -0.094, 0)
+scale = Vector3(2.7, 2.7, 2.7)
+
+[node name="Prop04" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(23.6, -1, -17)
+rotation = Vector3(0, -2.478, 0)
+scale = Vector3(4.1, 4.1, 4.1)
+
+[node name="Prop05" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(21, -1, -10.5)
+rotation = Vector3(0, 1.500, 0)
+scale = Vector3(3.8, 3.8, 3.8)
+
+[node name="Prop06" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bush")]
+position = Vector3(20.7, -1, -12.1)
+rotation = Vector3(0, -2.547, 0)
+scale = Vector3(2.6, 2.6, 2.6)
+
+[node name="Prop07" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(16, -1, -7.5)
+rotation = Vector3(0, -1.785, 0)
+scale = Vector3(2.6, 2.6, 2.6)
+
+[node name="Prop08" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(20, -1, 1)
+rotation = Vector3(0, -2.556, 0)
+scale = Vector3(3.9, 3.9, 3.9)
+
+[node name="Prop09" parent="Scenery/BanksAndWildflowers" instance=ExtResource("rock")]
+position = Vector3(21.3, -1, 9)
+rotation = Vector3(0, 0.769, 0)
+scale = Vector3(4.2, 4.2, 4.2)
+
+[node name="Prop10" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(15, -1, 8)
+rotation = Vector3(0, 2.055, 0)
+scale = Vector3(3.7, 3.7, 3.7)
+
+[node name="Prop11" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(22.5, -1, 19)
+rotation = Vector3(0, 0.667, 0)
+scale = Vector3(4.2, 4.2, 4.2)
+
+[node name="Prop12" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(27.6, -1, 26)
+rotation = Vector3(0, -1.665, 0)
+scale = Vector3(2.9, 2.9, 2.9)
+
+[node name="Prop13" parent="Scenery/BanksAndWildflowers" instance=ExtResource("rock")]
+position = Vector3(25, -1, 30)
+rotation = Vector3(0, 2.070, 0)
+scale = Vector3(4.1, 4.1, 4.1)
+
+[node name="Prop14" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bush")]
+position = Vector3(30.5, -1, 35)
+rotation = Vector3(0, 2.229, 0)
+scale = Vector3(3.1, 3.1, 3.1)
+
+[node name="Prop15" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bankgrass")]
+position = Vector3(36, -1, 44)
+rotation = Vector3(0, -1.031, 0)
+scale = Vector3(3.2, 3.2, 3.2)
+
+[node name="Prop16" parent="Scenery/BanksAndWildflowers" instance=ExtResource("wildflower")]
+position = Vector3(20.2, -1, 11.2)
+rotation = Vector3(0, -1.357, 0)
+scale = Vector3(2.6, 2.6, 2.6)
+
+[node name="Prop17" parent="Scenery/BanksAndWildflowers" instance=ExtResource("wildflower")]
+position = Vector3(22.4, -1, -13.8)
+rotation = Vector3(0, 1.043, 0)
+scale = Vector3(3.1, 3.1, 3.1)
+
+[node name="Prop18" parent="Scenery/BanksAndWildflowers" instance=ExtResource("wildflower")]
+position = Vector3(-26, 0, -100)
+rotation = Vector3(0, 2.836, 0)
+scale = Vector3(4.2, 4.2, 4.2)
+
+[node name="Prop19" parent="Scenery/BanksAndWildflowers" instance=ExtResource("wildflower")]
+position = Vector3(-30, 0, -112)
+rotation = Vector3(0, 2.477, 0)
+scale = Vector3(4.5, 4.5, 4.5)
+
+[node name="Prop20" parent="Scenery/BanksAndWildflowers" instance=ExtResource("wildflower")]
+position = Vector3(-25, 0, -124)
+rotation = Vector3(0, 2.260, 0)
+scale = Vector3(3.4, 3.4, 3.4)
+
+[node name="Prop21" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bush")]
+position = Vector3(-32, 0, -110)
+rotation = Vector3(0, 1.295, 0)
+scale = Vector3(3.4, 3.4, 3.4)
+
+[node name="Prop22" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bush")]
+position = Vector3(-29, 0, -128)
+rotation = Vector3(0, -1.633, 0)
+scale = Vector3(2.8, 2.8, 2.8)
+
+[node name="Prop23" parent="Scenery/BanksAndWildflowers" instance=ExtResource("rock")]
+position = Vector3(-39, 0, -134)
+rotation = Vector3(0, 0.678, 0)
+scale = Vector3(5, 5, 5)
+
+[node name="Prop24" parent="Scenery/BanksAndWildflowers" instance=ExtResource("wildflower")]
+position = Vector3(32, 0, -108)
+rotation = Vector3(0, -0.433, 0)
+scale = Vector3(3.6, 3.6, 3.6)
+
+[node name="Prop25" parent="Scenery/BanksAndWildflowers" instance=ExtResource("wildflower")]
+position = Vector3(29, 0, -120)
+rotation = Vector3(0, 0.832, 0)
+scale = Vector3(4.2, 4.2, 4.2)
+
+[node name="Prop26" parent="Scenery/BanksAndWildflowers" instance=ExtResource("wildflower")]
+position = Vector3(32, 0, -139)
+rotation = Vector3(0, -0.076, 0)
+scale = Vector3(4.4, 4.4, 4.4)
+
+[node name="Prop27" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bush")]
+position = Vector3(32, 0, -119)
+rotation = Vector3(0, -1.764, 0)
+scale = Vector3(2.8, 2.8, 2.8)
+
+[node name="Prop28" parent="Scenery/BanksAndWildflowers" instance=ExtResource("bush")]
+position = Vector3(34, 0, -144)
+rotation = Vector3(0, 2.387, 0)
+scale = Vector3(3.4, 3.4, 3.4)
+
+[node name="Prop29" parent="Scenery/BanksAndWildflowers" instance=ExtResource("rock")]
+position = Vector3(38, 0, -139)
+rotation = Vector3(0, -2.785, 0)
+scale = Vector3(4.1, 4.1, 4.1)
 
 [node name="Glider" type="Node3D" parent="."]
 position = Vector3(0, 24, 12)

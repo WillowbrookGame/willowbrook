@@ -31,6 +31,12 @@ func _run() -> void:
 	level.set_physics_process(false)
 	await physics_frame
 	await physics_frame
+	var terrain_space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
+	var shoulder := terrain_space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(75, 35, -130), Vector3(75, -8, -130), 1))
+	check(not shoulder.is_empty() and shoulder.position.y > 2.0, "Sloped valley terrain should carry its collision")
+	var basin := terrain_space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(30, 4, -30), Vector3(30, -8, -30), 1))
+	check(not basin.is_empty() and absf(basin.position.y + 1.0) < 0.05, "Creek basin must stay below the course")
+	check(level.get_node("Scenery/Creek").scene_file_path.ends_with(".glb"), "Creek should be an independently editable art asset")
 	check_facing(level)
 	check(level.state == level.State.DECK, "Should start on the deck")
 	check(level.get_node("Glider/RiderAnchor").get_child_count() == 1, "Rider did not load")
