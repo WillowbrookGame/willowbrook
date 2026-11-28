@@ -23,6 +23,7 @@ func _run() -> void:
 	verify(atmosphere.global_transform == Transform3D.IDENTITY, "Birds are in the authored world coordinates")
 	verify(paths.size() == 3, "Three editable valley bird paths")
 	verify(atmosphere.find_children("*", "CollisionObject3D", true, false).is_empty(), "Birds and trails cannot collide")
+	var close_birds := 0
 	var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
 	for path in paths:
 		var curve: Curve3D = path.curve
@@ -38,10 +39,16 @@ func _run() -> void:
 		verify(follow.position.distance_to(start) > 2 and wing_flaps, "Bird should travel and flap")
 		var ahead := curve.sample_baked(fposmod(follow.progress + 1.0, length))
 		verify((-follow.basis.z).dot((ahead - follow.position).normalized()) > .85, "Bird should face along its path")
+		var closest := INF
 		for i in 48:
 			var point: Vector3 = path.to_global(curve.sample_baked(length * i / 48.0))
+			closest = minf(closest, point.distance_to(level.launch.global_position))
+			verify(absf(point.x) > 7.0 or point.z < -65.0, "Bird loops keep the central launch approach visually clear")
 			var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(point + Vector3.UP * 150.0, point - Vector3.UP * .5, 1))
 			verify(hit.is_empty(), "Bird path %s must clear terrain at %s" % [path.name, point])
+		if closest < 36.0:
+			close_birds += 1
+	verify(close_birds == 2, "Two birds pass close to the overlook while one stays out in the valley")
 	var sock := level.get_node("Scenery/RouteWindsocks/Windsock0/Pole") as CollisionShape3D
 	verify(atmosphere._cloth.size() == 6 and atmosphere._cloth[0].get_shader_parameter("palette") != null, "The animated sock uses its existing amber and cream palette")
 	var pole_start := sock.global_transform
