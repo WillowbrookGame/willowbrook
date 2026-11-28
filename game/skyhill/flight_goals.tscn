@@ -38,32 +38,32 @@ material_override = SubResource("Meadow")
 mesh = SubResource("Hoop")
 
 [node name="Ring3" type="MeshInstance3D" parent="MeadowTrail"]
-position = Vector3(0, 15.9, -31)
-rotation_degrees = Vector3(90, 0, 0)
+position = Vector3(6.25, 15.9, -31)
+rotation_degrees = Vector3(90, -18, 0)
 scale = Vector3(5, 5, 5)
 cast_shadow = 0
 material_override = SubResource("Meadow")
 mesh = SubResource("Hoop")
 
 [node name="Ring4" type="MeshInstance3D" parent="MeadowTrail"]
-position = Vector3(0, 12.8, -47)
-rotation_degrees = Vector3(90, 0, 0)
+position = Vector3(9, 12.8, -47)
+rotation_degrees = Vector3(90, -4, 0)
 scale = Vector3(5, 5, 5)
 cast_shadow = 0
 material_override = SubResource("Meadow")
 mesh = SubResource("Hoop")
 
 [node name="Ring5" type="MeshInstance3D" parent="MeadowTrail"]
-position = Vector3(0, 9.65, -64)
-rotation_degrees = Vector3(90, 0, 0)
+position = Vector3(8.5, 9.65, -64)
+rotation_degrees = Vector3(90, 5, 0)
 scale = Vector3(4.7, 4.7, 4.7)
 cast_shadow = 0
 material_override = SubResource("Meadow")
 mesh = SubResource("Hoop")
 
 [node name="Ring6" type="MeshInstance3D" parent="MeadowTrail"]
-position = Vector3(0, 6.4, -81)
-rotation_degrees = Vector3(90, 0, 0)
+position = Vector3(5.5, 6.4, -81)
+rotation_degrees = Vector3(90, 10, 0)
 scale = Vector3(4.3, 4.3, 4.3)
 cast_shadow = 0
 material_override = SubResource("Meadow")

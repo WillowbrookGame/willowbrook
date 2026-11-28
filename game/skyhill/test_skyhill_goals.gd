@@ -33,7 +33,22 @@ func _run() -> void:
 		if level.state == level.State.MEADOW:
 			break
 		level.step_flight(DT,0.0)
-	check(level.state == level.State.MEADOW and goals.next[0] == goals.routes[0].size() and goals.next[1] == 0, "Original hands-off meadow flight should finish only the teal trail; " + goals.progress_line())
+	check(level.state == level.State.MEADOW and goals.next == [2,0], "Hands-off flight should land cleanly and clear only the first two teal rings; " + goals.progress_line())
+	level._on_deck()
+	level._launch()
+	var max_steer := 0.0
+	for _i in 1200:
+		if level.state == level.State.MEADOW:
+			break
+		var target_yaw := 0.0
+		if goals.next[0] < goals.routes[0].size():
+			var target: Vector3 = goals.routes[0][goals.next[0]].global_position
+			var offset: Vector3 = target - level.flight.position
+			target_yaw = atan2(-offset.x, maxf(6.0, -offset.z))
+		var steer := clampf(angle_difference(target_yaw, level.flight.heading) * 3.0, -.45, .45)
+		max_steer = maxf(max_steer, absf(steer))
+		level.step_flight(DT, steer)
+	check(level.state == level.State.MEADOW and goals.next == [6,0] and max_steer > .05, "Gentle steering alone should finish the teal trail and land cleanly; " + goals.progress_line())
 	check(level.goal_status.text.contains("Meadow rings: complete!"),"Completed trail result remains visible at landing")
 	check(goals.routes[0].all(func(ring): return not ring.visible),"Completed hoops clear the view")
 	level._on_deck()
@@ -74,5 +89,5 @@ func _run() -> void:
 	second.free()
 	level.free()
 	if failures==0:
-		print("PASS Skyhill goals: swept ordered passes, personal progress, original meadow route, touchdown not runout, reset and crash isolation")
+		print("PASS Skyhill goals: swept ordered passes, personal progress, hands-off landing and gently steered meadow trail, touchdown not runout, reset and crash isolation")
 	quit(0 if failures==0 else 1)
