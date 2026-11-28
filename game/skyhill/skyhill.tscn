@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://game/skyhill/skyhill.gd" id="logic"]
 [ext_resource type="Script" path="res://game/skyhill/ground_shadow.gd" id="ground_shadow"]
 [ext_resource type="PackedScene" path="res://game/skyhill/overlook.tscn" id="overlook"]
+[ext_resource type="Script" path="res://game/movement_thumbstick.gd" id="walk_stick"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/hang-glider.glb" id="glider"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/tree_pineDefaultA.glb" id="pine"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/rock_smallB.glb" id="rock"]
@@ -820,6 +821,17 @@ grow_vertical = 0
 focus_mode = 0
 theme_override_font_sizes/font_size = 16
 text = "Back to Town (R)"
+
+[node name="WalkStick" type="Control" parent="HUD"]
+visible = false
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -124.0
+offset_right = 124.0
+offset_bottom = -16.0
+mouse_filter = 2
+script = ExtResource("walk_stick")
 
 [node name="Stick" type="ColorRect" parent="HUD"]
 visible = false
