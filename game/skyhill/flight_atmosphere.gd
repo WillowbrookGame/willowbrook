@@ -58,6 +58,8 @@ func play_cue(event: String) -> void:
 	if _silenced or not _streams.has(event):
 		return
 	cue.stream = _streams[event]
+	# Let the short impact read over the outgoing wind without boosting the other cues.
+	cue.volume_db = -7.0 if event == "crash" else -15.0
 	cue.play()
 
 func reset_flight() -> void:
@@ -170,7 +172,11 @@ func _make_sound(kind: String, seconds: float) -> AudioStreamWAV:
 			"touchdown":
 				sample = (soft * .47 + noise * .07) * smoothstep(0.0, .04, p) * pow(1.0 - p, 2.0)
 			"crash":
-				sample = (sin(TAU * (124.0 * t - 70.0 * t * t)) * .25 + soft * .36) * smoothstep(0.0, .035, p) * pow(1.0 - p, 3.0)
+				# A rounded wooden bonk with midrange, rather than a bass-only bump.
+				var body := sin(TAU * (322.0 * t - 128.0 * t * t)) * .45 * exp(-t * 9.0)
+				var tap := sin(TAU * 685.0 * t) * .23 * exp(-t * 34.0)
+				var brush := soft * .18 * exp(-t * 15.0)
+				sample = (body + tap + brush) * smoothstep(0.0, .008, p) * (1.0 - smoothstep(.70, 1.0, p))
 		waves.encode_s16(i * 2, int(clampf(sample, -1.0, 1.0) * 32767.0))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS

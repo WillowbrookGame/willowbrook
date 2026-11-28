@@ -75,7 +75,28 @@ func _run() -> void:
 			nonzero = true
 			break
 	verify(nonzero and wind.loop_mode == AudioStreamWAV.LOOP_FORWARD and wind.loop_end * 2 == wind.data.size(), "Wind has audio and a bounded loop")
+	# The production crash event must stop the wind, select the impact and keep its gain separate.
+	var crash: AudioStreamWAV = atmosphere._make_sound("crash", .39)
+	atmosphere._streams["crash"] = crash
+	atmosphere._streams["launch"] = atmosphere._make_sound("launch", .54)
+	atmosphere.wind.stream = wind
+	atmosphere.wind.play()
+	verify(atmosphere.wind.playing, "Wind is active before the test crash")
+	level._crash(level.flight.position, "Hard landing test")
+	verify(atmosphere.cue.stream == crash and is_equal_approx(atmosphere.cue.volume_db, -7.0) and not atmosphere.wind.playing, "Crash uses an audible, separately mixed impact cue")
+	var attack_energy := 0.0
+	var tail_energy := 0.0
+	var samples := int(crash.mix_rate * .07)
+	for i in samples:
+		attack_energy += pow(crash.data.decode_s16(i * 2) / 32768.0, 2)
+		tail_energy += pow(crash.data.decode_s16(crash.data.size() - (i + 1) * 2) / 32768.0, 2)
+	verify(sqrt(attack_energy / samples) > .15 and tail_energy < attack_energy * .01, "Impact has a distinct attack and a soft fade")
+	level._on_deck()
+	level._launch()
+	verify(is_equal_approx(atmosphere.cue.volume_db, -15.0), "The louder impact gain does not carry over to later cues")
+	atmosphere.reset_flight()
+	await process_frame
 	level.free()
 	if errors == 0:
-		print("PASS Skyhill atmosphere: birds move and flap above terrain, cloth keeps pole still, trails expire, pause and audio loop")
+		print("PASS Skyhill atmosphere: birds move and flap above terrain, cloth keeps pole still, trails expire, pause, audio loop, and isolated impact cue")
 	quit(int(errors > 0))
