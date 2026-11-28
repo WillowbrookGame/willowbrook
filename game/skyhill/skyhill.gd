@@ -10,6 +10,7 @@ const CRASH_HOLD_TIME := 2.0
 const COURSE_MASK := 1
 const POLE_MASK := 2
 const WING_OFFSET := Vector3(0.0, 0.65, 0.75)
+const FLIGHT_KEYS := [KEY_A, KEY_D, KEY_LEFT, KEY_RIGHT, KEY_W, KEY_S, KEY_UP, KEY_DOWN]
 const CLIMB_ABOVE_LAUNCH := 4.0
 const KEY_HINT := "A/D or Left/Right to steer. W descends, S climbs."
 const TOUCH_HINT := "Drag left/right to steer, up to descend, down to climb."
@@ -46,6 +47,15 @@ var _crash_normal := Vector3.UP
 var _pole_wing := BoxShape3D.new()
 var _pole_query := PhysicsShapeQueryParameters3D.new()
 
+var _flight_keys := {}
+var _app_unfocused := false
+var _tab_hidden := false
+var _paused := false
+var _pause_prompt := ""
+var _pause_action := ""
+var _document: JavaScriptObject
+var _visibility_callback: JavaScriptObject
+
 func _ready() -> void:
 	var rider := AVATARS.instantiate(AVATARS.DEFAULT)
 	$Glider/RiderAnchor.add_child(rider)
@@ -60,6 +70,23 @@ func _ready() -> void:
 	_pole_query.collision_mask = POLE_MASK
 	_on_deck()
 
+	if OS.has_feature("web"):
+		_document = JavaScriptBridge.get_interface("document")
+		if _document != null:
+			_visibility_callback = JavaScriptBridge.create_callback(_visibility_changed)
+			_document.addEventListener("visibilitychange", _visibility_callback)
+			_visibility_changed([])
+
+func _exit_tree() -> void:
+	if _document != null and _visibility_callback != null:
+		_document.removeEventListener("visibilitychange", _visibility_callback)
+	_visibility_callback = null
+	_document = null
+
+func _visibility_changed(_arguments: Array) -> void:
+	_tab_hidden = bool(_document.hidden)
+	_update_suspension()
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E:
 		_action()
@@ -67,10 +94,37 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_app_unfocused = true
+		_update_suspension()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		_app_unfocused = false
+		_update_suspension()
+
+func _update_suspension() -> void:
+	if not is_node_ready():
+		return
+	var unavailable := _app_unfocused or _tab_hidden
+	if unavailable:
+		_flight_keys.clear()
 		_clear_stick()
+		if not _paused and state in [State.FLYING, State.LANDING, State.CRASHED]:
+			_paused = true
+			_pause_prompt = prompt.text
+			_pause_action = action.text
+			_cue.stop()
+			guide.hide()
+			stick.hide()
+			prompt.text = "Flight paused. Resume when you are ready."
+			action.text = "Resume" if _touch_seen else "Resume (E)"
+	action.disabled = unavailable
 
 func _input(event: InputEvent) -> void:
-	if state != State.FLYING:
+	if event is InputEventKey and event.physical_keycode in FLIGHT_KEYS:
+		if not event.pressed:
+			_flight_keys.erase(event.physical_keycode)
+		elif not event.echo and not _paused and not _app_unfocused and not _tab_hidden and state == State.FLYING:
+			_flight_keys[event.physical_keycode] = true
+	if _paused or _app_unfocused or _tab_hidden or state != State.FLYING:
 		return
 	if event is InputEventScreenTouch and event.pressed and not _touch_seen:
 		_touch_seen = true
@@ -108,6 +162,14 @@ func _clear_stick() -> void:
 		knob.position = _knob_center()
 
 func _action() -> void:
+	if _app_unfocused or _tab_hidden:
+		return
+	if _paused:
+		_paused = false
+		prompt.text = _pause_prompt
+		action.text = _pause_action
+		stick.visible = _touch_seen and state == State.FLYING
+		return
 	match state:
 		State.DECK: _launch()
 		State.FLYING, State.LANDING, State.MEADOW, State.CRASHED: _on_deck()
@@ -175,6 +237,8 @@ func _step_crash(delta: float) -> void:
 	glider.rotation = _crash_rotation + Vector3(-0.28 * tip + wobble, 0.0, _crash_side * (1.0 * tip + wobble))
 
 func _set_hud(label_text: String, button_text: String) -> void:
+	$GroundShadow.set_active(state != State.DECK)
+	_flight_keys.clear()
 	_clear_stick()
 	_was_in_lift = false
 	prompt.text = label_text
@@ -193,16 +257,20 @@ func in_meadow(point: Vector3) -> bool:
 	return absf(local.x) <= landing_bounds.size.x * 0.5 and absf(local.z) <= landing_bounds.size.z * 0.5
 
 func _physics_process(delta: float) -> void:
+	if _paused or _app_unfocused or _tab_hidden:
+		return
 	if state == State.CRASHED:
 		_step_crash(delta)
 		return
 	if state != State.FLYING and state != State.LANDING:
 		return
-	var keys := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
-	var pitch_keys := float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN)) - float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))
+	var keys := float(_flight_keys.has(KEY_D) or _flight_keys.has(KEY_RIGHT)) - float(_flight_keys.has(KEY_A) or _flight_keys.has(KEY_LEFT))
+	var pitch_keys := float(_flight_keys.has(KEY_S) or _flight_keys.has(KEY_DOWN)) - float(_flight_keys.has(KEY_W) or _flight_keys.has(KEY_UP))
 	step_flight(delta, touch_steer if touch_index >= 0 else keys, touch_pitch if touch_index >= 0 else pitch_keys)
 
 func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
+	if _paused or _app_unfocused or _tab_hidden:
+		return
 	if state == State.LANDING:
 		var stopped: bool = flight.advance_runout(delta)
 		_glider_pose()
@@ -271,6 +339,8 @@ func _pole_wing_contact(space: PhysicsDirectSpaceState3D, from: Vector3, to: Vec
 	return 1.0 if not space.intersect_shape(_pole_query, 1).is_empty() else -1.0
 
 func _process(delta: float) -> void:
+	if _paused or _app_unfocused or _tab_hidden:
+		return
 	_elapsed += delta
 	var ribbons := $Scenery/UpdraftRibbons
 	ribbons.position = lift_zone.position
