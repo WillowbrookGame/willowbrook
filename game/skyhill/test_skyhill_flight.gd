@@ -13,12 +13,25 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 		push_error(message)
 
+func check_facing(level: Node3D) -> void:
+	var glider := level.get_node("Glider") as Node3D
+	var nose := glider.get_node("Sail/Nose") as Marker3D
+	var rider := glider.get_node("RiderAnchor") as Marker3D
+	var heading := Vector3.FORWARD.rotated(Vector3.UP, level.flight.heading)
+	var nose_forward := nose.global_position - glider.global_position
+	nose_forward.y = 0.0
+	var rider_forward := rider.global_basis.z
+	rider_forward.y = 0.0
+	check(nose_forward.normalized().dot(heading) > 0.95, "The sail nose faces away from flight")
+	check(rider_forward.normalized().dot(heading) > 0.95, "The rider faces away from flight")
+
 func _run() -> void:
 	var level := SKYHILL.instantiate()
 	root.add_child(level)
 	level.set_physics_process(false)
 	await physics_frame
 	await physics_frame
+	check_facing(level)
 	check(level.state == level.State.DECK, "Should start on the deck")
 	check(level.get_node("Glider/RiderAnchor").get_child_count() == 1, "Rider did not load")
 	var launch: Vector3 = level.launch.global_position
@@ -61,6 +74,7 @@ func _run() -> void:
 	level._action()
 	level._action()
 	level.step_flight(FRAME, 1.0)
+	check_facing(level)
 	check(level.flight.heading < 0 and level.flight.bank < 0, "Right steering must turn and visibly bank right")
 	level._action()
 	check(level.state == level.State.DECK and level.flight.position == launch, "Return should work mid-air")
