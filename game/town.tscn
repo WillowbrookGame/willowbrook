@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 [ext_resource type="Script" path="res://game/town_scene.gd" id="1"]
 [ext_resource type="Script" path="res://game/town_layout.gd" id="2"]
 [ext_resource type="PackedScene" path="res://game/town_scenery.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://game/skyhill/town_trailhead.tscn" id="skyhill_trail"]
 
 [node name="WillowbrookTown" type="Node3D"]
 script = ExtResource("1")
@@ -10,3 +11,6 @@ script = ExtResource("1")
 script = ExtResource("2")
 
 [node name="TownScenery" parent="TownLayout" instance=ExtResource("3")]
+
+[node name="SkyhillTrailhead" parent="TownLayout" instance=ExtResource("skyhill_trail")]
+position = Vector3(64, 0, 44)

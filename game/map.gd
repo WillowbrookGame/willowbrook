@@ -258,6 +258,12 @@ func _zone_owns_interaction() -> bool:
 func _zone_blocks_world() -> bool:
 	return false
 
+func _zone_exit_prompt() -> String:
+	return ""
+
+func _try_zone_exit() -> bool:
+	return false
+
 func _reset_zone_inputs() -> void:
 	pass
 
@@ -705,6 +711,9 @@ func _normal_interaction_text() -> String:
 		if _near_at(beach_scenery.SLIDE_ENTRY) and fishing_ui.game.line.is_empty():
 			return "Ride the slide"
 		return fishing_ui.interaction_prompt()
+	var exit_prompt := _zone_exit_prompt()
+	if not exit_prompt.is_empty():
+		return exit_prompt
 	if _near_ferry():
 		return "Ferry to the island"
 	if _near_door():
@@ -776,6 +785,8 @@ func _interact() -> void:
 			if vehicles.is_driving():
 				_touches.reset_movement()
 			return
+	if _try_zone_exit():
+		return
 	if beach and _near_ferry():
 		_take_ferry()
 	elif beach and _near_at(DIVE_DOOR,2.25) and player.position.z > 11.8:

@@ -1,0 +1,65 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Wood"]
+albedo_color = Color(0.30, 0.17, 0.09, 1)
+
+[sub_resource type="StandardMaterial3D" id="Green"]
+albedo_color = Color(0.10, 0.29, 0.23, 1)
+
+[sub_resource type="BoxMesh" id="Post"]
+material = SubResource("Wood")
+size = Vector3(0.16, 2.65, 0.16)
+
+[sub_resource type="BoxMesh" id="Board"]
+material = SubResource("Green")
+size = Vector3(2.95, 0.95, 0.16)
+
+[sub_resource type="BoxShape3D" id="PostShape"]
+size = Vector3(0.16, 2.65, 0.16)
+
+[node name="SkyhillTrailhead" type="Node3D"]
+
+[node name="InteractPoint" type="Marker3D" parent="."]
+
+[node name="TownReturn" type="Marker3D" parent="."]
+position = Vector3(0, 0.08, -3.2)
+
+[node name="Sign" type="Node3D" parent="."]
+position = Vector3(0, 0, 1.15)
+rotation_degrees = Vector3(0, 180, 0)
+
+[node name="LeftPost" type="StaticBody3D" parent="Sign"]
+position = Vector3(-1.28, 1.325, 0)
+
+[node name="Art" type="MeshInstance3D" parent="Sign/LeftPost"]
+mesh = SubResource("Post")
+
+[node name="Collision" type="CollisionShape3D" parent="Sign/LeftPost"]
+shape = SubResource("PostShape")
+
+[node name="RightPost" type="StaticBody3D" parent="Sign"]
+position = Vector3(1.28, 1.325, 0)
+
+[node name="Art" type="MeshInstance3D" parent="Sign/RightPost"]
+mesh = SubResource("Post")
+
+[node name="Collision" type="CollisionShape3D" parent="Sign/RightPost"]
+shape = SubResource("PostShape")
+
+[node name="Board" type="MeshInstance3D" parent="Sign"]
+position = Vector3(0, 2.15, 0)
+mesh = SubResource("Board")
+
+[node name="Title" type="Label3D" parent="Sign"]
+position = Vector3(0, 2.31, 0.085)
+text = "SKYHILL PARK"
+font_size = 40
+pixel_size = 0.005
+outline_size = 4
+
+[node name="Subtitle" type="Label3D" parent="Sign"]
+position = Vector3(0, 1.95, 0.085)
+text = "HANG GLIDING TRAILHEAD"
+font_size = 23
+pixel_size = 0.005
+outline_size = 3

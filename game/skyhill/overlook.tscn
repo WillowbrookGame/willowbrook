@@ -1,0 +1,116 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/town_assets/tiny-playground/picnic_table.gltf" id="table"]
+[ext_resource type="PackedScene" path="res://game/town_assets/tiny-park/bench.gltf" id="bench"]
+[ext_resource type="Script" path="res://game/skyhill/deck_walk.gd" id="walk"]
+
+[sub_resource type="CapsuleShape3D" id="Walker"]
+radius = 0.31
+height = 1.55
+
+[sub_resource type="BoxShape3D" id="TableBounds"]
+size = Vector3(2.02, 0.78, 1.64)
+
+[sub_resource type="BoxShape3D" id="BenchBounds"]
+size = Vector3(1.8, 0.872, 0.869)
+
+[sub_resource type="BoxShape3D" id="SideGuard"]
+size = Vector3(0.14, 2.0, 11.0)
+
+[sub_resource type="BoxShape3D" id="EndGuard"]
+size = Vector3(12.5, 2.0, 0.14)
+
+[sub_resource type="BoxShape3D" id="WalkSurface"]
+size = Vector3(12.5, 0.22, 11.2)
+
+[node name="Overlook" type="Node3D"]
+
+[node name="Arrival" type="Marker3D" parent="."]
+position = Vector3(0, 0.04, 3.8)
+rotation_degrees = Vector3(0, 180, 0)
+
+[node name="GliderMount" type="Marker3D" parent="."]
+position = Vector3(0, 0.04, -2.5)
+
+[node name="Walker" type="CharacterBody3D" parent="."]
+visible = false
+collision_layer = 0
+collision_mask = 4
+floor_snap_length = 0.4
+script = ExtResource("walk")
+
+[node name="Capsule" type="CollisionShape3D" parent="Walker"]
+position = Vector3(0, 0.775, 0)
+shape = SubResource("Walker")
+
+[node name="Body" type="Node3D" parent="Walker"]
+
+[node name="PicnicTable" type="StaticBody3D" parent="."]
+position = Vector3(4.1, 0, -0.6)
+rotation_degrees = Vector3(0, 20, 0)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Art" parent="PicnicTable" instance=ExtResource("table")]
+scale = Vector3(1.01, 0.78, 0.82)
+
+[node name="Bounds" type="CollisionShape3D" parent="PicnicTable"]
+position = Vector3(0, 0.39, 0)
+shape = SubResource("TableBounds")
+
+[node name="EastSeat" type="Marker3D" parent="PicnicTable" groups=["skyhill_overlook_seat"]]
+position = Vector3(0.86, 0.468, 0)
+rotation_degrees = Vector3(0, -90, 0)
+
+[node name="Approach" type="Marker3D" parent="PicnicTable/EastSeat"]
+position = Vector3(0, -0.468, -0.54)
+
+[node name="WestSeat" type="Marker3D" parent="PicnicTable" groups=["skyhill_overlook_seat"]]
+position = Vector3(-0.86, 0.468, 0)
+rotation_degrees = Vector3(0, 90, 0)
+
+[node name="Approach" type="Marker3D" parent="PicnicTable/WestSeat"]
+position = Vector3(0, -0.468, -0.54)
+
+[node name="Bench" type="StaticBody3D" parent="."]
+position = Vector3(-4.7, 0, -1.3)
+rotation_degrees = Vector3(0, 180, 0)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Art" parent="Bench" instance=ExtResource("bench")]
+scale = Vector3(0.9, 0.62, 0.66)
+
+[node name="Bounds" type="CollisionShape3D" parent="Bench"]
+position = Vector3(0, 0.436, -0.0385)
+shape = SubResource("BenchBounds")
+
+[node name="Seat" type="Marker3D" parent="Bench" groups=["skyhill_overlook_seat"]]
+position = Vector3(0, 0.31, 0.11)
+
+[node name="Approach" type="Marker3D" parent="Bench/Seat"]
+position = Vector3(0, -0.31, 0.71)
+
+[node name="WalkingCollision" type="StaticBody3D" parent="."]
+collision_layer = 4
+collision_mask = 0
+
+[node name="DeckSurface" type="CollisionShape3D" parent="WalkingCollision"]
+position = Vector3(0, -0.11, 0.5)
+shape = SubResource("WalkSurface")
+
+[node name="WestEdge" type="CollisionShape3D" parent="WalkingCollision"]
+position = Vector3(-6.1, 1, 0.5)
+shape = SubResource("SideGuard")
+
+[node name="EastEdge" type="CollisionShape3D" parent="WalkingCollision"]
+position = Vector3(6.1, 1, 0.5)
+shape = SubResource("SideGuard")
+
+[node name="LaunchEdge" type="CollisionShape3D" parent="WalkingCollision"]
+position = Vector3(0, 1, -5)
+shape = SubResource("EndGuard")
+
+[node name="BackEdge" type="CollisionShape3D" parent="WalkingCollision"]
+position = Vector3(0, 1, 6)
+shape = SubResource("EndGuard")
