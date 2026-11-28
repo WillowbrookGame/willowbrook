@@ -7,14 +7,12 @@ const GREAT_RADIUS := 9.0
 var routes: Array[Array] = []
 var next := [0,0]
 var _original_materials: Array[Material] = []
-var _passed_material := StandardMaterial3D.new()
+var _preview_materials: Array[Material] = []
 var _chime := AudioStreamPlayer.new()
 var _tones: Array[AudioStreamWAV] = []
 var landing_text := ""
 
 func _ready() -> void:
-	_passed_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_passed_material.albedo_color = Color("#547a88")
 	for route: Node3D in [$MeadowTrail,$RidgeTrail]:
 		var rings: Array[MeshInstance3D] = []
 		for child in route.get_children():
@@ -23,19 +21,30 @@ func _ready() -> void:
 		routes.append(rings)
 		var original: Material = rings[0].material_override if not rings.is_empty() else null
 		_original_materials.append(original)
+		var preview := original.duplicate() as StandardMaterial3D if original is StandardMaterial3D else null
+		if preview != null:
+			preview.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			preview.albedo_color.a = .34
+		_preview_materials.append(preview)
 	if DisplayServer.get_name() != "headless":
 		for frequency in NOTES:
 			_tones.append(_make_note(float(frequency)))
 		_chime.volume_db = -15.0
 	add_child(_chime)
+	reset_flight()
 
 func reset_flight() -> void:
 	_chime.stop()
 	landing_text = ""
 	for i in routes.size():
 		next[i] = 0
-		for ring: MeshInstance3D in routes[i]:
-			ring.material_override = _original_materials[i]
+		_refresh_trail(i)
+
+func _refresh_trail(route: int) -> void:
+	for i in routes[route].size():
+		var ring: MeshInstance3D = routes[route][i]
+		ring.visible = i == next[route] or i == next[route]+1
+		ring.material_override = _preview_materials[route] if i == next[route]+1 and _preview_materials[route] != null else _original_materials[route]
 
 func progress_line() -> String:
 	var parts: PackedStringArray = []
@@ -58,8 +67,8 @@ func step_segment(from: Vector3, to: Vector3) -> bool:
 			if next[i] < _tones.size():
 				_chime.stream = _tones[next[i]]
 				_chime.play()
-			ring.material_override = _passed_material
 			next[i] += 1
+			_refresh_trail(i)
 			changed = true
 	return changed
 

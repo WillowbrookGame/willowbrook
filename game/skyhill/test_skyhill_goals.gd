@@ -27,13 +27,15 @@ func _run() -> void:
 	var late: Node3D = goals.routes[0][2]
 	check(not goals.step_segment(late.global_position+Vector3.BACK, late.global_position+Vector3.FORWARD),"Skipping a ring does not skip the sequence")
 	check(goals.find_children("*","CollisionObject3D",true,false).is_empty() and level.landing_target.find_children("*","CollisionObject3D",true,false).is_empty(),"Goals must not participate in collision")
+	check(goals.routes[0][0].visible and goals.routes[0][1].visible and not goals.routes[0][2].visible,"Only the next rings should be drawn")
 	level._launch()
 	for _i in 1200:
 		if level.state == level.State.MEADOW:
 			break
 		level.step_flight(DT,0.0)
 	check(level.state == level.State.MEADOW and goals.next[0] == goals.routes[0].size() and goals.next[1] == 0, "Original hands-off meadow flight should finish only the teal trail; " + goals.progress_line())
-	check(level.goal_status.text.contains("Meadow rings: complete!"),"Completed trail remains visible at landing")
+	check(level.goal_status.text.contains("Meadow rings: complete!"),"Completed trail result remains visible at landing")
+	check(goals.routes[0].all(func(ring): return not ring.visible),"Completed hoops clear the view")
 	level._on_deck()
 	check(goals.next == [0,0] and not level.goal_status.visible and goals.landing_text.is_empty(),"Return clears all goal state")
 	var center: Vector3 = level.landing_target.global_position

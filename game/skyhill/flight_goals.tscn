@@ -12,7 +12,7 @@ albedo_color = Color(1, 0.77, 0.40, 1)
 
 [sub_resource type="TorusMesh" id="Hoop"]
 inner_radius = 1
-outer_radius = 1.095
+outer_radius = 1.068
 rings = 32
 ring_segments = 8
 
