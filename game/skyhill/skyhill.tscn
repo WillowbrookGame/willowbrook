@@ -5,7 +5,6 @@
 [ext_resource type="PackedScene" path="res://game/skyhill/art/tree_pineDefaultA.glb" id="pine"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/rock_smallB.glb" id="rock"]
 [ext_resource type="PackedScene" path="res://game/skyhill/art/fence_simple.glb" id="fence"]
-[ext_resource type="PackedScene" path="res://game/beach_art/beach-fishing/Dock_Long.glb" id="dock"]
 
 [sub_resource type="StandardMaterial3D" id="Mat_terrain"]
 albedo_color = Color(0.22, 0.43, 0.23, 1)
@@ -262,6 +261,10 @@ size = Vector3(0.56, 0.04, 2.8)
 material = SubResource("Mat_white")
 size = Vector3(0.56, 0.04, 2.8)
 
+[sub_resource type="BoxMesh" id="Mesh_DeckSlat"]
+material = SubResource("Mat_wood")
+size = Vector3(12.8, 0.10, 1.21)
+
 [node name="Skyhill" type="Node3D"]
 script = ExtResource("logic")
 
@@ -339,9 +342,42 @@ mesh = SubResource("Mesh_Deck")
 [node name="Collision" type="CollisionShape3D" parent="Scenery/Deck"]
 shape = SubResource("Shape_Deck")
 
-[node name="DeckPlanks" parent="Scenery" instance=ExtResource("dock")]
-position = Vector3(0, 23.08, 19)
-scale = Vector3(0.68, 0.68, 0.68)
+
+[node name="DeckSlat1" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 10.50)
+mesh = SubResource("Mesh_DeckSlat")
+
+[node name="DeckSlat2" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 11.83)
+mesh = SubResource("Mesh_DeckSlat")
+
+[node name="DeckSlat3" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 13.16)
+mesh = SubResource("Mesh_DeckSlat")
+
+[node name="DeckSlat4" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 14.49)
+mesh = SubResource("Mesh_DeckSlat")
+
+[node name="DeckSlat5" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 15.82)
+mesh = SubResource("Mesh_DeckSlat")
+
+[node name="DeckSlat6" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 17.15)
+mesh = SubResource("Mesh_DeckSlat")
+
+[node name="DeckSlat7" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 18.48)
+mesh = SubResource("Mesh_DeckSlat")
+
+[node name="DeckSlat8" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 19.81)
+mesh = SubResource("Mesh_DeckSlat")
+
+[node name="DeckSlat9" type="MeshInstance3D" parent="Scenery"]
+position = Vector3(0, 23.14, 21.14)
+mesh = SubResource("Mesh_DeckSlat")
 
 [node name="DeckRail0" parent="Scenery" instance=ExtResource("fence")]
 position = Vector3(-4.5, 23.1, 21.9)
