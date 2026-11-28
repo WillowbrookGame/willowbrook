@@ -37,6 +37,13 @@ func _run() -> void:
 	var basin := terrain_space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(30, 4, -30), Vector3(30, -8, -30), 1))
 	check(not basin.is_empty() and absf(basin.position.y + 1.0) < 0.05, "Creek basin must stay below the course")
 	check(level.get_node("Scenery/Creek").scene_file_path.ends_with(".glb"), "Creek should be an independently editable art asset")
+	for cliff_group in ["LaunchBluff", "WestCliffs", "EastCliffs", "ScenicRidge"]:
+		var cliff: Node3D = level.get_node("Scenery/" + cliff_group)
+		for piece in cliff.get_children():
+			check(not piece.find_children("*", "CollisionShape3D", true, false).is_empty(), "Missing mesh collision on %s" % piece.name)
+	# Test a lateral approach toward the west face without expecting a rectangle.
+	var wall := terrain_space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(-18, 4, -37), Vector3(-46, 4, -37), 1))
+	check(not wall.is_empty() and level.get_node("Scenery/WestCliffs").is_ancestor_of(wall.collider), "West cliff face should stop a lateral flight")
 	check_facing(level)
 	check(level.state == level.State.DECK, "Should start on the deck")
 	check(level.get_node("Glider/RiderAnchor").get_child_count() == 1, "Rider did not load")
