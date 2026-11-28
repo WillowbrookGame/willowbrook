@@ -369,7 +369,18 @@ func _run() -> void:
 		level.flight.lift = 0.0
 		level.flight.heading = PI
 		level._update_route_guide()
-		check(not level.guide.visible, "Guide should hide after passing or turning away")
+		check(not level.guide.visible, "First-flight guide should hide when turning away")
+		level._last_lift = level.ridge_lift
+		level.flight.heading = -PI * 0.5
+		level._camera_pose(1.0)
+		level._update_route_guide()
+		var next_rect: Rect2 = level.guide.get_global_rect()
+		check(level.guide.visible and level.guide_label.text.contains("West ridge lift"), "Scenic guide should point to the west ridge even while the pilot faces east")
+		check(root.get_visible_rect().encloses(next_rect) and not next_rect.intersects(level.prompt.get_global_rect()) and not next_rect.intersects(level.stick.get_global_rect()) and not next_rect.intersects(level.action.get_global_rect()), "Scenic guide must stay clear of HUD controls at %s" % view)
+		check(level._flight_instructions().contains("Circle to climb"), "Flight instructions should explain circling")
+		level._last_lift = level.west_lift
+		check(level._flight_instructions().contains("descend toward the waterfall"), "Flight instructions should explain returning to the lower lift")
+		level._last_lift = null
 		level.flight.heading = 0.0
 		var touch := InputEventScreenTouch.new()
 		touch.pressed = true

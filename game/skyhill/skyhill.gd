@@ -191,7 +191,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch and event.pressed and not _touch_seen:
 		_touch_seen = true
 		stick.show()
-		prompt.text = TOUCH_HINT + ROUTE_HINT
+		prompt.text = _flight_instructions()
 	if event is InputEventScreenTouch:
 		if event.pressed and touch_index < 0 and stick.get_global_rect().has_point(event.position):
 			touch_index = event.index
@@ -315,8 +315,7 @@ func _launch() -> void:
 	walker.set_walking(false)
 	$Glider/RiderAnchor.show()
 	flight.reset(launch.global_position, launch.global_rotation.y)
-	var hint := TOUCH_HINT if _touch_seen else KEY_HINT
-	_set_hud(hint + ROUTE_HINT, "Return to deck (E)")
+	_set_hud(_flight_instructions(), "Return to deck (E)")
 
 func _land(where: Vector3) -> void:
 	state = State.LANDING
@@ -449,9 +448,7 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 	_active_lift = rising
 	if wind > 0.45 and strongest != _last_lift:
 		_last_lift = strongest
-		var next_lift := _next_wind_field()
-		var hint := TOUCH_HINT if _touch_seen else KEY_HINT
-		prompt.text = hint + "\nNext: %s. Follow the windsocks to land anytime." % next_lift.caption
+		prompt.text = _flight_instructions()
 	var space := get_world_3d().direct_space_state
 	var terrain := space.intersect_ray(PhysicsRayQueryParameters3D.create(prev, next, COURSE_MASK | POLE_MASK))
 	var pole_fraction := _pole_wing_contact(space, prev, next, Vector3(prev_pitch, prev_heading, prev_bank))
@@ -508,6 +505,14 @@ func _process(delta: float) -> void:
 	_camera_pose(1.0 - exp(-5.0 * delta))
 	_update_route_guide()
 
+func _flight_instructions() -> String:
+	var controls := TOUCH_HINT if _touch_seen else KEY_HINT
+	match _last_lift:
+		lift_zone: return controls + "\nEast ridge next. Circle there to climb, or follow the windsocks to land."
+		ridge_lift: return controls + "\nCircle to climb, then cross to the west ridge."
+		west_lift: return controls + "\nCircle to climb, then descend toward the waterfall to catch it again."
+	return controls + ROUTE_HINT
+
 func _next_wind_field() -> WIND:
 	var index := _wind_fields.find(_last_lift)
 	return _wind_fields[(index + 1) % _wind_fields.size()]
@@ -521,13 +526,22 @@ func _update_route_guide() -> void:
 	var target := _active_lift if _active_lift != null else _next_wind_field()
 	var marker := target.global_position + Vector3.UP * 7.0
 	var lift_label := target.caption
-	var ahead := (marker - flight.position).dot(Vector3.FORWARD.rotated(Vector3.UP, flight.heading))
+	var bearing := marker - flight.position
+	var forward := Vector3.FORWARD.rotated(Vector3.UP, flight.heading)
 	var rising := state == State.FLYING and flight.lift > 0.10
-	guide.visible = (state == State.DECK or state == State.FLYING) and (rising or (ahead > 1.0 and not camera.is_position_behind(marker)))
+	var ahead := bearing.dot(forward) > 1.0 and not camera.is_position_behind(marker)
+	var seek_behind := not ahead and _last_lift != null and state == State.FLYING
+	guide.visible = (state == State.DECK or state == State.FLYING) and (rising or ahead or seek_behind)
 	if not guide.visible:
 		return
 	var screen := get_viewport().get_visible_rect().size
-	var projected := camera.unproject_position(marker) if not rising else Vector2(screen.x * 0.5, 104.0)
+	var projected := Vector2(screen.x * 0.5, 104.0)
+	if not rising:
+		if ahead:
+			projected = camera.unproject_position(marker)
+		else:
+			var on_right := bearing.dot(forward.cross(Vector3.UP)) >= 0.0
+			projected = Vector2(screen.x if on_right else 0.0, screen.y * 0.46)
 	var outer := 14.0
 	var width := guide.custom_minimum_size.x
 	var caption := "Rising air!" if rising else lift_label
