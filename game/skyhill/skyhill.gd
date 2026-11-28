@@ -3,8 +3,10 @@ extends Node3D
 
 const FLIGHT := preload("res://game/skyhill/flight_model.gd")
 const AVATARS := preload("res://game/avatars/catalog.gd")
-enum State { DECK, FLYING, LANDING, MEADOW }
+enum State { DECK, FLYING, LANDING, MEADOW, CRASHED }
 const GROUND_CLEARANCE := 0.85
+const CRASH_TUMBLE_TIME := 0.65
+const CRASH_HOLD_TIME := 2.0
 const CLIMB_ABOVE_LAUNCH := 4.0
 const KEY_HINT := "A / D or ← / → to steer. W to descend, S to climb."
 const TOUCH_HINT := "Drag left/right to steer, up to descend, down to climb."
@@ -34,6 +36,10 @@ var _touch_seen := false
 var _was_in_lift := false
 var _cue: AudioStreamPlayer
 var _elapsed := 0.0
+var _crash_elapsed := 0.0
+var _crash_rotation := Vector3.ZERO
+var _crash_side := 1.0
+var _crash_normal := Vector3.UP
 
 func _ready() -> void:
 	var rider := AVATARS.instantiate(AVATARS.DEFAULT)
@@ -96,7 +102,7 @@ func _clear_stick() -> void:
 func _action() -> void:
 	match state:
 		State.DECK: _launch()
-		State.FLYING, State.LANDING, State.MEADOW: _on_deck()
+		State.FLYING, State.LANDING, State.MEADOW, State.CRASHED: _on_deck()
 
 func _on_deck() -> void:
 	state = State.DECK
@@ -133,6 +139,33 @@ func _land(where: Vector3) -> void:
 	_glider_pose()
 	_set_hud("Touching down...", "Return to deck (E)")
 
+func _crash(at_rest: Vector3, message: String, normal := Vector3.UP) -> void:
+	state = State.CRASHED
+	_crash_elapsed = 0.0
+	_crash_rotation = Vector3(flight.pitch, flight.heading, flight.bank)
+	_crash_side = -1.0 if flight.bank < 0.0 else 1.0
+	_crash_normal = normal
+	flight.position = at_rest
+	flight.speed = 0.0
+	flight.climb = 0.0
+	flight.lift = 0.0
+	_cue.stop()
+	_glider_pose()
+	guide.hide()
+	_set_hud(message, "Back to deck" if _touch_seen else "Back to deck (E)")
+
+func _step_crash(delta: float) -> void:
+	_crash_elapsed += delta
+	if _crash_elapsed >= CRASH_HOLD_TIME:
+		_on_deck()
+		return
+	# Tip and recoil out from the contact surface; the flight position stays fixed.
+	var progress := clampf(_crash_elapsed / CRASH_TUMBLE_TIME, 0.0, 1.0)
+	var tip := 1.0 - pow(1.0 - progress, 3.0)
+	var wobble := sin(progress * TAU) * (1.0 - progress) * 0.3
+	glider.global_position = flight.position + _crash_normal * (0.52 * tip + 0.25 * sin(progress * PI))
+	glider.rotation = _crash_rotation + Vector3(-0.28 * tip + wobble, 0.0, _crash_side * (1.0 * tip + wobble))
+
 func _set_hud(label_text: String, button_text: String) -> void:
 	_clear_stick()
 	_was_in_lift = false
@@ -152,6 +185,9 @@ func in_meadow(point: Vector3) -> bool:
 	return absf(local.x) <= landing_bounds.size.x * 0.5 and absf(local.z) <= landing_bounds.size.z * 0.5
 
 func _physics_process(delta: float) -> void:
+	if state == State.CRASHED:
+		_step_crash(delta)
+		return
 	if state != State.FLYING and state != State.LANDING:
 		return
 	var keys := float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT)) - float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT))
@@ -169,6 +205,8 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 	if state != State.FLYING:
 		return
 	var prev := flight.position
+	var prev_pitch: float = flight.pitch
+	var prev_bank: float = flight.bank
 	var wind := lift_at(prev)
 	var floor_y := meadow.global_position.y + GROUND_CLEARANCE
 	var height := prev.y - floor_y if in_meadow(prev) else INF
@@ -177,13 +215,24 @@ func step_flight(delta: float, steer: float, pitch_input := 0.0) -> void:
 	if wind > 0.10 and not _was_in_lift:
 		_cue.play()
 	_was_in_lift = wind > 0.10
-	if prev.y > floor_y and next.y <= floor_y:
-		var touchdown := prev.lerp(next, (prev.y - floor_y) / (prev.y - next.y))
-		if in_meadow(touchdown):
-			_land(touchdown)
-			return
 	var terrain := get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(prev, next, 1))
-	if not terrain.is_empty() or next.y < meadow.global_position.y - 1.5 or absf(next.x) > 105.0 or next.z < -195.0 or next.z > 65.0:
+	if prev.y >= floor_y and next.y <= floor_y and next.y < prev.y:
+		var fraction := (prev.y - floor_y) / (prev.y - next.y)
+		var touchdown := prev.lerp(next, fraction)
+		# A solid object reached before the landing plane takes priority.
+		var meadow_first := terrain.is_empty() or prev.distance_squared_to(touchdown) <= prev.distance_squared_to(terrain.position)
+		if in_meadow(touchdown) and meadow_first:
+			var contact := FLIGHT.classify_touchdown((prev.y - next.y) / delta,
+				lerpf(prev_pitch, flight.pitch, fraction), lerpf(prev_bank, flight.bank, fraction))
+			match contact:
+				FLIGHT.Touchdown.HARD: _crash(touchdown, "Hard landing! Ease off the dive before touching down.")
+				FLIGHT.Touchdown.TILTED: _crash(touchdown, "Wingtip down! Level the glider before touching down.")
+				_: _land(touchdown)
+			return
+	if not terrain.is_empty():
+		_crash(terrain.position + (prev - next).normalized() * 0.35, "Bump! Keep clear of the cliffs and land in the meadow.", terrain.normal)
+		return
+	if next.y < meadow.global_position.y - 1.5 or absf(next.x) > 105.0 or next.z < -195.0 or next.z > 65.0:
 		_on_deck()
 		prompt.text = "Back at the deck. Follow the windsocks for an easy flight."
 		return

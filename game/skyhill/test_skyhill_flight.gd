@@ -67,8 +67,56 @@ func check_pitch_controls(level: Node3D) -> void:
 		flight.advance(FRAME, 0.0, 1.0, INF, 1.0, 0.0)
 	check(flight.climb > 4.0, "Waterfall lift must still work above the manual climb ceiling")
 	for _i in 90:
-		flight.advance(FRAME, 0.0, 0.0, 0.01, -1.0)
-	check(flight.speed < 10.1 and flight.climb > -1.0, "Holding dive near the meadow should not defeat the landing flare")
+		flight.advance(FRAME, 0.0, 0.0, 0.01, -0.5)
+	check(flight.speed < 10.1 and flight.climb > -1.0, "A gentle dive correction should not defeat the landing flare")
+
+func check_crashes(level: Node3D, cliff_point: Vector3) -> void:
+	var model = level.FLIGHT
+	check(model.classify_touchdown(1.0, 0.0, 0.0) == model.Touchdown.CLEAN, "Level landing classified as a crash")
+	check(model.classify_touchdown(5.0, 0.0, 0.0) == model.Touchdown.HARD, "Hard touchdown should crash")
+	check(model.classify_touchdown(1.0, deg_to_rad(-12.0), deg_to_rad(13.0)) == model.Touchdown.TILTED, "Combined pitch and bank should count toward the tilt limit")
+	for input in [Vector2(0.0, -1.0), Vector2(-1.0, 0.0), Vector2(1.0, 0.0), Vector2(0.45, -0.5)]:
+		level._launch()
+		var moderate := is_equal_approx(input.x, 0.45)
+		var input_frame := 240 if input.y < 0.0 else 330
+		if moderate:
+			level.flight.position = level.meadow.global_position + Vector3(0.0, 2.55, 8.0)
+			input_frame = 0
+		for i in 600:
+			level.step_flight(FRAME, input.x if i >= input_frame else 0.0, input.y if i >= input_frame else 0.0)
+			if level.state != level.State.FLYING:
+				break
+		if moderate:
+			check(level.state == level.State.LANDING, "Moderate corrections should allow a clean touchdown")
+		else:
+			var reason := "Hard landing" if input.y < 0.0 else "Wingtip down"
+			check(level.state == level.State.CRASHED and level.prompt.text.begins_with(reason), "Expected %s; got %s at %s" % [reason, level.prompt.text, level.flight.position])
+		level._action()
+		check(level.state == level.State.DECK, "Return control should skip crash feedback or landing")
+	level._launch()
+	level.flight.position = cliff_point + Vector3.RIGHT * 0.7
+	level.flight.heading = PI * 0.5
+	for _i in 30:
+		level.step_flight(FRAME, 0.0)
+		if level.state != level.State.FLYING:
+			break
+	check(level.state == level.State.CRASHED and level.prompt.text.begins_with("Bump!"), "The actual cliff collider must trigger a crash")
+	if level.state != level.State.CRASHED:
+		level._on_deck()
+		return
+	var position: Vector3 = level.flight.position
+	var rotation_at_hit: Vector3 = level.glider.rotation
+	check(position.x > cliff_point.x - 0.1, "Crash should stop on the near side of the cliff")
+	check(level.flight.speed == 0.0 and not level.stick.visible and not level.guide.visible, "Crash should stop motion and hide flight controls")
+	for _i in 30:
+		level._physics_process(FRAME)
+	check(level.state == level.State.CRASHED and level.flight.position == position and level.glider.rotation.distance_to(rotation_at_hit) > 0.8, "A crash must play a visible anchored tumble")
+	for _i in 120:
+		level._physics_process(FRAME)
+	check(level.state == level.State.DECK and level.flight.position.is_equal_approx(level.launch.global_position), "A crash must automatically return to launch")
+	level._action()
+	check(level.state == level.State.FLYING and level.flight.pitch == 0.0 and level.flight.bank == 0.0, "Relaunch after a crash must reset flight state")
+	level._action()
 
 func _run() -> void:
 	var level := SKYHILL.instantiate()
@@ -95,6 +143,8 @@ func _run() -> void:
 	var launch: Vector3 = level.launch.global_position
 	check(level.flight.position.is_equal_approx(launch), "Authored launch placement was ignored")
 	check_pitch_controls(level)
+	if not wall.is_empty():
+		check_crashes(level, wall.position)
 
 	level._action()
 	var coast_frames := 0
@@ -232,6 +282,6 @@ func _run() -> void:
 		check(level.knob.get_global_rect().get_center().is_equal_approx(level.stick.get_global_rect().get_center()), "Released touch knob did not return to center")
 		level._on_deck()
 	if failures == 0:
-		print("PASS Skyhill: keyboard and touch pitch, gentle steering, default and waterfall routes, landing runout, relaunch, return, bounds, and waterfall cues")
+		print("PASS Skyhill: keyboard/touch, routes, clean landing, hard/tilted/cliff crashes, tumble, recovery, bounds, and cues")
 	level.free()
 	quit(0 if failures == 0 else 1)
