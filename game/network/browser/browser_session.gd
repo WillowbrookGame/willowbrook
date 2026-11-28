@@ -136,11 +136,15 @@ func _accept_weather(packet: Variant) -> void:
 
 func _send_pose() -> void:
 	var public_zone := _network_zone(zone) and is_instance_valid(_player) and _player.is_inside_tree()
-	var pos: Vector3 = _player.global_position if public_zone else Vector3.ZERO
-	var motion := _presence_motion() if public_zone else Vector2.ZERO
-	var yaw := wrapf(motion.x,-PI,PI)
-	var moving := public_zone and motion.y > .0225
-	var packet := {"type":"move","zone":zone if public_zone else "private","x":pos.x,"y":pos.y,"z":pos.z,"yaw":yaw,"moving":moving,"grounded":not public_zone or _player.is_on_floor()}
+	var sample := _presence_sample() if public_zone else {"position":Vector3.ZERO,"yaw":0.0,"moving":false,"grounded":true}
+	var pos: Vector3 = sample.position
+	var packet := {"type":"move","zone":zone if public_zone else "private","x":pos.x,"y":pos.y,"z":pos.z,
+		"yaw":wrapf(sample.yaw,-PI,PI),"moving":sample.moving,"grounded":sample.grounded}
+	if public_zone and zone == SKYHILL.ZONE:
+		if sample.has("glide"):
+			packet.glide = sample.glide
+		else:
+			packet.rest = sample.get("rest","")
 	if public_zone and is_instance_valid(_bound) and zone in ["bank","vet","salon","store","cafe","library"]:
 		var indoor_room := _bound.get("room") as Node
 		if is_instance_valid(indoor_room) and indoor_room.has_method("network_rest_pose") and indoor_room.network_rest_pose()=="sit":
@@ -244,7 +248,7 @@ func _on_web_message(m: Dictionary) -> void:
 				var scooter_id := str(seat.get("car","")) if seat is Dictionary and seat.get("seat")=="driver" else ""
 				if not scooter_drivers.has(scooter_id) or scooter_drivers[scooter_id]!=int(row.id):
 					scooter_id=""
-				visible.append({"scooterRide":scooter_id,"id":int(row.id),"alias":String(row.alias),"zone":zone,"position":pos,"yaw":float(row.yaw),"moving":row.moving==true,"grounded":row.grounded==true,"character":AVATAR_CATALOG.sanitize(row.get("character")),"companionSpecies":row.get("companionSpecies"),"rest":row.get("rest",""),"vehicleSeat":row.get("vehicleSeat") is Dictionary})
+				visible.append({"scooterRide":scooter_id,"id":int(row.id),"alias":String(row.alias),"zone":zone,"position":pos,"yaw":float(row.yaw),"moving":row.moving==true,"grounded":row.grounded==true,"character":AVATAR_CATALOG.sanitize(row.get("character")),"companionSpecies":row.get("companionSpecies"),"rest":row.get("rest",""),"glide":row.get("glide"),"vehicleSeat":row.get("vehicleSeat") is Dictionary})
 			_receive_local(visible,m.get("presence",[]))
 		"playground":
 			if admitted and zone=="town" and not m.ok and is_instance_valid(_bound) and _bound.has_method("town_ride_error"):

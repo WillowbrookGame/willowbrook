@@ -34,16 +34,20 @@ import {createPrivatePaintballMatches} from './paintball_matches_preview.mjs';
 import {createPaintballLobbies} from './paintball_lobby_preview.mjs';
 import {createPaintballRewards} from './paintball_rewards_preview.mjs';
 import {createPlayground} from './playground_preview.mjs';
-const publicZones=new Set(['town','beach','arcade','bank','vet','salon','store','cafe','library','reef']);
-const place=z=>({town:'In town',beach:'At the beach',arcade:'At the arcade',reef:'At the reef',private:'In another activity'})[z]||'Indoors';
+const publicZones=new Set(['town','beach','arcade','bank','vet','salon','store','cafe','library','reef','skyhill']);
+const place=z=>({town:'In town',beach:'At the beach',arcade:'At the arcade',reef:'At the reef',skyhill:'At Skyhill Park',private:'In another activity'})[z]||'Indoors';
 const send=(ws,m)=>{if(ws.readyState===1&&ws.bufferedAmount<32768)ws.send(JSON.stringify(m));};
 function sameCode(a,b){return typeof a==='string'&&/^[0-9a-f]{12}$/i.test(a)&&timingSafeEqual(Buffer.from(a.toUpperCase()),Buffer.from(b));}
 function cleanAlias(value){return (typeof value==='string'?value.slice(0,32).replace(/[^a-z0-9 _-]/gi,'').trim().slice(0,18):'')||'Player';}
 function cleanPose(m){
  if(typeof m.zone!=='string'||!publicZones.has(m.zone)&&m.zone!=='private')return null;
- if(m.zone==='private')return {zone:'private',x:0,y:0,z:0,yaw:0,grounded:true,moving:false,rest:''};
- if(![m.x,m.y,m.z,m.yaw].every(Number.isFinite)||Math.abs(m.x)>240||Math.abs(m.z)>240||m.y<(m.zone==='reef'?-22:-10)||m.y>25||Math.abs(m.yaw)>Math.PI*2)return null;
- return {zone:m.zone,x:m.x,y:m.y,z:m.z,yaw:m.yaw,moving:m.moving===true,grounded:m.grounded===true,rest:m.rest==='sit'&&m.moving!==true&&Math.abs(m.y)<1.5&&['bank','vet','salon','store','cafe','library'].includes(m.zone)?'sit':''};
+ if(m.zone==='private')return {zone:'private',x:0,y:0,z:0,yaw:0,grounded:true,moving:false,rest:'',glide:null};
+ const skyhill=m.zone==='skyhill';
+ if(![m.x,m.y,m.z,m.yaw].every(Number.isFinite)||Math.abs(m.x)>240||Math.abs(m.z)>240||m.y<(skyhill?-4:m.zone==='reef'?-22:-10)||m.y>(skyhill?42:25)||Math.abs(m.yaw)>Math.PI*2)return null;
+ // Match the Godot Skyhill presence contract; never forward its fields in other zones.
+ const glide=skyhill&&Array.isArray(m.glide)&&m.glide.length===2&&m.glide.every(Number.isFinite)&&Math.abs(m.glide[0])<=.7&&Math.abs(m.glide[1])<=1.6?m.glide:null;
+ const maySit=skyhill?!glide&&m.grounded===true&&Math.abs(m.x)<=6.25&&m.y>=23&&m.y<=24.2&&m.z>=10.5&&m.z<=21.5:Math.abs(m.y)<1.5&&['bank','vet','salon','store','cafe','library'].includes(m.zone);
+ return {zone:m.zone,x:m.x,y:m.y,z:m.z,yaw:m.yaw,moving:m.moving===true,grounded:m.grounded===true,rest:m.rest==='sit'&&m.moving!==true&&maySit?'sit':'',glide};
 }
 
 export async function startLocalServer({source,port=24862,origins=[],webRoot=null,accountsDir=null,seedAccounts=[],chatEnabled=false,enableWeather=false,enableHomeVisits=false,enableHideSeek=false,enablePaintballLobbyTransport=false,paintballWorker=null,parentDeskFile=null,deskClock=Date.now,privateHttpsOrigin=null,log=()=>{}}){
@@ -182,7 +186,7 @@ export async function startLocalServer({source,port=24862,origins=[],webRoot=nul
     if(invite){q.hideSeekOpenInvite=invite.id;send(q.ws,invite);}
    }
    const presence=hideSeek?.enrolled(q)?baselinePresence.map((p,i)=>({...p,place:hideSeek.presencePlace(q,all[i],p.place)})):baselinePresence;
-   const players=q.zone==='private'?[]:all.filter(p=>p!==q&&p.zone===q.zone&&(!hideSeek||hideSeek.visible(q,p))).map(p=>({id:p.profile.id,alias:p.profile.username,...(accounts?{character:character(p.profile),companionSpecies:pets.companion(p.profile)}:{}),...(fishing&&p.zone==='beach'?{fishingEquipped:fishing.visual(p).equipped,fishingCast:fishing.visual(p).cast}:{}),zone:p.zone,x:p.x,y:p.y,z:p.z,yaw:p.yaw,moving:p.moving,grounded:p.grounded,...(p.zone==='town'&&p.vehicleSeat?{vehicleSeat:p.vehicleSeat}:{}),rest:p.rest??''}));
+   const players=q.zone==='private'?[]:all.filter(p=>p!==q&&p.zone===q.zone&&(!hideSeek||hideSeek.visible(q,p))).map(p=>({id:p.profile.id,alias:p.profile.username,...(accounts?{character:character(p.profile),companionSpecies:pets.companion(p.profile)}:{}),...(fishing&&p.zone==='beach'?{fishingEquipped:fishing.visual(p).equipped,fishingCast:fishing.visual(p).cast}:{}),zone:p.zone,x:p.x,y:p.y,z:p.z,yaw:p.yaw,moving:p.moving,grounded:p.grounded,...(p.zone==='town'&&p.vehicleSeat?{vehicleSeat:p.vehicleSeat}:{}),rest:p.rest??'',...(p.zone==='skyhill'&&p.glide?{glide:p.glide}:{})}));
    const homeScene=homeVisits&&q.zone==='private'?homeVisits.snapshot(q,now):null;
    send(q.ws,{type:'world',zone:q.zone,presence,players,...(hideSeek?{hideSeek:hideSeek.view(q)}:{}),...(homeScene?{homeScene}:{}),...(homeExteriors&&q.zone==='town'?{homeExteriors}:{}),...(townRides&&q.zone==='town'?{playground:{active:townRides,self:playground.own(q)}}:{}),...(fishPopulation&&q.zone==='beach'?{serverTime:now,fishPopulation,fishingVisual:fishing.visual(q)}:{}),...(yards&&q.zone==='town'?{yards:yards.town()}:{}),chatEnabled:chat.available(q),...(environment&&q.zone==='town'?{environment}:{}),...(vehicleWorld&&q.zone==='town'?{vehicles:vehicleWorld.view(q)}:{})});
   }
