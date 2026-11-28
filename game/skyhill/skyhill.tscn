@@ -35,7 +35,7 @@
 [ext_resource type="Script" path="res://game/skyhill/wind_field.gd" id="wind"]
 
 [sub_resource type="BoxShape3D" id="FlightBounds"]
-size = Vector3(323, 1, 280)
+size = Vector3(343, 1, 280)
 
 [sub_resource type="CylinderShape3D" id="WestLift"]
 height = 74.0
@@ -164,7 +164,7 @@ monitorable = false
 shape = SubResource("WestLift")
 
 [node name="FlightBounds" type="Area3D" parent="Course"]
-position = Vector3(56.5, 0, -75)
+position = Vector3(46.5, 0, -75)
 collision_layer = 0
 collision_mask = 0
 monitoring = false

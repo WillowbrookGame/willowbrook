@@ -26,6 +26,7 @@ func _run() -> void:
 	var west: Node3D = level.west_lift
 	var falls: Node3D = level.lift_zone
 	var meadow: Node3D = level.meadow
+	_check(level._inside_flight_boundary(Vector3(-118.0,52.0,-112.0)), "Leave turning room beyond the west ridge lift")
 	if _seek(falls.global_position, 8.0, 10.0, INF):
 		for lap in 4:
 			if not _seek(east.global_position, 25.0, 14.0, INF):
