@@ -127,10 +127,14 @@ func lan(role: String, path: String, port: int) -> void:
 		var invite := FileAccess.open(path,FileAccess.WRITE)
 		invite.store_string(net.invite_code())
 		invite.close()
-		check(await until(func(): return any_visitor(func(row): return row.get("glide") is Array and row.position.y>30.0)),"Deck host sees the airborne guest above old cap")
-		check(await until(func(): return any_visitor(func(row): return row.get("glide") is Array and row.grounded and row.position.z < -100)),"Deck host sees guest land in meadow")
-		check(await until(func(): return net.rows.is_empty() and net._ghosts.is_empty() and net.roster.size()==2),"Guest returning to Town removes only their Skyhill presence")
-		check(await until(func(): return any_visitor(func(row): return not row.has("glide"))),"Guest revisits without stale glider")
+		if not await observed(path, ".climb", func(): return any_visitor(func(row): return row.get("glide") is Array and row.position.y>30.0), "Deck host sees the airborne guest above old cap"):
+			return
+		if not await observed(path, ".meadow", func(): return any_visitor(func(row): return row.get("glide") is Array and row.grounded and row.position.z < -100), "Deck host sees guest land in meadow"):
+			return
+		if not await observed(path, ".town", func(): return net.rows.is_empty() and net._ghosts.is_empty() and net.roster.any(func(row): return row.alias=="Pilot guest" and row.place=="In town"), "Guest in Town stays connected but disappears from Skyhill"):
+			return
+		if not await observed(path, ".revisit", func(): return any_visitor(func(row): return not row.has("glide")), "Guest revisits without stale glider"):
+			return
 		check(await until(func(): return net.roster.size()==1 and net._ghosts.is_empty()),"Disconnect removes guest and view")
 	else:
 		check(await until(func(): return FileAccess.file_exists(path) and FileAccess.get_file_as_string(path).length()==12),"Host invite is ready")
@@ -141,22 +145,40 @@ func lan(role: String, path: String, port: int) -> void:
 		park._paused=true
 		park.flight.position=Vector3(23,34,-33)
 		park._glider_pose()
-		await create_timer(1.3).timeout
-		check(park.network_skyhill_pose().position.y > 30.0,"Guest sends a held high flight pose")
+		if not await acknowledged(path, ".climb"):
+			return
 		park._land(Vector3(0,0,-125))
 		park._paused=false
-		await create_timer(1.8).timeout
+		if not await acknowledged(path, ".meadow"):
+			return
 		park._on_deck()
 		park._return_to_town()
 		await scene_changed
 		check(net.zone=="town" and net.admitted,"Guest stays connected on Town return")
-		await create_timer(1.0).timeout
+		if not await acknowledged(path, ".town"):
+			return
 		LINK.enter(self,"female-a")
 		await scene_changed
 		check(await until(func(): return any_visitor(func(row): return not row.has("glide"))),"Guest sees host again after re-entry")
-		await create_timer(1.0).timeout
+		if not await acknowledged(path, ".revisit"):
+			return
 		net.leave_session()
 		await create_timer(.5).timeout
+
+# Wait for the observer, not a fixed delay that can expire during a busy build.
+func observed(path: String, suffix: String, predicate: Callable, message: String) -> bool:
+	var ok := await until(predicate, 18.0)
+	check(ok,message + ("; rows=%s roster=%s" % [net.rows,net.roster] if not ok else ""))
+	if ok:
+		var receipt := FileAccess.open(path+suffix,FileAccess.WRITE)
+		receipt.store_8(1)
+		receipt.close()
+	return ok
+
+func acknowledged(path: String, suffix: String) -> bool:
+	var ok := await until(func(): return FileAccess.file_exists(path+suffix),20.0)
+	check(ok,"Host did not observe %s. Local zone=%s, pose=%s" % [suffix,net.zone,net._presence_sample()])
+	return ok
 
 func any_visitor(predicate: Callable) -> bool:
 	return net.rows.values().any(predicate)

@@ -286,9 +286,15 @@ func _join_reply(accepted: bool, assigned_name: String) -> void:
 
 
 @rpc("any_peer", "call_remote", "unreliable_ordered", 1)
-func _pose(candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: bool, details: Dictionary = {}) -> void:
+func _pose(candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: bool) -> void:
+	if hosting and candidate != SKYHILL.ZONE:
+		_apply_pose(multiplayer.get_remote_sender_id(), candidate, pos, yaw, moving, grounded)
+
+
+@rpc("any_peer", "call_remote", "unreliable_ordered", 1)
+func _skyhill_pose(pos: Vector3, yaw: float, moving: bool, grounded: bool, details: Dictionary) -> void:
 	if hosting:
-		_apply_pose(multiplayer.get_remote_sender_id(), candidate, pos, yaw, moving, grounded, details)
+		_apply_pose(multiplayer.get_remote_sender_id(), SKYHILL.ZONE, pos, yaw, moving, grounded, details)
 
 
 func _apply_pose(id: int, candidate: String, pos: Vector3, yaw: float, moving: bool, grounded: bool, details: Dictionary = {}) -> void:
@@ -399,7 +405,7 @@ func _process(delta: float) -> void:
 			if hosting:
 				_apply_pose(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded, sample)
 			elif zone == SKYHILL.ZONE:
-				_pose.rpc_id(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded, sample)
+				_skyhill_pose.rpc_id(1, sample.position, sample.yaw, sample.moving, sample.grounded, sample)
 			else:
 				# Leave the existing wire shape intact outside the new zone.
 				_pose.rpc_id(1, zone, sample.position, sample.yaw, sample.moving, sample.grounded)
