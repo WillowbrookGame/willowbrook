@@ -334,6 +334,222 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, -17.4, -15)
 transform = Transform3D(0.8708834, 0, 0.89669514, 0, 1.25, 0, -0.89669514, 0, 0.8708834, 0, 0, 0)
 metadata/art_source = "rock_smallA.glb"
 
+[node name="Activities" type="Node3D" parent="."]
+
+[node name="DiverSpawn" type="Marker3D" parent="Activities"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3, 12)
+
+[node name="MusicalRings" type="Node3D" parent="Activities"]
+
+[node name="Ring01" type="Marker3D" parent="Activities/MusicalRings"]
+transform = Transform3D(0.988771078, 0, 0.149438132, 0, 1, 0, -0.149438132, 0, 0.988771078, 3.6, -4.0, 9.0)
+
+[node name="Ring02" type="Marker3D" parent="Activities/MusicalRings"]
+transform = Transform3D(0.939372713, 0, -0.342897807, 0, 1, 0, 0.342897807, 0, 0.939372713, 4.5, -5.2, 4.2)
+
+[node name="Ring03" type="Marker3D" parent="Activities/MusicalRings"]
+transform = Transform3D(0.939372713, 0, -0.342897807, 0, 1, 0, 0.342897807, 0, 0.939372713, 1.8, -6.8, -0.5)
+
+[node name="Ring04" type="Marker3D" parent="Activities/MusicalRings"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 0.0, -8.0, -5.7)
+
+[node name="Ring05" type="Marker3D" parent="Activities/MusicalRings"]
+transform = Transform3D(0.900447102, 0, 0.434965534, 0, 1, 0, -0.434965534, 0, 0.900447102, -4.5, -10.5, -10.0)
+
+[node name="Ring06" type="Marker3D" parent="Activities/MusicalRings"]
+transform = Transform3D(0.939372713, 0, -0.342897807, 0, 1, 0, 0.342897807, 0, 0.939372713, -3.0, -13.2, -15.5)
+
+[node name="Ring07" type="Marker3D" parent="Activities/MusicalRings"]
+transform = Transform3D(0.659983146, 0, -0.751280405, 0, 1, 0, 0.751280405, 0, 0.659983146, 1.5, -14.0, -18.5)
+
+[node name="Ring08" type="Marker3D" parent="Activities/MusicalRings"]
+transform = Transform3D(0.453596121, 0, -0.89120736, 0, 1, 0, 0.89120736, 0, 0.453596121, 6.5, -13.2, -21.0)
+
+[node name="BubbleGeysers" type="Node3D" parent="Activities"]
+
+[node name="wreck_center_geyser" type="Marker3D" parent="Activities/BubbleGeysers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, -17.4, -18.5)
+
+[node name="Top" type="Marker3D" parent="Activities/BubbleGeysers/wreck_center_geyser"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 13.4, 0)
+
+[node name="wreck_east_geyser" type="Marker3D" parent="Activities/BubbleGeysers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, -17.4, -20.5)
+
+[node name="Top" type="Marker3D" parent="Activities/BubbleGeysers/wreck_east_geyser"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12.9, 0)
+
+[node name="overhang_geyser" type="Marker3D" parent="Activities/BubbleGeysers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5, -17.4, -19.5)
+
+[node name="Top" type="Marker3D" parent="Activities/BubbleGeysers/overhang_geyser"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12.9, 0)
+
+[node name="TreasurePools" type="Node3D" parent="Activities"]
+
+[node name="SunbeamShallows" type="Node3D" parent="Activities/TreasurePools"]
+metadata/pick = 1
+
+[node name="sunbeam_pearl" type="Marker3D" parent="Activities/TreasurePools/SunbeamShallows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -3.4, 7.6)
+metadata/title = "Sunbeam Pearl"
+metadata/color = Color(1, 0.952941176, 0.690196078, 1)
+
+[node name="sunbeam_west" type="Marker3D" parent="Activities/TreasurePools/SunbeamShallows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, -3.6, 8.2)
+metadata/title = "Sunbeam Pearl"
+metadata/color = Color(1, 0.952941176, 0.690196078, 1)
+
+[node name="sunbeam_east" type="Marker3D" parent="Activities/TreasurePools/SunbeamShallows"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, -3.5, 8.4)
+metadata/title = "Sunbeam Pearl"
+metadata/color = Color(1, 0.952941176, 0.690196078, 1)
+
+[node name="FanGarden" type="Node3D" parent="Activities/TreasurePools"]
+metadata/pick = 1
+
+[node name="fan_west_shallows" type="Marker3D" parent="Activities/TreasurePools/FanGarden"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.6, -6.2, 3.2)
+metadata/title = "Fan Garden Shell"
+metadata/color = Color(1, 0.619607843, 0.733333333, 1)
+
+[node name="fan_east_shallows" type="Marker3D" parent="Activities/TreasurePools/FanGarden"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.8, -5.8, 4.4)
+metadata/title = "Fan Garden Shell"
+metadata/color = Color(1, 0.619607843, 0.733333333, 1)
+
+[node name="fan_west_deep" type="Marker3D" parent="Activities/TreasurePools/FanGarden"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.2, -9.2, -1.6)
+metadata/title = "Fan Garden Shell"
+metadata/color = Color(1, 0.619607843, 0.733333333, 1)
+
+[node name="sponge_east" type="Marker3D" parent="Activities/TreasurePools/FanGarden"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.6, -10.2, -3.2)
+metadata/title = "Sponge Pearl"
+metadata/color = Color(1, 0.619607843, 0.733333333, 1)
+
+[node name="CoralGate" type="Node3D" parent="Activities/TreasurePools"]
+metadata/pick = 1
+
+[node name="arch_crystal" type="Marker3D" parent="Activities/TreasurePools/CoralGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -8.3, -5.7)
+metadata/title = "Coral Gate Crystal"
+metadata/color = Color(0.482352941, 0.945098039, 1, 1)
+
+[node name="gate_fan_east" type="Marker3D" parent="Activities/TreasurePools/CoralGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.4, -11.4, -6.4)
+metadata/title = "Coral Gate Crystal"
+metadata/color = Color(0.482352941, 0.945098039, 1, 1)
+
+[node name="gate_west_rock" type="Marker3D" parent="Activities/TreasurePools/CoralGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.6, -14.2, -11.6)
+metadata/title = "Coral Gate Crystal"
+metadata/color = Color(0.482352941, 0.945098039, 1, 1)
+
+[node name="BluewaterWreck" type="Node3D" parent="Activities/TreasurePools"]
+metadata/pick = 2
+
+[node name="wing_jewel" type="Marker3D" parent="Activities/TreasurePools/BluewaterWreck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, -15.4, -22.2)
+metadata/title = "Sunken Wing Jewel"
+metadata/color = Color(0.552941176, 1, 0.690196078, 1)
+
+[node name="wreck_compass" type="Marker3D" parent="Activities/TreasurePools/BluewaterWreck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, -14.2, -17.2)
+metadata/title = "Cockpit Compass"
+metadata/color = Color(1, 0.819607843, 0.4, 1)
+
+[node name="east_deep_rock" type="Marker3D" parent="Activities/TreasurePools/BluewaterWreck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.8, -15.4, -15.4)
+metadata/title = "Deep Reef Relic"
+metadata/color = Color(1, 0.819607843, 0.4, 1)
+
+[node name="east_overhang_gem" type="Marker3D" parent="Activities/TreasurePools/BluewaterWreck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.4, -15.2, -22.4)
+metadata/title = "Bluewater Gem"
+metadata/color = Color(0.552941176, 1, 0.690196078, 1)
+
+[node name="deep_wall_locket" type="Marker3D" parent="Activities/TreasurePools/BluewaterWreck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17.5, -15.0, -21.0)
+metadata/title = "Sunken Locket"
+metadata/color = Color(1, 0.819607843, 0.4, 1)
+
+[node name="BluewaterOverhang" type="Node3D" parent="Activities/TreasurePools"]
+metadata/pick = 1
+
+[node name="overhang_star" type="Marker3D" parent="Activities/TreasurePools/BluewaterOverhang"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.5, -14.8, -20.5)
+metadata/title = "Overhang Star"
+metadata/color = Color(0.784313725, 0.71372549, 1, 1)
+
+[node name="deep_sponge_star" type="Marker3D" parent="Activities/TreasurePools/BluewaterOverhang"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.2, -15.2, -19.8)
+metadata/title = "Overhang Star"
+metadata/color = Color(0.784313725, 0.71372549, 1, 1)
+
+[node name="west_corner_star" type="Marker3D" parent="Activities/TreasurePools/BluewaterOverhang"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.6, -15.0, -20.6)
+metadata/title = "Overhang Star"
+metadata/color = Color(0.784313725, 0.71372549, 1, 1)
+
+[node name="WildlifeLanes" type="Node3D" parent="Activities"]
+
+[node name="Clownfish" type="Marker3D" parent="Activities/WildlifeLanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -3.35, 13)
+metadata/count = 5
+metadata/radius = 3.5
+metadata/scale = 0.23
+metadata/rate = 0.33
+
+[node name="BlueTang" type="Marker3D" parent="Activities/WildlifeLanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, -3.45, 12)
+metadata/count = 4
+metadata/radius = 4.1
+metadata/scale = 0.22
+metadata/rate = 0.31
+
+[node name="ButterflyFish" type="Marker3D" parent="Activities/WildlifeLanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, -5.3, 1.0)
+metadata/count = 5
+metadata/radius = 3.7
+metadata/scale = 0.24
+metadata/rate = 0.29
+
+[node name="CoralGrouper" type="Marker3D" parent="Activities/WildlifeLanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, -6.0, 0)
+metadata/count = 3
+metadata/radius = 4.1
+metadata/scale = 0.28
+metadata/rate = 0.31
+
+[node name="ParrotFish" type="Marker3D" parent="Activities/WildlifeLanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, -10.8, -14.5)
+metadata/count = 4
+metadata/radius = 4.5
+metadata/scale = 0.29
+metadata/rate = 0.26
+
+[node name="Tuna" type="Marker3D" parent="Activities/WildlifeLanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, -9.8, -19)
+metadata/count = 3
+metadata/radius = 5.2
+metadata/scale = 0.36
+metadata/rate = 0.26
+
+[node name="Shark" type="Marker3D" parent="Activities/WildlifeLanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0, -10.5, -18.0)
+metadata/radius = 8.5
+metadata/scale = 0.72
+metadata/rate = 0.14
+metadata/phase = 0.4
+
+[node name="Sunfish" type="Marker3D" parent="Activities/WildlifeLanes"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.5, -11.8, -17.5)
+metadata/radius = 7.0
+metadata/scale = 0.68
+metadata/rate = 0.12
+metadata/phase = 2.6
+
 [editable path="Seabed/Shallows/Model"]
 [editable path="Seabed/Slope/Model"]
 [editable path="Seabed/DeepSand/Model"]

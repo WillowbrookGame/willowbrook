@@ -1,5 +1,4 @@
 extends Node3D
-const LAYOUT := preload("res://game/scuba/reef_layout.tscn")
 const FISH:="res://game/fish_art/"
 const SHALLOW_BG := Color(0.08, 0.48, 0.56, 1.0)
 const DEEP_BG := Color(0.03, 0.16, 0.30, 1.0)
@@ -17,24 +16,23 @@ const HEAD_AXIS:=Vector3.BACK
 const BW:=.76
 
 func _ready() -> void:
-	var layout := LAYOUT.instantiate() as Node3D
-	add_child(layout)
+	var layout := $ReefLayout as Node3D
 	_disable_shadows(layout)
 	var world_env := layout.get_node_or_null("UnderwaterEnvironment") as WorldEnvironment
 	if world_env != null and world_env.environment != null:
 		_env = world_env.environment.duplicate() as Environment
 		world_env.environment = _env
 	_sun = layout.get_node_or_null("Sunlight") as DirectionalLight3D
-	# Authored nearby landmarks frame the schools; their lanes are in open water.
-	_school("Clownfish",Vector3(-6,-3.35,13),5,3.5,.23,.33)
-	_school("BlueTang",Vector3(6.5,-3.45,12),4,4.1,.22,.31)
-	_school("ButterflyFish",Vector3(-6,-5.3,1.0),5,3.7,.24,.29)
-	_school("CoralGrouper",Vector3(7.5,-6.0,0),3,4.1,.28,.31)
-	_school("ParrotFish",Vector3(-11,-10.8,-14.5),4,4.5,.29,.26)
-	_school("Tuna",Vector3(11,-9.8,-19),3,5.2,.36,.26)
-	# Two slow, gentle deep-water visitors cruising high above the wreck and overhang.
-	_visitor("Shark",Vector3(2.0,-10.5,-18.0),8.5,.72,.14,0.4)
-	_visitor("Sunfish",Vector3(-13.5,-11.8,-17.5),7.0,.68,.12,2.6)
+	# Lane centers and sizes are authored; the schools and visitors still swim at runtime.
+	for marker: Marker3D in layout.get_node("Activities/WildlifeLanes").find_children("*", "Marker3D", false):
+		var origin := to_local(marker.global_position)
+		var radius := float(marker.get_meta("radius"))
+		var size := float(marker.get_meta("scale"))
+		var rate := float(marker.get_meta("rate"))
+		if marker.has_meta("count"):
+			_school(String(marker.name), origin, int(marker.get_meta("count")), radius, size, rate)
+		else:
+			_visitor(String(marker.name), origin, radius, size, rate, float(marker.get_meta("phase")))
 	update_depth_mood(-3.0)
 	_update_fish()
 

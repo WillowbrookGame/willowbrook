@@ -2,7 +2,6 @@ extends Node3D
 const DIVER_VIEW=preload("res://game/scuba/diver_presentation.gd")
 const BUBBLES=preload("res://game/scuba/audio/scuba-bubbles.mp3")
 const DIVER=preload("res://game/scuba/diver.gd")
-const REEF_ART=preload("res://game/scuba/reef_art.gd")
 const REEF_TREASURES=preload("res://game/scuba/reef_treasures.gd")
 const REEF_RINGS=preload("res://game/scuba/reef_rings.gd")
 const REEF_GEYSERS=preload("res://game/scuba/reef_geysers.gd")
@@ -14,7 +13,6 @@ const ROUTER=preload("res://game/touch_router.gd")
 const GAMEPAD=preload("res://game/gamepad_state.gd")
 const AVATARS=preload("res://game/avatars/catalog.gd")
 const FIT=preload("res://game/hud_fit.gd")
-const SPAWN:=Vector3(0,-3,12)
 const EXTENT:=Vector2(29,26)
 const TOP:=-1.65
 const SPEED:=5.6
@@ -42,7 +40,8 @@ var _reef_photos: Array[String]=[]
 var depth: Label
 var activity_counts: Label
 var treasure_banner: Label
-var art: Node3D
+var spawn_position: Vector3
+@onready var art: Node3D = $ReefArt
 var treasures: Node3D
 var rings: Node3D
 var geysers: Node3D
@@ -63,19 +62,22 @@ var _bubbles: AudioStreamPlayer
 var _vertical_touches: Dictionary={}
 
 func _ready() -> void:
-	art=REEF_ART.new()
-	art.name="ReefArt"
-	add_child(art)
+	var activities := $ReefArt/ReefLayout/Activities
+	var spawn_marker := activities.get_node("DiverSpawn") as Marker3D
+	spawn_position=to_local(spawn_marker.global_position)
 	treasures=REEF_TREASURES.new()
 	treasures.name="ReefTreasures"
+	treasures.placements=activities.get_node("TreasurePools")
 	add_child(treasures)
 	treasures.treasure_found.connect(_on_treasure_found)
 	rings=REEF_RINGS.new()
 	rings.name="ReefRings"
+	rings.placements=activities.get_node("MusicalRings")
 	add_child(rings)
 	rings.ring_passed.connect(_on_ring_passed)
 	geysers=REEF_GEYSERS.new()
 	geysers.name="ReefGeysers"
+	geysers.placements=activities.get_node("BubbleGeysers")
 	add_child(geysers)
 	_profile=REEF_PHOTOS.resolve_profile(get_tree())
 	var browser_account := REEF_PHOTOS.browser_session(get_tree())
@@ -88,7 +90,7 @@ func _ready() -> void:
 	diver.collision_layer=0
 	diver.collision_mask=1
 	add_child(diver)
-	diver.position=SPAWN
+	diver.position=spawn_position
 	var collision:=CollisionShape3D.new()
 	var capsule:=CapsuleShape3D.new()
 	capsule.radius=.32
