@@ -169,12 +169,15 @@ def cues():
 
 def water():
     m=Mesh()
+    def water_point(k,l):
+        t=k/9
+        return (3.12-2.4*t-1.47*t*t+.10*math.sin(l*1.8+k*.9),9.08-17.51*t,(l/8-.5)*(5.1+2*t)+.16*math.sin(k+l))
+    for j in range(8):
+        a,b=water_point(0,j),water_point(0,j+1)
+        m.quad(a,b,(5.75,9.07,b[2]*.92),(5.75,9.07,a[2]*.92),"68b9b9",(0,1,0))
     for i in range(9):
         for j in range(8):
-            def pt(k,l):
-                t=k/9
-                return (3.35-4.1*t*t+.18*math.sin(l*1.8+k*.9), .85+8.0-17.28*t, (l/8-.5)*(5.1+2.0*t)+.16*math.sin(k+l))
-            m.quad(pt(i,j),pt(i,j+1),pt(i+1,j+1),pt(i+1,j),
+            m.quad(water_point(i,j),water_point(i,j+1),water_point(i+1,j+1),water_point(i+1,j),
                    rng.choice(("57b7bb","8ddce0","a8e6df","73ccd5","65c6ca")),(-1,0,0))
     m.save("cascade-water",double=True,emission=[.035,.11,.12])
     m=Mesh()
