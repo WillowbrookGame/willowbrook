@@ -66,6 +66,17 @@ size = Vector3(19, 13.5, 12)
 [sub_resource type="BoxShape3D" id="Shape_ScenicRidgeTop"]
 size = Vector3(19, 0.45, 12)
 
+[sub_resource type="StyleBoxFlat" id="Style_WaterfallGuide"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.04, 0.19, 0.22, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [node name="Skyhill" type="Node3D"]
 script = ExtResource("logic")
 
@@ -533,6 +544,19 @@ theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 16
 text = "A / D or touch stick to steer"
 autowrap_mode = 3
+
+[node name="WaterfallGuide" type="PanelContainer" parent="HUD"]
+visible = false
+custom_minimum_size = Vector2(146, 0)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_WaterfallGuide")
+
+[node name="Caption" type="Label" parent="HUD/WaterfallGuide"]
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.79, 0.99, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Waterfall lift"
+horizontal_alignment = 1
 
 [node name="Action" type="Button" parent="HUD"]
 anchors_preset = 3

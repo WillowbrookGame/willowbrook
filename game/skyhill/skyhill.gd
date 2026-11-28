@@ -14,6 +14,8 @@ const GROUND_CLEARANCE := 0.85
 @onready var glider: Node3D = $Glider
 @onready var camera: Camera3D = $Camera3D
 @onready var hud: CanvasLayer = $HUD
+@onready var guide: PanelContainer = $HUD/WaterfallGuide
+@onready var guide_label: Label = $HUD/WaterfallGuide/Caption
 @onready var prompt: Label = $HUD/Top/Instructions
 @onready var action: Button = $HUD/Action
 @onready var stick: Control = $HUD/Stick
@@ -68,7 +70,8 @@ func _input(event: InputEvent) -> void:
 
 func _set_touch(point: Vector2) -> void:
 	var center := stick.get_global_rect().get_center()
-	touch_steer = clampf((point.x - center.x) / 40.0, -1.0, 1.0)
+	var travel := clampf((point.x - center.x) / 40.0, -1.0, 1.0)
+	touch_steer = signf(travel) * remap(maxf(absf(travel), 0.10), 0.10, 1.0, 0.0, 1.0)
 	knob.position.x = 38.0 + touch_steer * 35.0
 
 func _clear_stick() -> void:
@@ -87,12 +90,12 @@ func _on_deck() -> void:
 	flight.reset(launch.global_position, launch.global_rotation.y)
 	_glider_pose()
 	_camera_pose(1.0)
-	_set_hud("A / D or touch stick to steer", "Launch (E)")
+	_set_hud("Drag the stick to steer." if _touch_seen else "A / D or arrow keys to steer.", "Launch" if _touch_seen else "Launch (E)")
 
 func _launch() -> void:
 	state = State.FLYING
 	flight.reset(launch.global_position, launch.global_rotation.y)
-	_set_hud("Follow the windsocks to the meadow, or catch the rising wind.", "Return to deck (E)")
+	_set_hud("Glide straight to land, or steer right toward the waterfall for a lift.", "Return to deck (E)")
 
 func _land(where: Vector3) -> void:
 	state = State.LANDING
@@ -180,6 +183,35 @@ func _process(delta: float) -> void:
 		marker.position.y = initial + sin(_elapsed * 2.2 + initial * 0.3) * 0.65
 	$Scenery/Waterfall/Foam.position.y = -7.35 + sin(_elapsed * 3.0) * 0.06
 	_camera_pose(1.0 - exp(-5.0 * delta))
+	_update_route_guide()
+
+# Anchor to the course marker, not to fixed screen pixels. Keep the guide clear
+# of the instructions and controls even if the waterfall is outside the view.
+func _update_route_guide() -> void:
+	var marker := lift_zone.global_position + Vector3.UP * 7.0
+	var ahead := (marker - flight.position).dot(Vector3.FORWARD.rotated(Vector3.UP, flight.heading))
+	var rising := state == State.FLYING and flight.lift > 0.10
+	guide.visible = (state == State.DECK or state == State.FLYING) and (rising or (ahead > 1.0 and not camera.is_position_behind(marker)))
+	if not guide.visible:
+		return
+	var screen := get_viewport().get_visible_rect().size
+	var projected := camera.unproject_position(marker) if not rising else Vector2(screen.x * 0.5, 104.0)
+	var outer := 14.0
+	var width := guide.custom_minimum_size.x
+	var caption := "Rising air!" if rising else "Waterfall lift"
+	if not rising and projected.x + width * 0.5 > screen.x - outer:
+		caption = "Waterfall lift >"
+	elif not rising and projected.x - width * 0.5 < outer:
+		caption = "< Waterfall lift"
+	if guide_label.text != caption:
+		guide_label.text = caption
+	var guide_size := guide.get_combined_minimum_size()
+	if guide.size != guide_size:
+		guide.size = guide_size
+	var x := clampf(projected.x - guide.size.x * 0.5, outer, maxf(outer, screen.x - guide.size.x - outer))
+	var top := prompt.get_global_rect().end.y + 12.0
+	var bottom := maxf(top, minf(stick.position.y, action.position.y) - guide.size.y - 8.0)
+	guide.position = Vector2(x, clampf(projected.y - guide.size.y * 0.5, top, bottom))
 
 func _glider_pose() -> void:
 	glider.global_position = flight.position

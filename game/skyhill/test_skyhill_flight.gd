@@ -118,17 +118,54 @@ func _run() -> void:
 		level._launch()
 		await process_frame
 		check(not level.stick.get_global_rect().intersects(level.action.get_global_rect()), "Touch stick and return overlap at %s" % view)
+		level._update_route_guide()
+		var guide_rect: Rect2 = level.guide.get_global_rect()
+		check(level.guide.visible, "Waterfall guide should appear ahead at %s" % view)
+		check(root.get_visible_rect().encloses(guide_rect), "Guide escapes viewport at %s" % view)
+		check(not guide_rect.intersects(level.prompt.get_global_rect()) and not guide_rect.intersects(level.stick.get_global_rect()) and not guide_rect.intersects(level.action.get_global_rect()), "Guide overlaps instructions or controls at %s" % view)
+		var lift_position: Vector3 = level.lift_zone.position
+		level._camera_pose(1.0)
+		for side in [-1.0, 1.0]:
+			level.lift_zone.position.x = 300.0 * side
+			level._update_route_guide()
+			var expected := "< Waterfall lift" if side < 0 else "Waterfall lift >"
+			check(level.guide.visible and level.guide_label.text == expected, "Offscreen cue should point toward the waterfall")
+			var edge_rect: Rect2 = level.guide.get_global_rect()
+			for _i in 5:
+				level._update_route_guide()
+			check(level.guide_label.text == expected and level.guide.get_global_rect().is_equal_approx(edge_rect), "Offscreen cue should stay steady on repeated updates")
+			check(root.get_visible_rect().encloses(edge_rect) and is_equal_approx(edge_rect.size.x, guide_rect.size.x), "Arrow variant should fit without changing guide width")
+		level.lift_zone.position = lift_position
+		level.flight.lift = 0.5
+		level._update_route_guide()
+		check(level.guide_label.text == "Rising air!", "Guide confirms caught lift")
+		level.flight.lift = 0.0
+		level.flight.heading = PI
+		level._update_route_guide()
+		check(not level.guide.visible, "Guide should hide after passing or turning away")
+		level.flight.heading = 0.0
 		var touch := InputEventScreenTouch.new()
 		touch.pressed = true
 		touch.index = 3
 		touch.position = level.stick.get_global_rect().get_center() + Vector2(25, 0)
 		level._input(touch)
 		check(level.touch_index == 3 and level.touch_steer > .5, "Touch steering did not accept press")
+		var drag := InputEventScreenDrag.new()
+		drag.position = level.stick.get_global_rect().get_center() + Vector2(-90, 0)
+		drag.index = 7
+		level._input(drag)
+		check(level.touch_steer > .5, "Second finger stole the steering stick")
+		drag.index = touch.index
+		level._input(drag)
+		check(level.touch_steer == -1.0, "Touch should track outside the stick")
+		drag.position = level.stick.get_global_rect().get_center() + Vector2(3.0, 0)
+		level._input(drag)
+		check(level.touch_steer == 0.0, "Stick should ignore minor center jitter")
 		touch.pressed = false
 		level._input(touch)
 		check(level.touch_index == -1 and level.touch_steer == 0, "Touch release did not clear steering")
 		level._on_deck()
 	if failures == 0:
-		print("PASS Skyhill: gentle steering, default and waterfall routes, landing runout, relaunch, return, bounds and responsive touch")
+		print("PASS Skyhill: gentle steering, default and waterfall routes, landing runout, relaunch, return, bounds, waterfall cues and responsive touch")
 	level.free()
 	quit(0 if failures == 0 else 1)
