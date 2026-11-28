@@ -45,7 +45,7 @@ class Mesh:
         self.tri(a,b,c,color,outside)
         self.tri(a,c,d,color2 or color,outside)
 
-    def save(self, name, *, double=False, emission=None):
+    def save(self, name, *, double=False, emission=None, collision=False):
         palette=sorted(set(self.c))
         uvs={color:(i+.5)/len(palette) for i,color in enumerate(palette)}
         raw = b"".join(struct.pack("<3f",*v) for table in (self.p,self.n) for v in table)
@@ -57,7 +57,7 @@ class Mesh:
             mat["emissiveFactor"]=emission
         doc={
             "asset":{"version":"2.0","generator":"Willowbrook Skyhill scenery"},
-            "scene":0, "scenes":[{"nodes":[0]}], "nodes":[{"name":name,"mesh":0}],
+            "scene":0, "scenes":[{"nodes":[0]}], "nodes":[{"name":name+("-col" if collision else ""),"mesh":0}],
             "meshes":[{"name":name,"primitives":[{"attributes":{"POSITION":0,"NORMAL":1,"TEXCOORD_0":2},"material":0}]}],
             "materials":[mat],"buffers":[{"byteLength":len(raw)+len(png)}],
             "images":[{"bufferView":3,"mimeType":"image/png"}],
@@ -100,7 +100,7 @@ def cliff(name,w,h,d,top=True):
         cap(m,levels[-1],h/2,STONE)
     m.save(name)
 
-def ground(name,w,d,y,palette,meadow=False):
+def ground(name,w,d,y,palette,meadow=False, *, save=True):
     m=Mesh()
     x_count, z_count = (12,14) if meadow else (15,16)
     grid=[]
@@ -117,7 +117,64 @@ def ground(name,w,d,y,palette,meadow=False):
             next_off=.55*math.sin((z+6)*.12)
             m.quad((-4+off,y+.008,z),(4+off,y+.008,z),(4+next_off,y+.008,z+6),(-4+next_off,y+.008,z+6),"a3b767",(0,1,0))
             m.quad((-.19,y+.016,z),(.19,y+.016,z),(.19,y+.016,z+2.9),(-.19,y+.016,z+2.9),"e4dda6",(0,1,0))
-    m.save(name)
+    if save:
+        m.save(name)
+
+def valley_landscape():
+    m = Mesh()
+    # Coordinates match the world course; the mesh origin remains on ValleyFloor.
+    # Keep the approach, windsock bases, waterfall pool, and touchdown lane level.
+    xs = [-132,-112,-94,-77,-63,-52,-46,-39,-30,-20,-10,0,10,20,30,39,46,52,63,77,94,112,132]
+    zs = [-225,-204,-190,-178.5,-166,-151,-135,-119,-103,-87,-71.5,-62,-52,-42,-32,-22,-12,0,15,32,54,75]
+    palette = ("72994f","72964d","77994f","69924b","6f984b")
+    high = ("507a40","5c8243","648947","567d42")
+    apron = ("89a753","87a451","89a653","86a451")
+    grid = []
+    for z in zs:
+        row = []
+        for x in xs:
+            # Low shoulders give the valley a gradual edge without raising either flight route.
+            shoulder = max(0.0, (abs(x)-51)/63)
+            fore = .58 + .26*math.sin(z*.030+x*.045) + .18*math.cos(z*.047)
+            height = shoulder**1.5 * max(.13,fore)*31
+            clearance = max(0.0,abs(x)-47.0, abs(z+125.0)-53.5)
+            blend = max(0.0, 1.0-clearance/13.0)
+            if abs(x)>59 or not -192<z<-64:
+                blend *= min(1.0, max(0.0, 1.0-(abs(x)-47)/16.0))
+            height=max(height, blend*.96)
+            # Align the creek's landing basin with the existing water level.
+            if 19<=x<=43 and -46<=z<=-19:
+                height=0.0
+            row.append((x, 2.5+height, z+63))
+        grid.append(row)
+    for j,z in enumerate(zs[:-1]):
+        for i,x in enumerate(xs[:-1]):
+            corners = (grid[j][i],grid[j+1][i],grid[j+1][i+1],grid[j][i+1])
+            elev = sum(v[1] for v in corners)/4
+            colors = high if elev>7 else apron if elev>2.95 and abs(x)<59 and z<-65 else palette
+            m.quad(*corners,rng.choice(colors),(0,1,0),rng.choice(colors))
+    m.save("valley-grass",collision=True)
+
+def creek_landscape():
+    m = Mesh()
+    # Flow leaves the existing plunge pool and curves into the near valley.
+    # Draw stones and reeds separately in Godot; the water asset remains movable.
+    controls=[(28,-28,3.6),(27,-21,2.5),(24,-13,2.2),(19,-5,2.2),
+              (16,3,2.0),(18,12,2.5),(20,22,3.4),(27,31,3.7),(33,44,4.2),(38,55,3.7)]
+    rows=[]
+    for i,(x,z,w) in enumerate(controls):
+        before=controls[max(0,i-1)]; after=controls[min(len(controls)-1,i+1)]
+        dx,dz=after[0]-before[0],after[1]-before[1]
+        length=math.hypot(dx,dz)
+        rows.append([(x+dz/length*w*a,y,z-dx/length*w*a)
+                     for a,y in [(-1.32,-.972),(-1,-.951),(-.58,-.939),(.56,-.939),(1,-.951),(1.32,-.972)]])
+    colors=[("b0a76b","acaa73"),("83bfab","75b6ac"),("62a9ac","68b0b1"),
+            ("78b9b0","69adad"),("afa36e","b7ac77")]
+    for i in range(len(rows)-1):
+        for j,palette in enumerate(colors):
+            m.quad(rows[i][j],rows[i][j+1],rows[i+1][j+1],rows[i+1][j],
+                   rng.choice(palette),(0,1,0),rng.choice(palette))
+    m.save("skyhill-creek")
 
 def box(m,x,y,z,w,h,d,col):
     for k,axis in enumerate(((1,0,0),(0,1,0),(0,0,1))):
@@ -211,7 +268,8 @@ def skyline():
     m.save("distant-ridges")
 
 if __name__ == "__main__":
-    ground("valley-grass",240,271,2.5,GRASS)
+    # Preserve the seed stream for existing meshes. The old valley is not exported.
+    ground("valley-grass",240,271,2.5,GRASS,save=False)
     ground("landing-field",94,107,.35,MEADOW,True)
     cliff("launch-bluff",27,26,26)
     cliff("west-cliffs",28,13,67)
@@ -221,3 +279,5 @@ if __name__ == "__main__":
     cues()
     water()
     skyline()
+    valley_landscape()
+    creek_landscape()
