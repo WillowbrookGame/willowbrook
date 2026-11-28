@@ -11,7 +11,7 @@ const COURSE_MASK := 1
 const POLE_MASK := 2
 const WING_OFFSET := Vector3(0.0, 0.65, 0.75)
 const CLIMB_ABOVE_LAUNCH := 4.0
-const KEY_HINT := "A / D or ← / → to steer. W to descend, S to climb."
+const KEY_HINT := "A/D or Left/Right to steer. W descends, S climbs."
 const TOUCH_HINT := "Drag left/right to steer, up to descend, down to climb."
 const ROUTE_HINT := "\nGlide straight to land, or head right for waterfall lift."
 
