@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://game/town_assets/tiny-playground/picnic_table.gltf" id="table"]
+[ext_resource type="PackedScene" path="res://game/town_assets/tiny-park/bench.gltf" id="bench"]
+
+[node name="Overlook" type="Node3D"]
+
+[node name="PicnicTable" parent="." instance=ExtResource("table")]
+position = Vector3(4.1, 0, -0.6)
+rotation_degrees = Vector3(0, 20, 0)
+scale = Vector3(1.8, 1.8, 1.8)
+
+[node name="Bench" parent="." instance=ExtResource("bench")]
+position = Vector3(-4.7, 0, -1.3)
+rotation_degrees = Vector3(0, 180, 0)
+scale = Vector3(1.8, 1.8, 1.8)

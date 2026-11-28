@@ -3,6 +3,7 @@ extends Node3D
 
 const FLIGHT := preload("res://game/skyhill/flight_model.gd")
 const AVATARS := preload("res://game/avatars/catalog.gd")
+const TOWN_LINK := preload("res://game/skyhill/town_link.gd")
 enum State { DECK, FLYING, LANDING, MEADOW, CRASHED }
 const GROUND_CLEARANCE := 0.85
 const CRASH_TUMBLE_TIME := 0.65
@@ -28,6 +29,7 @@ const ROUTE_HINT := "\nGlide straight to land, or head right for waterfall lift.
 @onready var guide_label: Label = $HUD/WaterfallGuide/Caption
 @onready var prompt: Label = $HUD/Top/Instructions
 @onready var action: Button = $HUD/Action
+@onready var town_return: Button = $HUD/TownReturn
 @onready var stick: Control = $HUD/Stick
 @onready var knob: ColorRect = $HUD/Stick/Knob
 
@@ -40,6 +42,8 @@ var _touch_seen := false
 var _was_in_lift := false
 var _cue: AudioStreamPlayer
 var _elapsed := 0.0
+var _town_visit := false
+var _returning_to_town := false
 var _crash_elapsed := 0.0
 var _crash_rotation := Vector3.ZERO
 var _crash_side := 1.0
@@ -57,9 +61,12 @@ var _document: JavaScriptObject
 var _visibility_callback: JavaScriptObject
 
 func _ready() -> void:
-	var rider := AVATARS.instantiate(AVATARS.DEFAULT)
+	var avatar := TOWN_LINK.take_arrival(get_tree())
+	_town_visit = not avatar.is_empty()
+	var rider := AVATARS.instantiate(avatar)
 	$Glider/RiderAnchor.add_child(rider)
 	action.pressed.connect(_action)
+	town_return.pressed.connect(_return_to_town)
 	_touch_seen = DisplayServer.is_touchscreen_available()
 	_cue = AudioStreamPlayer.new()
 	add_child(_cue)
@@ -88,9 +95,14 @@ func _visibility_changed(_arguments: Array) -> void:
 	_update_suspension()
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E:
+	if not event is InputEventKey or not event.pressed or event.echo:
+		return
+	if event.physical_keycode == KEY_E:
 		_action()
 		get_viewport().set_input_as_handled()
+	elif event.physical_keycode == KEY_R and town_return.visible:
+		get_viewport().set_input_as_handled()
+		_return_to_town()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
@@ -117,6 +129,7 @@ func _update_suspension() -> void:
 			prompt.text = "Flight paused. Resume when you are ready."
 			action.text = "Resume" if _touch_seen else "Resume (E)"
 	action.disabled = unavailable
+	town_return.disabled = unavailable
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.physical_keycode in FLIGHT_KEYS:
@@ -173,6 +186,17 @@ func _action() -> void:
 	match state:
 		State.DECK: _launch()
 		State.FLYING, State.LANDING, State.MEADOW, State.CRASHED: _on_deck()
+
+func _return_to_town() -> void:
+	if not _town_visit or _returning_to_town or _paused or _tab_hidden or _app_unfocused:
+		return
+	if state != State.DECK and state != State.MEADOW:
+		return
+	_returning_to_town = true
+	var result := TOWN_LINK.return_to_town(get_tree())
+	if result != OK:
+		_returning_to_town = false
+		push_error("Couldn't return to Town: %s" % error_string(result))
 
 func _on_deck() -> void:
 	state = State.DECK
@@ -243,6 +267,8 @@ func _set_hud(label_text: String, button_text: String) -> void:
 	_was_in_lift = false
 	prompt.text = label_text
 	action.text = button_text
+	town_return.visible = _town_visit and (state == State.DECK or state == State.MEADOW)
+	town_return.text = "Back to Town" if _touch_seen else "Back to Town (R)"
 	stick.visible = _touch_seen and state == State.FLYING
 
 func lift_at(point: Vector3) -> float:
@@ -377,7 +403,10 @@ func _update_route_guide() -> void:
 		guide.size = guide_size
 	var x := clampf(projected.x - guide.size.x * 0.5, outer, maxf(outer, screen.x - guide.size.x - outer))
 	var top := prompt.get_global_rect().end.y + 12.0
-	var bottom := maxf(top, minf(stick.position.y, action.position.y) - guide.size.y - 8.0)
+	var controls_top := minf(stick.position.y, action.position.y)
+	if town_return.visible:
+		controls_top = minf(controls_top, town_return.position.y)
+	var bottom := maxf(top, controls_top - guide.size.y - 8.0)
 	guide.position = Vector2(x, clampf(projected.y - guide.size.y * 0.5, top, bottom))
 
 func _glider_pose() -> void:

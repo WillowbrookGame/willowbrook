@@ -1,5 +1,5 @@
 # Skyhill Park: first flight
-Open game/skyhill/skyhill.tscn in Godot and run the current scene (F6). This prototype is standalone: Town, multiplayer, and the live game are unchanged.
+Open game/skyhill/skyhill.tscn in Godot and run the current scene (F6) for a standalone flight with the default avatar. Run the project (F5), then visit the trailhead east of Town's playground for the solo round trip with the current player's avatar. Multiplayer flight is not part of this pass.
 
 - Press E or choose Launch. The glider moves forward on its own. A/D or Left/Right bank it; W or Up lowers the nose to descend, and S or Down raises it to climb. On touch, drag the same stick left/right to bank, up to descend, or down to climb. Keep straight for the easy approach, or steer right toward the Waterfall lift marker and blue wind ribbons. Climbing with the controls is limited; the waterfall still lifts you higher.
 - A level meadow landing eases into its approach and coasts to a stop. Holding a steep dive or hard bank into touchdown, or hitting solid terrain, causes a brief tumble and sends you back to the deck without a penalty. Ease off the controls before touchdown. Press E or choose the on-screen button to return early. Leaving the course without hitting anything still returns you directly.
@@ -9,7 +9,10 @@ Open game/skyhill/skyhill.tscn in Godot and run the current scene (F6). This pro
 - Each route windsock instances `windsock.tscn`. Move the whole instance so its solid post and cap follow the visual; the fabric has no collision.
 - The soft glider shadow samples the existing terrain layer underneath, not the windsock layer. It is a visual cue only and uses a flat transparent mesh for the browser renderer.
 - Switching browser tabs or unfocusing the game pauses a flight, a landing, or a crash. Use Resume or E after returning, then press or touch the controls again. For browser QA, switch away mid-turn with a control held and verify that the glider stays put and the old input does not carry over. Reload the scene once and repeat.
+- In `game/town.tscn`, the `SkyhillTrailhead` instance owns its sign, interaction marker and Town return marker. Move the instance together, or edit those markers in `town_trailhead.tscn`; keep each marker on walkable ground and leave clear space around the return marker. In Skyhill, `Scenery/Overlook` is an editable bench and picnic arrangement. Walking around it and watching friends fly are later work.
+- Back to Town (button or R) is available on the deck and after a clean landing when arriving from Town. The flight controller and course collision stay in Skyhill; the small `town_link.gd` module passes the selected avatar and return intent without changing saves or requiring a new network zone.
 
 Automated check:
 
     godot --headless --path . --script res://game/skyhill/test_skyhill_flight.gd
+    godot --headless --path . --script res://game/skyhill/test_town_round_trip.gd

@@ -3,6 +3,7 @@ extends "res://game/map.gd"
 
 const ARENA := "res://game/arena.tscn"
 const TOWN_LAYOUT = preload("res://game/town_layout.gd")
+const SKYHILL_LINK := preload("res://game/skyhill/town_link.gd")
 
 
 var paintball_lobby_view: Node
@@ -55,11 +56,36 @@ func _build_town_features(hud: CanvasLayer) -> void:
 
 
 func _setup_zone_player() -> void:
+	if SKYHILL_LINK.take_return(get_tree()):
+		var arrival: Marker3D = $TownLayout/SkyhillTrailhead/TownReturn
+		player.global_position = arrival.global_position
+		look_yaw = arrival.global_rotation.y
+		player.rotation.y = look_yaw
+		return
 	if get_tree().has_meta("paintball_town_return"):
 		get_tree().remove_meta("paintball_town_return")
 		player.position = TOWN_ROUTES.ARENA_DOOR + Vector3(0,0.04,1.6)
 		look_yaw = PI
 		player.rotation.y = look_yaw
+
+func _zone_exit_prompt() -> String:
+	var point: Marker3D = $TownLayout/SkyhillTrailhead/InteractPoint
+	var local := point.to_local(player.global_position)
+	return "Visit Skyhill Park" if absf(local.y) <= 1.1 and Vector2(local.x, local.z).length() <= 2.4 else ""
+
+func _try_zone_exit() -> bool:
+	if _zone_exit_prompt().is_empty():
+		return false
+	var session := get_node_or_null("/root/WillowbrookBrowserSession" if OS.has_feature("web") else "/root/WillowbrookSession")
+	var tree := get_tree()
+	changing = true
+	var result := SKYHILL_LINK.enter(tree, arena_avatar.get_meta("avatar_id", ""))
+	if result != OK:
+		changing = false
+		push_error("Couldn't open Skyhill Park: %s" % error_string(result))
+	elif session != null:
+		session.suspend_zone_for(self)
+	return true
 
 
 func _try_door() -> void:
