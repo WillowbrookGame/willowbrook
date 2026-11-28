@@ -12,6 +12,12 @@ scale = Vector3(0.76, 0.76, 0.76)
 [node name="Nose" type="Marker3D" parent="Sail"]
 position = Vector3(0, 1.82, 1.6)
 
+[node name="LeftWingtip" type="Marker3D" parent="."]
+position = Vector3(-3.72, 0.60, 0.97)
+
+[node name="RightWingtip" type="Marker3D" parent="."]
+position = Vector3(3.72, 0.60, 0.97)
+
 [node name="RiderAnchor" type="Marker3D" parent="."]
 position = Vector3(0, -0.27, -0.20)
 rotation_degrees = Vector3(-60, 180, 0)

@@ -1,6 +1,7 @@
 extends Node3D
 ## Standalone first-flight prototype. Open skyhill.tscn and run current scene.
 
+const ATMOSPHERE := preload("res://game/skyhill/flight_atmosphere.gd")
 const GOALS := preload("res://game/skyhill/flight_goals.gd")
 const WIND := preload("res://game/skyhill/wind_field.gd")
 const FLIGHT := preload("res://game/skyhill/flight_model.gd")
@@ -27,6 +28,7 @@ const ROUTE_HINT := "\nFollow the teal rings to the meadow, or gold toward the l
 @onready var ridge_lift: WIND = $Course/RidgeLift
 @onready var west_lift: WIND = $Course/WestLift
 @onready var _wind_fields: Array[WIND] = [lift_zone, ridge_lift, west_lift]
+@onready var atmosphere: ATMOSPHERE = $Atmosphere
 @onready var goals: GOALS = $Course/FlightGoals
 @onready var landing_target: Marker3D = $Course/MeadowCenter/LandingTarget
 @onready var goal_status: Label = $HUD/Top/GoalStatus
@@ -162,6 +164,7 @@ func _update_suspension() -> void:
 	if not is_node_ready():
 		return
 	var unavailable := _app_unfocused or _tab_hidden
+	atmosphere.set_suspended(unavailable or _paused)
 	if unavailable:
 		_flight_keys.clear()
 		_clear_stick()
@@ -274,6 +277,7 @@ func _action() -> void:
 		return
 	if _paused:
 		_paused = false
+		atmosphere.set_suspended(false)
 		prompt.text = _pause_prompt
 		action.text = _pause_action
 		stick.visible = _touch_seen and state == State.FLYING
@@ -302,6 +306,7 @@ func _return_to_town() -> void:
 		push_error("Couldn't return to Town: %s" % error_string(result))
 
 func _on_deck() -> void:
+	atmosphere.reset_flight()
 	goals.reset_flight()
 	goal_status.hide()
 	_last_lift = null
@@ -316,6 +321,8 @@ func _on_deck() -> void:
 		_refresh_deck_hud()
 
 func _launch() -> void:
+	atmosphere.reset_flight()
+	atmosphere.play_cue("launch")
 	goals.reset_flight()
 	goal_status.hide()
 	state = State.FLYING
@@ -327,6 +334,7 @@ func _launch() -> void:
 
 func _land(where: Vector3) -> void:
 	state = State.LANDING
+	atmosphere.play_cue("touchdown")
 	var touchdown := Vector3(where.x, meadow.global_position.y + GROUND_CLEARANCE, where.z)
 	goals.score_touchdown(touchdown, landing_target.global_position)
 	var direction := Vector3.FORWARD.rotated(Vector3.UP, flight.heading)
@@ -350,6 +358,8 @@ func _land(where: Vector3) -> void:
 
 func _crash(at_rest: Vector3, message: String, normal := Vector3.UP) -> void:
 	state = State.CRASHED
+	atmosphere.play_cue("crash")
+	atmosphere.clear_trails()
 	goal_status.hide()
 	_crash_elapsed = 0.0
 	_crash_rotation = Vector3(flight.pitch, flight.heading, flight.bank)
@@ -521,6 +531,7 @@ func _process(delta: float) -> void:
 		field.animate_ribbons(_elapsed)
 	$Scenery/Waterfall/Foam.position.y = -7.35 + sin(_elapsed * 3.0) * 0.06
 	_camera_pose(1.0 - exp(-5.0 * delta))
+	atmosphere.tick(delta, state == State.FLYING, flight.speed, flight.bank, flight.lift)
 	_update_route_guide()
 
 func _flight_instructions() -> String:
